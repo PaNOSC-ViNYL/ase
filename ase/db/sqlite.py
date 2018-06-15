@@ -114,7 +114,6 @@ all_tables = ['systems', 'species', 'keys',
               'text_key_values', 'number_key_values']
 
 
-
 class SQLite3Database(Database, object):
     type = 'db'
     initialized = False
@@ -189,10 +188,9 @@ class SQLite3Database(Database, object):
 
         self.initialized = True
 
-
-    def _get_values(self, atoms, key_value_pairs={}, data={}, id=None):        
+    def _get_values(self, atoms, key_value_pairs={}, data={}, id=None):
         mtime = now()
-        
+
         if not isinstance(atoms, AtomsRow):
             row = AtomsRow(atoms)
             row.ctime = mtime
@@ -206,7 +204,7 @@ class SQLite3Database(Database, object):
                 constraints = encode(constraints)
         else:
             constraints = None
-            
+
         if self.type == 'postgresql':
             blob = functools.partial(_blob, pg=True)
         else:
@@ -238,7 +236,7 @@ class SQLite3Database(Database, object):
             data = row._data
         if not isinstance(data, basestring):
             data = encode(data)
-            
+
         values += (row.get('energy'),
                    row.get('free_energy'),
                    blob(row.get('forces')),
@@ -265,85 +263,13 @@ class SQLite3Database(Database, object):
         con = self.connection or self._connect()
         self._initialize(con)
         cur = con.cursor()
-
-        #if self.type == 'postgresql':
-        #    blob = functools.partial(_blob, pg=True)
-        #else:
-        #    blob = _blob
-
         text_key_values = []
         number_key_values = []
-
         if id:
             self._delete(cur, [id], ['keys', 'text_key_values',
                                      'number_key_values', 'species'])
-            
         values, count, key_value_pairs \
             = self._get_values(atoms, key_value_pairs, data, id)
-        """
-        if not isinstance(atoms, AtomsRow):
-            row = AtomsRow(atoms)
-            row.ctime = mtime
-            row.user = os.getenv('USER')
-        else:
-            row = atoms
-
-        if id:
-            self._delete(cur, [id], ['keys', 'text_key_values',
-                                     'number_key_values', 'species'])
-        else:
-            if not key_value_pairs:
-                key_value_pairs = row.key_value_pairs
-
-        constraints = row._constraints
-        if constraints:
-            if isinstance(constraints, list):
-                constraints = encode(constraints)
-        else:
-            constraints = None
-
-        values = (row.unique_id,
-                  row.ctime,
-                  mtime,
-                  row.user,
-                  blob(row.numbers),
-                  blob(row.positions),
-                  blob(row.cell),
-                  int(np.dot(row.pbc, [1, 2, 4])),
-                  blob(row.get('initial_magmoms')),
-                  blob(row.get('initial_charges')),
-                  blob(row.get('masses')),
-                  blob(row.get('tags')),
-                  blob(row.get('momenta')),
-                  constraints)
-
-        if 'calculator' in row:
-            values += (row.calculator, encode(row.calculator_parameters))
-        else:
-            values += (None, None)
-
-        if not data:
-            data = row._data
-        if not isinstance(data, basestring):
-            data = encode(data)
-
-        values += (row.get('energy'),
-                   row.get('free_energy'),
-                   blob(row.get('forces')),
-                   blob(row.get('stress')),
-                   blob(row.get('dipole')),
-                   blob(row.get('magmoms')),
-                   row.get('magmom'),
-                   blob(row.get('charges')),
-                   encode(key_value_pairs),
-                   data,
-                   len(row.numbers),
-                   float_if_not_none(row.get('fmax')),
-                   float_if_not_none(row.get('smax')),
-                   float_if_not_none(row.get('volume')),
-                   float(row.mass),
-                   float(row.charge))
-        """
 
         if id is None:
             q = self.default + ', ' + ', '.join('?' * len(values))
@@ -355,7 +281,6 @@ class SQLite3Database(Database, object):
             cur.execute('UPDATE systems SET {} WHERE id=?'.format(q),
                         values + (id,))
 
-        #count = atoms.count_atoms()#atoms.get_number_of_atoms()#row.count_atoms()
         if count:
             species = [(atomic_numbers[symbol], n, id)
                        for symbol, n in count.items()]
@@ -384,22 +309,13 @@ class SQLite3Database(Database, object):
 
         return id
 
-
-        
     def _writemany(self, atomslist):
-        Database._write(self, atomslist, {})#, key_value_pairs, data)
-        
         con = self.connection or self._connect()
         self._initialize(con)
         cur = con.cursor()
 
         assert isinstance(atomslist, list)
         assert isinstance(atomslist[0], AtomsRow)
-
-        #if self.type == 'postgresql':
-        #    decode = functools.partial(_decode, pg=True)
-        #else:
-        #    decode = _decode
 
         values_collect = []
         species = []
@@ -408,17 +324,13 @@ class SQLite3Database(Database, object):
         keys = []
         for i, atoms in enumerate(atomslist):
             values, count, key_value_pairs = self._get_values(atoms)
-            #key_value_pairs = decode(values[25])
-            #print(key_value_pairs)
             values_collect += [values]
-            #count = row.count_atoms()
             if count:
-                species += [[atomic_numbers[symbol], n, i] #id
+                species += [[atomic_numbers[symbol], n, i]
                             for symbol, n in count.items()]
 
             for key, value in key_value_pairs.items():
                 keys.append([key, i])
-                
                 if isinstance(value, (numbers.Real, np.bool_)):
                     number_key_values.append([key, float(value), i])
                 else:
@@ -427,12 +339,7 @@ class SQLite3Database(Database, object):
 
         N_rows = len(values_collect)
         statement = 'INSERT INTO systems VALUES ({})'
-        #if N_rows == 1:  # One row
-        #    q = self.default + ', ' + ', '.join('?' * len(values[0]))
-        #    cur.execute(statement.format(q), values)
-        #    ids = [self.get_last_id(cur)]
 
-        #elif N_rows > 1:  # Several rows
         last_id = self.get_last_id(cur)
         q = self.default + ', ' + ', '.join('?' * len(values[0]))
         if self.type == 'postgresql':
@@ -445,7 +352,7 @@ class SQLite3Database(Database, object):
             ids = [ids[i][0] for i in range(len(ids))]
         else:
             last_id = self.get_last_id(cur)
-            ids =  range(last_id + 1 - N_rows, last_id + 1)
+            ids = range(last_id + 1 - N_rows, last_id + 1)
 
         # Update with id from systems
         for spec in species:
@@ -556,7 +463,6 @@ class SQLite3Database(Database, object):
             dct['key_value_pairs'] = decode(values[25])
         if len(values) >= 27 and values[26] != 'null':
             dct['data'] = decode(values[26])
-            
         return AtomsRow(dct)
 
     def _old2new(self, values):
@@ -646,7 +552,8 @@ class SQLite3Database(Database, object):
                 jsonop = '->'
                 if isinstance(value, basestring):
                     jsonop = '->>'
-                where.append("systems.key_value_pairs {} '{}'{}?".format(jsonop, key, op))
+                where.append("systems.key_value_pairs {} '{}'{}?"
+                             .format(jsonop, key, op))
                 args.append(str(value))
 
             elif isinstance(value, basestring):
@@ -703,12 +610,12 @@ class SQLite3Database(Database, object):
         if columns == 'all':
             columnindex = list(range(27))
         else:
-            columnindex = [c for c in range(0, 27) if self.columnnames[c] in columns]
+            columnindex = [c for c in range(0, 27)
+                           if self.columnnames[c] in columns]
 
         if not include_data:
             if 26 in columnindex:
                 columnindex.remove(26)
-        #['id', 'ctime', 'mtime', 'username', 'numbers', 'pbc', 'charge', 'mass']
 
         if sort:
             if sort[0] == '-':
@@ -738,13 +645,8 @@ class SQLite3Database(Database, object):
             sort_table = None
 
         what = ', '.join('systems.' + name
-                         for name in np.array(self.columnnames)[np.array(columnindex)])
-        #if not include_data:
-        #    what = 'systems.*'
-        #else:
-        #    #columnlist = np.array([0, 2, 3, 4, 5, 7, 8, 11, 25])
-        #    what = ', '.join('systems.' + name
-        #                     for name in np.array(self.columnnames)[columnlist])#self.columnnames[:26])
+                         for name in np.array(self.columnnames)
+                         [np.array(columnindex)])
 
         sql, args = self.create_select_statement(keys, cmps, sort, order,
                                                  sort_table, what)
@@ -760,7 +662,7 @@ class SQLite3Database(Database, object):
 
         if verbosity == 2:
             print(sql, args)
-        
+
         cur = con.cursor()
         cur.execute(sql, args)
         if explain:
