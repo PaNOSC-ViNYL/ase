@@ -37,8 +37,25 @@ class IPIProtocol:
         msg = msg.encode('ascii').ljust(12)
         self.socket.sendall(msg)
 
+    def _recvall(self, nbytes):
+        """Repeatedly read chunks until we have nbytes.
+
+        Normally we get all bytes in one read, but that is not guaranteed."""
+        remaining = nbytes
+        chunks = []
+        while remaining > 0:
+            chunk = self.socket.recv(remaining)
+            if len(chunk) == 0:
+                # (If socket is still open, recv returns at least one byte)
+                raise SocketClosed()
+            chunks.append(chunk)
+            remaining -= len(chunk)
+        msg = b''.join(chunks)
+        assert len(msg) == nbytes and remaining == 0
+        return msg
+
     def recvmsg(self):
-        msg = self.socket.recv(12)
+        msg = self._recvall(12)
         if not msg:
             raise SocketClosed()
 
@@ -57,7 +74,7 @@ class IPIProtocol:
     def recv(self, shape, dtype):
         a = np.empty(shape, dtype)
         nbytes = np.dtype(dtype).itemsize * np.prod(shape)
-        buf = self.socket.recv(nbytes)
+        buf = self._recvall(nbytes)
         assert len(buf) == nbytes, (len(buf), nbytes)
         self.log('  recv {} bytes of {}'.format(len(buf), dtype))
         #print(np.frombuffer(buf, dtype=dtype))
@@ -239,7 +256,26 @@ class IPIServer:
         log = self.log
         if self.log:
             print('Awaiting client', file=self.log)
-        self.clientsocket, self.address = self.serversocket.accept()
+
+        # If we launched the subprocess, the process may crash.
+        # We want to detect this, using loop with timeouts, and
+        # raise an error rather than blocking forever.
+        if self.proc is not None:
+            self.serversocket.settimeout(1.0)
+
+        while True:
+            try:
+                self.clientsocket, self.address = self.serversocket.accept()
+            except socket.timeout as err:
+                if self.proc is not None:
+                    status = self.proc.poll()
+                    if status is not None:
+                        raise OSError('Subprocess terminated unexpectedly'
+                                      ' with status {}'.format(status))
+            else:
+                break
+
+        self.serversocket.settimeout(self.timeout)
         self.clientsocket.settimeout(self.timeout)
         if log:
             print('Accepted connection from {}'.format(self.address), file=log)
