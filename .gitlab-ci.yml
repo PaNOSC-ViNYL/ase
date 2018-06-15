@@ -2,9 +2,9 @@ services:
   - postgres:latest
 
 variables:
-  POSTGRES_DB: y
+  POSTGRES_DB: testase
   POSTGRES_USER: ase
-  POSTGRES_PASSWORD: "pw"
+  POSTGRES_PASSWORD: "ase"
 
 python_2_7_tests:
   image: python:2.7
@@ -64,4 +64,3 @@ docs_test:
     - which sphinx-build
     - cd $CI_PROJECT_DIR/doc
     - sphinx-build -W . build
-

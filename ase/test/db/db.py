@@ -4,15 +4,16 @@ from ase.test import cli
 from ase.db import connect
 
 cmd = """
-ase build H | ase run emt -d y.json &&
-ase build H2O | ase run emt -d y.json &&
-ase build O2 | ase run emt -d y.json &&
-ase build H2 | ase run emt -f 0.02 -d y.json &&
-ase build O2 | ase run emt -f 0.02 -d y.json &&
-ase build -x fcc Cu | ase run emt -E 5,1 -d y.json &&
-ase db -v y.json natoms=1,Cu=1 --delete --yes &&
-ase db -v y.json "H>0" -k hydro=1,abc=42,foo=bar &&
-ase db -v y.json "H>0" --delete-keys foo"""
+ase build H | ase run emt -d testase.json &&
+ase build H2O | ase run emt -d testase.json &&
+ase build O2 | ase run emt -d testase.json &&
+ase build H2 | ase run emt -f 0.02 -d testase.json &&
+ase build O2 | ase run emt -f 0.02 -d testase.json &&
+ase build -x fcc Cu | ase run emt -E 5,1 -d testase.json &&
+ase db -v testase.json natoms=1,Cu=1 --delete --yes &&
+ase db -v testase.json "H>0" -k hydro=1,abc=42,foo=bar &&
+ase db -v testase.json "H>0" --delete-keys foo"""
+
 
 def count(n, *args, **kwargs):
     m = len(list(con.select(columns=['id'], *args, **kwargs)))
@@ -20,27 +21,21 @@ def count(n, *args, **kwargs):
 
 
 t0 = time.time()
-for name in ['y.json', 'y.db', 'postgresql']:
+for name in ['testase.json', 'testase.db', 'postgresql']:
     if name == 'postgresql':
         if os.environ.get('POSTGRES_DB'):  # gitlab-ci
-            name = 'postgresql://ase:pw@postgres:5432/y'
-        else:  # local
-            name = 'postgresql://ase:pw@localhost:5432/y'
-            # psql -c "drop database if exists y;" &
-            # psql -c "drop role if exists ase;" &
-            pgcmd = """
-            psql -c "create role ase with password 'pw';" &
-            psql -c "create database y;"
-            """
-            cli(pgcmd)
+            name = 'postgresql://ase:ase@postgres:5432/testase'
+        else:
+            name = os.environ.get('ASE_TEST_POSTGRES_URL')
+            if name is None:
+                continue
 
     con = connect(name)
     t1 = time.time()
     if 'postgres' in name:
-        for row in con.select(columns='id'):
-            del con[row.id]
+        con.delete([row.id for row in con.select()])
 
-    cli(cmd.replace('y.json', name))
+    cli(cmd.replace('testase.json', name))
     assert con.get_atoms(H=1)[0].magmom == 1
     count(5)
     count(3, 'hydro')
@@ -67,12 +62,12 @@ for name in ['y.json', 'y.db', 'postgresql']:
 
     con.delete([id])
 
-    if not name == 'y.json':  # transfer between db formats
-        if name == 'y.db':
-            from_db = 'y.json'
+    if name != 'testase.json':  # transfer between db formats
+        if name == 'testase.db':
+            from_db = 'testase.json'
             factor = 2
         else:
-            from_db = 'y.db'
+            from_db = 'testase.db'
             factor = 3
 
         cli('ase db {} --insert-into {}'.format(from_db, name))

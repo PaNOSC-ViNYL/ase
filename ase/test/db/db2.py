@@ -4,26 +4,26 @@ import numpy as np
 from ase import Atoms
 from ase.calculators.emt import EMT
 from ase.constraints import FixAtoms, FixBondLength
-from ase.test import cli
 from ase.db import connect
 from ase.io import read
 from ase.build import molecule
 from ase.test import must_raise
 
 
-for name in ['y2.json', 'y2.db', 'postgresql']:
+for name in ['testase.json', 'testase.db', 'postgresql']:
     if name == 'postgresql':
         if os.environ.get('POSTGRES_DB'):  # gitlab-ci
-            name = 'postgresql://ase:pw@postgres:5432/y'
-        else:  # local
-            name = 'postgresql://ase:pw@localhost:5432/y'
+            name = 'postgresql://ase:ase@postgres:5432/testase'
+        else:
+            name = os.environ.get('ASE_TEST_POSTGRES_URL')
+            if name is None:
+                continue
 
     c = connect(name)
     print(name, c)
 
     if 'postgres' in name:
-        for row in c.select():
-            del c[row.id]
+        c.delete([row.id for row in c.select()])
 
     id = c.reserve(abc=7)
     c.delete([d.id for d in c.select(abc=7)])

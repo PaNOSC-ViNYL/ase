@@ -643,7 +643,7 @@ class SQLite3Database(Database, object):
     def _delete(self, cur, ids, tables=None):
         tables = tables or all_tables[::-1]
         for table in tables:
-            cur.executemany('DELETE FROM {0} WHERE id=?'.format(table),
+            cur.executemany('DELETE FROM {} WHERE id=?'.format(table),
                             [(id,) for id in ids])
 
     @property
