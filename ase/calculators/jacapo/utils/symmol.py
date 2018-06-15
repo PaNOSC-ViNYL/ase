@@ -13,12 +13,14 @@ make sure symmol is on your executable path
 
 import math,os,re,string
 
+import numpy as np
+
 from Scientific.Geometry import Vector
-from Scientific.IO.FortranFormat import *
+from Scientific.IO.FortranFormat import FortranLine, FortranFormat
 
 class SYMMOL:
     def __init__(self,atoms,outfile=None):
-        
+
         unitcell = atoms.get_cell()
         A = Vector(unitcell[0])
         B = Vector(unitcell[1])
@@ -35,13 +37,13 @@ class SYMMOL:
         beta = A.angle(C)*rad2deg
         gamma = A.angle(B)*rad2deg
 
-        scaledpositions = atoms.get_scaled_positions()
-        chemicalsymbols = [atom.get_symbol() for atom in atoms]
+        # scaledpositions = atoms.get_scaled_positions()
+        # chemicalsymbols = [atom.get_symbol() for atom in atoms]
 
         input = ''
         input += '%1.3f %1.3f %1.3f %1.3f %1.3f %1.3f\n' % (a,b,c,
                                                             alpha,beta,gamma)
-        input += '1 1 0.1 0.1\n' 
+        input += '1 1 0.1 0.1\n'
 
         for atom in atoms:
             sym = atom.get_symbol()
@@ -52,7 +54,7 @@ class SYMMOL:
                                       group,
                                       x,y,z),
                                      FortranFormat('a6,i2,3f9.5')))+'\n'
-                    
+
         pin,pout = os.popen2('symmol')
         pin.writelines(input)
         pin.close()
@@ -81,7 +83,7 @@ class SYMMOL:
         regexp = re.compile('^ PRINCIPAL INERTIA MOMENTS and DEGENERATION DEGREE')
         lines = open('symmol.out').readlines()
         for i,line in enumerate(lines):
-            
+
             if regexp.search(line):
                 data = lines[i+1]
                 break
@@ -89,9 +91,9 @@ class SYMMOL:
         return [float(Ia), float(Ib), float(Ic), int(degen)]
 
     def get_symmetry_operators(self):
-        regexp = re.compile(' SYMMETRY GROUP MATRICES')
+        # regexp = re.compile(' SYMMETRY GROUP MATRICES')
         reg2 =  re.compile('^  \d+ CSM')
-        
+
         lines = open('symmol.out').readlines()
 
         matrices = []
@@ -109,18 +111,18 @@ class SYMMOL:
                 matrices.append(np.array([row1, row2, row3]))
 
         return (matrices, types)
-                
-        
+
+
 
 if __name__ == '__test__':
 
     from ase import Atoms
     from ase.data import molecules
-    
+
     mol = 'NH3'
     atoms = Atoms(mol,
                 positions = molecules.data[mol]['positions'])
-    
+
     sg = SYMMOL(atoms)
     print(sg.get_point_group())
     print(sg.get_moments_of_inertia())
@@ -128,7 +130,7 @@ if __name__ == '__test__':
     print(sg.get_symmetry_operators())
 
 if __name__ == '__main__':
-    from ase.calculators.jacapo import *
+    from ase.calculators.jacapo import Jacapo
     from optparse import OptionParser
 
     parser = OptionParser(usage='symmol.py ncfile',
@@ -143,8 +145,8 @@ if __name__ == '__main__':
                       help = 'save output in filename')
 
     options,args = parser.parse_args()
-    
-    for ncfile in args:       
+
+    for ncfile in args:
 
         sy = SYMMOL(Jacapo.read_atoms(ncfile),outfile=options.o)
 
@@ -154,4 +156,4 @@ if __name__ == '__main__':
         if options.f is not None:
             print(sy)
 
- 
+

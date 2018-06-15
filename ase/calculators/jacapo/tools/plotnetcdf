@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 from optparse import OptionParser
 import os, tempfile
-from ase.calculators.jacapo import *
-from ase.io.pdb import *
+from ase.calculators.jacapo import Jacapo
+from ase.io.pdb import write_pdb
 
 parser = OptionParser(usage='%prog [-r R1 R2 R3]] ncfile',
                       version='%prog 0.1')
@@ -42,6 +42,6 @@ f.write(script)
 f.close()
 
 os.system('rasmol -script %s' % tempscriptname)
-        
+
 os.remove(tempfilename)
 os.remove(tempscriptname)

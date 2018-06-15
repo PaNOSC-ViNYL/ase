@@ -41,7 +41,7 @@ class Bader:
               chargefile
 
     References:
-    
+
     G. Henkelman, A. Arnaldsson, and H. Jonsson, A fast and robust
     algorithm for Bader decomposition of charge density,
     Comput. Mater. Sci. 36 254-360 (2006).
@@ -56,7 +56,7 @@ class Bader:
     '''
     def __init__(self, atoms):
         '''
- 
+
         '''
         self.atoms = atoms
 
@@ -71,26 +71,26 @@ class Bader:
 
         if not os.path.exists(cubefile):
             write(cubefile, atoms, data=density * Bohr ** 3)
-        
+
         #cmd to run for bader analysis. check if output exists so we
         #don't run this too often.
         acf_file = base + '_ACF.dat'
         if not os.path.exists(acf_file):
             #mk tempdir
             tempdir = tempfile.mkdtemp()
-            
+
             cwd = os.getcwd()
             abscubefile = os.path.abspath(cubefile)
             os.chdir(tempdir)
             cmd = 'bader %s' % abscubefile
 
             status = subprocess.call(cmd, shell=True)
-            
+
             if status != 0:
                 print(" '%s' not successful" %cmd)
 
             shutil.copy2('ACF.dat', os.path.join(cwd, acf_file))
-            
+
             os.chdir(cwd)
             shutil.rmtree(tempdir)
 
@@ -106,12 +106,12 @@ class Bader:
         for i, atom in enumerate(self.atoms):
             line = f.readline()
             fields = line.split()
-            n = int(fields[0])
-            x = float(fields[1])
-            y = float(fields[2])
-            z = float(fields[3])
+            # n = int(fields[0])
+            # x = float(fields[1])
+            # y = float(fields[2])
+            # z = float(fields[3])
             chg = float(fields[4])
-            mindist = float(fields[5])
+            # mindist = float(fields[5])
             vol = float(fields[6])
 
             self.charges.append(chg)
@@ -137,14 +137,14 @@ class Bader:
         cmd = 'bader -p sel_atom %s %s' % (alist, self.densityfile)
         print(cmd)
         os.system(cmd)
-        
+
     def write_bader_volume(self, atomlist):
         """write bader atom volumes to cube files.
 
         ::
-        
+
           atomlist = [0,2] #  for example
-          
+
         -p sel_bader Write the selected Bader volumes, read from the
         subsequent list of volumes.
         """
@@ -195,7 +195,7 @@ class Bader:
         cmd = 'bader -p all_bader %s' % (self.densityfile)
         print(cmd)
         os.system(cmd)
-        
+
 if __name__ == '__main__':
 
     from ase.calculators.jacapo import Jacapo

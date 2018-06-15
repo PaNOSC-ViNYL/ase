@@ -22,9 +22,6 @@ python_2_7_tests:
     - python --version
     - ase info
     - ase test
-    # pyflakes code check (Python 2 version)
-    - cd $CI_PROJECT_DIR
-    - python ase/test/__init__.py
 
 python_3_tests:
   image: python:3
@@ -39,7 +36,7 @@ python_3_tests:
     - ase test
     # pyflakes code check (Python 3 version)
     - cd $CI_PROJECT_DIR
-    - python ase/test/__init__.py
+    - pyflakes ase doc
 
 conda_tests:
    image: continuumio/anaconda3
@@ -64,4 +61,3 @@ docs_test:
     - which sphinx-build
     - cd $CI_PROJECT_DIR/doc
     - sphinx-build -W . build
-

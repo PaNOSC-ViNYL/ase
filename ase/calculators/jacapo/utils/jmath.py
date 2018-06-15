@@ -6,7 +6,7 @@ import bisect
 
 def vinterp3d(x,y,z,u,xi,yi,zi):
 
-    p = np.array([xi,yi,zi])
+    np.array([xi,yi,zi])
 
     #1D arrays of cooridinates
     xv = x[:,0,0]
@@ -25,8 +25,8 @@ def vinterp3d(x,y,z,u,xi,yi,zi):
     if i == len(xv)-1: i-=1
     if j == len(yv)-1: j-=1
     if k == len(zv)-1: k-=1
-    
-    
+
+
     #points at edge of cell. We only need P1, P2, P3, and P5
     P1 = np.array([x[i,j,k],y[i,j,k],z[i,j,k]])
     P2 = np.array([x[i+1,j,k],y[i+1,j,k],z[i+1,j,k]])

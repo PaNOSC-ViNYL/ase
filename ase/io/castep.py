@@ -509,10 +509,10 @@ def read_castep_cell(fd, index=None, units=units_CODATA2002):
                     if len(tokens) == 1:
                         u = cell_units.get(tokens[0], 1)
                         if tokens[0] not in cell_units:
-                            warings.warn('read_cell: Warning - ignoring '
-                                         'invalid unit specifier in %BLOCK '
-                                         'POSITIONS_ABS (assuming Angstrom '
-                                         'instead)')
+                            warnings.warn('read_cell: Warning - ignoring '
+                                          'invalid unit specifier in %BLOCK '
+                                          'POSITIONS_ABS (assuming Angstrom '
+                                          'instead)')
                         tokens, l = get_tokens(lines, l)
                     else:
                         l = l_start
@@ -753,7 +753,7 @@ def read_castep_castep(fd, index=None):
     ascending atomic numbers. The atoms witin a species are ordered as given
     in the original cell file.
 
-    Note: This routine returns a single atoms_object only, the last 
+    Note: This routine returns a single atoms_object only, the last
     configuration in the file. Yet, if you want to parse an MD run, use the
     novel function `read_md()`
     """
@@ -788,7 +788,7 @@ def read_castep_castep_old(fd, index=None):
     """
     DEPRECATED
     Now replaced by ase.calculators.castep.Castep.read(). Left in for future
-    reference and backwards compatibility needs, as well as a fallback for 
+    reference and backwards compatibility needs, as well as a fallback for
     when castep_keywords.py can't be created.
 
     Reads a .castep file and returns an atoms  object.
