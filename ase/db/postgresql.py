@@ -1,9 +1,9 @@
-import numpy as np
 import json
 from psycopg2 import connect
 from psycopg2.extras import execute_values
 
-from ase.db.sqlite import init_statements, index_statements, VERSION, SQLite3Database
+from ase.db.sqlite import (init_statements, index_statements, VERSION,
+                           SQLite3Database)
 
 
 class Connection:
@@ -34,6 +34,9 @@ class Cursor:
         self.cur.execute(statement.replace('?', '%s'), *args)
 
     def executemany(self, statement, *args):
+        self.cur.executemany(statement.replace('?', '%s'), *args)
+        return
+        print(statement, args)
         if len(args[0]) > 0:
             N = len(args[0][0])
         else:

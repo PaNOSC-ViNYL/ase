@@ -140,7 +140,8 @@ def connect(name, type='extract_from_name', create_indices=True,
             type = None
         elif not isinstance(name, basestring):
             type = 'json'
-        elif name.startswith('postgresql://') or name.startswith('postgres://'):
+        elif (name.startswith('postgresql://') or
+              name.startswith('postgres://')):
             type = 'postgresql'
         else:
             type = os.path.splitext(name)[1][1:]
@@ -403,7 +404,7 @@ class Database:
         selection: int, str or list
             See the select() method.
         """
-        rows = list(self.select(selection, limit=2,  **kwargs))
+        rows = list(self.select(selection, limit=2, **kwargs))
         if not rows:
             raise KeyError('no match')
         assert len(rows) == 1, 'more than one row matched'
@@ -574,16 +575,3 @@ def float_to_time_string(t, long=False):
         return '{:.3f} {}s'.format(x, longwords[s])
     else:
         return '{:.0f}{}'.format(round(x), s)
-
-def get_sql_columns(columns):
-    sql_columns = columns[:]
-    if 'age' in columns:
-        sql_columns.remove('age')
-        sql_columns += ['mtime', 'ctime']
-    if 'user' in columns:
-        sql_columns[sql_columns.index('user')] = 'username'
-    if 'formula' in columns:
-        sql_columns[sql_columns.index('formula')] = 'numbers'
-    sql_columns.append('key_value_pairs')
-
-    return sql_columns
