@@ -137,26 +137,34 @@ class IPIProtocol:
         self.log(' end')
         self.sendmsg('EXIT')
 
+    def recvinit(self):
+        self.log(' recvinit')
+        bead_index = self.recv(1, np.int32)
+        nbytes = self.recv(1, np.int32)
+        initbytes = self.recv(nbytes, np.byte)
+        return bead_index, initbytes
+
     def sendinit(self):
         # XXX Not sure what this function is supposed to send.
         # It 'works' with QE, but for now we try not to call it.
         self.log(' sendinit')
         self.sendmsg('INIT')
-        self.send(0, np.int32)  # 'bead index' always zero
-        # number of bits (don't they mean bytes?) in initialization string:
-        # Why does quantum espresso seem to want -1?  Is that normal?
-        self.send(-1, np.int32)
-        self.send(np.empty(0), np.byte)  # initialization string
+        self.send(0, np.int32)  # 'bead index' always zero for now
+        # We send one byte, which is zero, since things may not work
+        # with 0 bytes.  Apparently implementations ignore the
+        # initialization string anyway.
+        self.send(1, np.int32)
+        self.send(np.zeros(1), np.byte)  # initialization string
 
     def calculate(self, positions, cell):
         self.log('calculate')
         msg = self.status()
         # We don't know how NEEDINIT is supposed to work, but some codes
         # seem to be okay if we skip it and send the positions instead.
-        #if msg == 'NEEDINIT':
-        #    self.sendinit()
-        #    msg = self.status()
-        #assert msg == 'READY', msg
+        if msg == 'NEEDINIT':
+            self.sendinit()
+            msg = self.status()
+        assert msg == 'READY', msg
         icell = np.linalg.pinv(cell).transpose()
         self.sendposdata(cell, icell, positions)
         msg = self.status()
@@ -324,6 +332,8 @@ class IPIClient:
         self.log = self.ipi.log
         self.closed = False
 
+        self.bead_index = 0
+        self.bead_initbytes = b''
         self.state = 'READY'
 
     def close(self):
@@ -365,7 +375,15 @@ class IPIClient:
                 elif msg == 'GETFORCE':
                     assert self.state == 'HAVEDATA', self.state
                     self.ipi.sendforce(energy, forces, virial)
+                    self.state = 'NEEDINIT'
+                elif msg == 'INIT':
+                    assert self.state == 'NEEDINIT'
+                    bead_index, initbytes = self.ipi.recvinit()
+                    self.bead_index = bead_index
+                    self.bead_initbytes = initbytes
                     self.state = 'READY'
+                else:
+                    raise KeyError('bad message', msg)
         finally:
             self.close()
 
