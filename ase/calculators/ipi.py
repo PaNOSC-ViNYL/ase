@@ -266,7 +266,7 @@ class IPIServer:
         while True:
             try:
                 self.clientsocket, self.address = self.serversocket.accept()
-            except socket.timeout as err:
+            except socket.timeout:
                 if self.proc is not None:
                     status = self.proc.poll()
                     if status is not None:
