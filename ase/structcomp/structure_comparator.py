@@ -1,4 +1,5 @@
 from __future__ import print_function
+from collections import Counter
 import copy
 import numpy as np
 from scipy.spatial import cKDTree as KDTree
@@ -129,38 +130,10 @@ class SymmetryEquivalenceCheck(object):
 
     def _get_element_count(self):
         """Count the number of elements in each of the structures."""
-        elem1 = {}
-        elem2 = {}
+        elem1 = Counter(self.s1.get_chemical_symbols())
+        elem2 = Counter(self.s2.get_chemical_symbols())
 
-        for atom in self.s1:
-            if atom.symbol in elem1.keys():
-                elem1[atom.symbol] += 1
-            else:
-                elem1[atom.symbol] = 1
-
-        for atom in self.s2:
-            if atom.symbol in elem2.keys():
-                elem2[atom.symbol] += 1
-            else:
-                elem2[atom.symbol] = 1
         return elem1, elem2
-
-    def _get_elem_count(self, atoms):
-        """Count the number of elements"""
-        elem = {}
-        for atom in atoms:
-            if atom.symbol in elem.keys():
-                elem[atom.symbol] += 1
-            else:
-                elem[atom.symbol] = 1
-        return elem
-
-    def _get_composition(self, atoms):
-        """Compute the composition"""
-        count = self._get_elem_count(atoms)
-        for key in count.keys():
-            count[key] /= float(len(atoms))
-        return count
 
     def _has_same_elements(self):
         """Check if two structures have same elements."""
