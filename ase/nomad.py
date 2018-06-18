@@ -78,7 +78,6 @@ def add_nomad_metainfo(atoms, d, run, calc, system):
 def dict2images(d, silent=False):
     runs = d.get('section_run')
     if runs is not None:
-        images = {}
         single_confs={}
         for run in runs:
             calculations = run['section_single_configuration_calculation']

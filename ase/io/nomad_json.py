@@ -1,5 +1,5 @@
 import json
-from ase.nomad import read, dict2images
+from ase.nomad import dict2images
 from ase.utils import basestring
 
 def read_nomad_json(fd, index, silent=False):
