@@ -29,17 +29,22 @@ def require(calcname):
 def get_tests(files=None):
     dirname, _ = os.path.split(__file__)
     if files:
-        files = [os.path.join(dirname, f) for f in files]
+        fnames = [os.path.join(dirname, f) for f in files]
+
+        files = set()
+        for fname in fnames:
+            files.update(glob(fname))
+        files = list(files)
     else:
-        files = glob(dirname + '/*')
-        files.remove(dirname + '/testsuite.py')
+        files = glob(os.path.join(dirname, '*'))
+        files.remove(os.path.join(dirname, 'testsuite.py'))
 
     sdirtests = []  # tests from subdirectories: only one level assumed
     tests = []
     for f in files:
         if os.path.isdir(f):
             # add test subdirectories (like calculators)
-            sdirtests.extend(glob(f + '/*.py'))
+            sdirtests.extend(glob(os.path.join(f, '*.py')))
         else:
             # add py files in testdir
             if f.endswith('.py'):
@@ -55,9 +60,16 @@ def get_tests(files=None):
 def runtest_almost_no_magic(test):
     dirname, _ = os.path.split(__file__)
     path = os.path.join(dirname, test)
+    # exclude some test for windows, not done automatic
+    if os.name == 'nt':
+        skip = [name for name in calc_names]
+        skip += ['db_web', 'h2.py', 'bandgap.py', 'al.py',
+                 'runpy.py', 'oi.py']
+        if any(s in test for s in skip):
+            raise NotAvailable('not on windows')
     try:
         with open(path) as fd:
-            exec(compile(fd.read(), test, 'exec'), {})
+            exec(compile(fd.read(), path, 'exec'), {})
     except ImportError as ex:
         module = ex.args[0].split()[-1].replace("'", '').split('.')[0]
         if module in ['scipy', 'matplotlib', 'Scientific', 'lxml',
@@ -74,7 +86,7 @@ def run_single_test(filename):
     # Some tests may write to files with the same name as other tests.
     # Hence, create new subdir for each test:
     cwd = os.getcwd()
-    testsubdir = filename.replace('/', '_').replace('.', '_')
+    testsubdir = filename.replace(os.sep, '_').replace('.', '_')
     os.mkdir(testsubdir)
     os.chdir(testsubdir)
     t1 = time.time()
@@ -111,6 +123,7 @@ class Result:
     """Represents the result of a test; for communicating between processes."""
     attributes = ['name', 'pid', 'exception', 'traceback', 'time', 'status',
                   'whyskipped']
+
     def __init__(self, **kwargs):
         d = {key: None for key in self.attributes}
         d['pid'] = os.getpid()
@@ -137,7 +150,8 @@ def runtests_subprocess(task_queue, result_queue):
             #  * gui/run may deadlock for unknown reasons in subprocess
 
             if test in ['bandstructure.py', 'doctests.py', 'gui/run.py',
-                        'matplotlib_plot.py', 'fio/oi.py', 'fio/v_sim.py']:
+                        'matplotlib_plot.py', 'fio/oi.py', 'fio/v_sim.py',
+                        'db/db_web.py']:
                 result = Result(name=test, status='please run on master')
                 result_queue.put(result)
                 continue
@@ -211,10 +225,10 @@ def runtests_parallel(nprocs, tests):
                 raise RuntimeError('ABORT: Internal error in test suite')
     except KeyboardInterrupt:
         raise
-    except BaseException as err:
+    except BaseException:
         for proc in procs:
             proc.terminate()
-        traceback.print_exc()
+        raise
     finally:
         for proc in procs:
             proc.join()
@@ -359,7 +373,9 @@ class CLICommand:
                             metavar='N',
                             help='number of parallel jobs '
                             '[default: number of available processors]')
-        parser.add_argument('tests', nargs='*')
+        parser.add_argument('tests', nargs='*',
+                            help='Specify particular test files.  '
+                            'Glob patterns are accepted.')
 
     @staticmethod
     def run(args):
@@ -370,7 +386,7 @@ class CLICommand:
 
         if args.list:
             dirname, _ = os.path.split(__file__)
-            for testfile in get_tests():
+            for testfile in get_tests(args.tests):
                 print(os.path.join(dirname, testfile))
             sys.exit(0)
 
@@ -390,24 +406,3 @@ class CLICommand:
         ntrouble = test(calculators=calculators, jobs=args.jobs,
                         files=args.tests)
         sys.exit(ntrouble)
-
-
-if __name__ == '__main__':
-    # Run pyflakes on all code in ASE:
-    try:
-        output = subprocess.check_output(['pyflakes', 'ase', 'doc'],
-                                         stderr=subprocess.STDOUT)
-    except subprocess.CalledProcessError as ex:
-        output = ex.output.decode()
-
-    lines = []
-    for line in output.splitlines():
-        # Ignore these:
-        for txt in ['jacapo', 'list comprehension redefines']:
-            if txt in line:
-                break
-        else:
-            lines.append(line)
-    if lines:
-        print('\n'.join(lines))
-        sys.exit(1)

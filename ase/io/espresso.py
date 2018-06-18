@@ -662,10 +662,10 @@ def get_cell_parameters(lines, alat=None):
                                      'angstrom')
                 cell_units = 1.0
             elif 'alat' in line.lower():
-                # Output file has (alat = value)
+                # Output file has (alat = value) (in Bohrs)
                 if '=' in line:
                     alat = float(line.strip(') \n').split()[-1])
-                    cell_alat = alat
+                    cell_alat = alat * units['Bohr']
                 elif alat is None:
                     raise ValueError('Lattice parameters must be set in '
                                      '&SYSTEM for alat units')

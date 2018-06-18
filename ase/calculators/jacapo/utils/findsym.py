@@ -1,7 +1,7 @@
 from __future__ import print_function
 #!/usr/bin/env python
 '''
-isotropy 
+isotropy
 http://stokes.byu.edu/isolinux.html
 
 http://stokes.byu.edu/iso.tar.gz
@@ -26,7 +26,7 @@ from Scientific.Geometry import Vector
 
 class FINDSYM:
     def __init__(self,atoms,outfile=None):
-        
+
         unitcell = atoms.get_cell()
         A = Vector(unitcell[0])
         B = Vector(unitcell[1])
@@ -44,7 +44,7 @@ class FINDSYM:
         gamma = A.angle(B)*rad2deg
 
         scaledpositions = atoms.get_scaled_positions()
-        chemicalsymbols = [atom.get_symbol() for atom in atoms]
+        # chemicalsymbols = [atom.get_symbol() for atom in atoms]
 
         input = ''
 
@@ -96,7 +96,7 @@ class FINDSYM:
 
 
 if __name__ == '__main__':
-    from ase.calculators.jacapo import *
+    from ase.calculators.jacapo import Jacapo
     from optparse import OptionParser
 
     parser = OptionParser(usage='findsym.py ncfile',
@@ -111,12 +111,12 @@ if __name__ == '__main__':
                       help = 'save output in filename')
 
     options,args = parser.parse_args()
-    
-    for ncfile in args:       
+
+    for ncfile in args:
 
         sg = FINDSYM(Jacapo.read_atoms(ncfile),outfile=options.o)
 
         print(sg.get_space_group())
-    
+
         if options.f is not None:
             print(sg)

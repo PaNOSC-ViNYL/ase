@@ -1386,35 +1386,35 @@ class GenerateVaspInput(object):
 
                 elif key in list_bool_keys:
                     self.list_bool_keys[key] = [_from_vasp_bool(x) for x in
-                                                _args_without_comment(data)]
+                                                _args_without_comment(data[2:])]
 
                 elif key in list_int_keys:
                     self.list_int_params[key] = [int(x) for x in
-                                                 _args_without_comment(data)]
+                                                 _args_without_comment(data[2:])]
 
                 elif key in list_float_keys:
                     if key == 'magmom':
-                        list = []
+                        lst = []
                         i = 2
                         while i < len(data):
                             if data[i] in ["#", "!"]:
                                 break
                             if data[i] == "*":
-                                b = list.pop()
+                                b = lst.pop()
                                 i += 1
                                 for j in range(int(b)):
-                                    list.append(float(data[i]))
+                                    lst.append(float(data[i]))
                             else:
-                                list.append(float(data[i]))
+                                lst.append(float(data[i]))
                             i += 1
-                        self.list_params['magmom'] = list
-                        list = np.array(list)
+                        self.list_float_params['magmom'] = lst
+                        lst = np.array(lst)
                         if self.atoms is not None:
                             self.atoms.set_initial_magnetic_moments(
-                                list[self.resort])
+                                lst[self.resort])
                     else:
                         data = _args_without_comment(data)
-                        self.list_float_params[key] = [float(x) for x in data]
+                        self.list_float_params[key] = [float(x) for x in data[2:]]
                 # elif key in list_keys:
                 #     list = []
                 #     if key in ('dipol', 'eint', 'ferwe', 'ferdo',

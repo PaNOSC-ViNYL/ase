@@ -1,9 +1,12 @@
-# creates: Al_phonon.png Al_mode.gif Al_mode.pdf
+# creates: Al_phonon.png, Al_mode.gif, Al_mode.pdf
+from subprocess import call
+
 import matplotlib.pyplot as plt
 
 from ase.build import bulk
 from ase.calculators.emt import EMT
 from ase.dft.kpoints import ibz_points, bandpath
+from ase.io import Trajectory, write
 from ase.phonons import Phonons
 
 # Setup crystal and EMT calculator
@@ -47,15 +50,15 @@ plt.xticks(Q, point_names, fontsize=18)
 plt.yticks(fontsize=18)
 plt.xlim(q[0], q[-1])
 plt.ylim(0, 35)
-plt.ylabel("Frequency ($\mathrm{meV}$)", fontsize=22)
-plt.grid('on')
+plt.ylabel('Frequency ($\mathrm{meV}$)', fontsize=22)
+plt.grid(True)
 
 plt.axes([.8, .07, .17, .85])
 plt.fill_between(dos_e, omega_e, y2=0, color='lightgrey', edgecolor='k', lw=2)
 plt.ylim(0, 35)
 plt.xticks([], [])
 plt.yticks([], [])
-plt.xlabel("DOS", fontsize=18)
+plt.xlabel('DOS', fontsize=18)
 plt.savefig('Al_phonon.png')
 
 # Write modes for specific q-vector to trajectory files
@@ -63,9 +66,6 @@ ph.write_modes([l / 2 for l in L], branches=[2], repeat=(8, 8, 8), kT=3e-4,
                center=True)
 
 # Generate png animation
-from subprocess import call
-from ase.io import Trajectory, write
-
 trajfile = 'phonon.mode.2.traj'
 trajectory = Trajectory(trajfile, 'r')
 
