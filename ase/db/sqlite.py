@@ -706,6 +706,8 @@ class SQLite3Database(Database, object):
     @parallel_function
     @lock
     def delete(self, ids):
+        if len(ids) == 0:
+            return
         con = self._connect()
         self._delete(con.cursor(), ids)
         con.commit()
@@ -714,8 +716,8 @@ class SQLite3Database(Database, object):
     def _delete(self, cur, ids, tables=None):
         tables = tables or all_tables[::-1]
         for table in tables:
-            cur.executemany('DELETE FROM {0} WHERE id=?'.format(table),
-                            [(id,) for id in ids])
+            cur.execute('DELETE FROM {} WHERE id in ({});'.
+                        format(table, ', '.join([str(id) for id in ids])))
 
     @property
     def metadata(self):

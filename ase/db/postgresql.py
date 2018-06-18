@@ -34,10 +34,6 @@ class Cursor:
         self.cur.execute(statement.replace('?', '%s'), *args)
 
     def executemany(self, statement, *args):
-        if 'DELETE' in statement:
-            self.cur.executemany(statement.replace('?', '%s'), *args)
-            return
-
         if len(args[0]) > 0:
             N = len(args[0][0])
         else:
