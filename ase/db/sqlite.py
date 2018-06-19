@@ -314,8 +314,9 @@ class SQLite3Database(Database, object):
         self._initialize(con)
         cur = con.cursor()
 
-        assert isinstance(atomslist, list)
-        assert isinstance(atomslist[0], AtomsRow)
+        assert isinstance(atomslist, list), 'Please pass a list of AtomsRows'
+        assert isinstance(atomslist[0], AtomsRow), \
+            'Please pass a list of AtomsRows'
 
         values_collect = []
         species = []
