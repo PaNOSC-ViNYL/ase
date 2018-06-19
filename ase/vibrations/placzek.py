@@ -134,11 +134,11 @@ class Profeta(ResonantRaman):
     def electronic_me_Qcc(self, omega, gamma):
         self.read()
         Vel_rcc = np.zeros((self.ndof, 3, 3), dtype=complex)
-        if self.approximation.lower() == 'profeta':
+        if self.approximation == 'profeta':
             Vel_rcc += self.electronic_me_profeta_rcc(omega, gamma)
-        elif self.approximation.lower() == 'placzek':
+        elif self.approximation == 'placzek':
             Vel_rcc += self.electronic_me_profeta_rcc(omega, gamma, True)
-        elif self.approximation.lower() == 'p-p':
+        elif self.approximation == 'p-p':
             Vel_rcc += self.electronic_me_profeta_rcc(omega, gamma, -1)
         else:
             raise NotImplementedError(
