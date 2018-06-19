@@ -37,79 +37,105 @@ def download(uri, silent=False):
     dct = nmd2dict(uri, silent=silent)
     return NomadEntry(dct, silent=silent)
 
+def section_method2metadata(method, methods, metainfo=None):
+    # Collect all information starting from reference method
+    if not metainfo:
+        metainfo = {}
+    xc_funcs = method.get('section_XC_functionals', [])
+    if xc_funcs:
+        xc_info = ','.join([
+            xc_func['XC_functional_name'] for xc_func in xc_funcs])
+        if 'nomad_XC_functionals' in metainfo:
+            metainfo['nomad_XC_functionals'] = metainfo['nomad_XC_functionals'] + ',' + xc_info
+        else:
+            metainfo['nomad_XC_functionals'] = xc_info
+    e_calc_method = method.get('electronic_structure_method', [])
+    if e_calc_method:
+        metainfo['electronic_structure_method'] = e_calc_method
+    ref_methods = method.get('section_method_to_method_refs', [])
+    if ref_methods:
+        for ref_method in ref_methods:
+            ref_id = ref_method.get('method_to_method_ref', [])
+            if ref_id:
+                metainfo.update(section_method2metadata(
+                    methods[ref_id], methods, metainfo=metainfo))
+    return metainfo
+
 def add_nomad_metainfo(atoms, d, run, calc, system):
     # More nomad metainfo can be add to key_value_pairs and 
     # key_value_pairs can also be stored at ASE db.
-    if 'key_value_pairs' in atoms.info:
-        info = atoms.info['key_value_pairs']
-    else:
-        info = {}
-    info.update({'nomad_uri' : system['uri']})
-    info.update({'nomad_run_gIndex' : run['gIndex']})
-    info.update({'nomad_system_gIndex' : system['gIndex']})
-    info.update({'nomad_calculation_uri' : d['uri']})
+    info = atoms.info.get('key_value_pairs', {})
+    info['nomad_metadata_type'] = run['type']
+    info['nomad_uri'] = system['uri']
+    info['nomad_run_gIndex'] = run['gIndex']
+    info['nomad_system_gIndex'] = system['gIndex']
+    info['nomad_calculation_uri'] = d['uri']
     if 'energy_total_T0' in calc:
-        info.update({'potential_energy' : calc['energy_total_T0'] * units.J})
+        info['potential_energy'] = calc['energy_total_T0'] * units.J
     if 'energy_total' in calc:
-        info.update({'total_energy' : calc['energy_total'] * units.J})
+        info['total_energy'] = calc['energy_total'] * units.J
     if 'energy_total' in calc:
-        info.update({'energy' : calc['energy_total'] * units.J})
+        info['energy'] = calc['energy_total'] * units.J
     if 'energy_free' in calc:
-        info.update({'free_energy' : calc['energy_free'] * units.J})
-    info.update({'program_name' : str(run['program_name'])})
+        info['free_energy'] = calc['energy_free'] * units.J
+    if 'single_configuration_calculation_converged' in calc:
+        info['converged'] = calc['single_configuration_calculation_converged']
+    info['program_name'] = run['program_name']
     if 'program_version' in run:
-        info.update({'program_version' : str(' '.join(run['program_version'].split()))})
-    methods = run.get('section_method')
-    found_xc_info = False
-    xc_info = ''
-    if methods is not None:
-        for method in methods:
-            xc_funcs = method.get('section_XC_functionals')
-            if xc_funcs is not None:
-                found_xc_info = True
-                xc_info = xc_info + ','.join([
-                    xc_func['XC_functional_name'] for xc_func in xc_funcs])
-    if found_xc_info:
-        info.update({'nomad_XC_functionals' : xc_info})
+        info['program_version'] = ' '.join(run['program_version'].split())
+    # Checking the reference section_method for this calc, 
+    # section_single_configuration_calculation
+    ref_method = calc.get('single_configuration_to_calculation_method_ref') 
+    methods = run.get('section_method', [])
+    if methods:
+        if ref_method is not None:
+            info.update(section_method2metadata(
+                methods[ref_method], 
+                methods))
+    # ?? In case there is no reference to section_method,
+    # ?? can we assume section_method(s) is(are) nested in 
+    # ?? section_single_configuration_calculation
+    else:
+        methods = calc.get('section_method', [])
+        if methods:
+            for method in methods:
+                info.update(section_method2metadata(
+                    method, 
+                    methods))
     atoms.info.update({'key_value_pairs' : info})
     return atoms
 
 
 def dict2images(d, silent=False):
-    runs = d.get('section_run')
-    if runs is not None:
-        single_confs={}
-        for run in runs:
-            calculations = run['section_single_configuration_calculation']
-            if calculations is not None:
-                for calc in calculations:
-                    if calc.get('name') == 'section_single_configuration_calculation':
-                        if 'single_configuration_calculation_to_system_ref' in calc:
-                            single_confs[run.get('gIndex'), calc.get('single_configuration_calculation_to_system_ref')] = calc
-                        else:
-                            single_confs[run.get('gIndex'), '0'] = calc
+    runs = d.get('section_run', [])
+    if not silent:
+        assert 'section_run' in d, 'Missing section_run!'
+    single_confs={}
+    for run in runs:
+        calculations = run.get('section_single_configuration_calculation', [])
+        for calc in calculations:
+            if calc.get('name') == 'section_single_configuration_calculation':
+                if 'single_configuration_calculation_to_system_ref' in calc:
+                    single_confs[run.get('gIndex'), calc.get('single_configuration_calculation_to_system_ref')] = calc
+                else:
+                    single_confs[run.get('gIndex'), '0'] = calc
 
-        for run in runs:
-            systems = run.get('section_system')
-            if systems is not None:
-                for system in systems:
-                    if silent and system['name'] != 'section_system':
-                        continue
-                    if 'atom_positions' in system:
-                        atoms = section_system2atoms(system)
-                        if (run.get('gIndex'), system.get('gIndex')) in single_confs:
-                            atoms = add_nomad_metainfo(atoms, d, run, single_confs[
-                                run.get('gIndex'), system.get('gIndex')
-                                ], system)
-                        else:
-                            atoms = add_nomad_metainfo(atoms, d, run, {}, system)
-                        yield atoms
-            else:
-                if silent is False:
-                    assert calculations is not None, 'No section_system in section_run!'
-    else:
-        if silent is False:
-            assert 'section_run' in d, 'Missing section_run!'
+    for run in runs:
+        systems = run.get('section_system', [])
+        if not silent:
+            assert 'section_system' in run, 'No section_system in section_run!'
+        for system in systems:
+            if silent and system['name'] != 'section_system':
+                continue
+            if 'atom_positions' in system:
+                atoms = section_system2atoms(system)
+                if (run.get('gIndex'), system.get('gIndex')) in single_confs:
+                    atoms = add_nomad_metainfo(atoms, d, run, single_confs[
+                        run.get('gIndex'), system.get('gIndex')
+                        ], system)
+                else:
+                    atoms = add_nomad_metainfo(atoms, d, run, {}, system)
+                yield atoms
 
 
 class NomadEntry(dict):
@@ -174,7 +200,6 @@ def section_singleconfig2calc(section):
 
 
 def main(argv):
-    #print('hello')
     uri = "nmd://N9Jqc1y-Bzf7sI1R9qhyyyoIosJDs/C74RJltyQeM9_WFuJYO49AR4gKuJ2"
     # TRY THESE ALSO:
     # nmd://N9GXsYFhz9mUMxVWxlvwnn7mCz3j1/CtiXMrvFRdyQV4fOxJkh8NwoCZR6Z
