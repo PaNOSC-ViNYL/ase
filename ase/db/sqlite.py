@@ -273,7 +273,7 @@ class SQLite3Database(Database, object):
 
         if id is None:
             q = self.default + ', ' + ', '.join('?' * len(values))
-            cur.execute('INSERT INTO systems VALUES ({})'.format(q),
+            cur.execute('INSERT INTO systems VALUES ({}) ON CONFLICT (unique_id) DO NOTHING'.format(q),
                         values)
             id = self.get_last_id(cur)
         else:
@@ -338,7 +338,7 @@ class SQLite3Database(Database, object):
                     text_key_values.append([key, value, i])
 
         N_rows = len(values_collect)
-        statement = 'INSERT INTO systems VALUES ({})'
+        statement = 'INSERT INTO systems VALUES ({}) ON CONFLICT (unique_id) DO NOTHING'
 
         last_id = self.get_last_id(cur)
         q = self.default + ', ' + ', '.join('?' * len(values[0]))
@@ -355,6 +355,12 @@ class SQLite3Database(Database, object):
             ids = range(last_id + 1 - N_rows, last_id + 1)
 
         # Update with id from systems
+        if len(ids) == 0:
+            if self.connection is None:
+                con.commit()
+                con.close()
+            return ids
+        
         for spec in species:
             spec[2] = ids[spec[2]]
             spec = tuple(spec)
