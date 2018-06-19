@@ -367,7 +367,6 @@ class Albrecht(ResonantRaman):
         self.read()
         approx = self.approximation
         assert(self.combinations == 1)
-        # XXXX check for wrong approx somewhere else
         Vel_Qcc = np.zeros((len(self.om_Q), 3, 3), dtype=complex)
         if approx == 'albrecht a' or approx == 'albrecht':
             Vel_Qcc += self.meA(omega, gamma)  # e^2 Angstrom^2 / eV
