@@ -161,8 +161,9 @@ class ResonantRaman(Vibrations):
             self.eq_calculator.converge_wave_functions()
         Vibrations.run(self)
 
-    def calculate(self, filename, fd):
+    def calculate(self, atoms, filename, fd):
         """Call ground and excited state calculation"""
+        assert(atoms == self.atoms)  # XXX action required
         self.timer.start('Ground state')
         forces = self.atoms.get_forces()
         if rank == 0:
