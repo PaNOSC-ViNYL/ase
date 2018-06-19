@@ -16,7 +16,7 @@ class Placzek(ResonantRaman):
         self._approx = 'PlaczekAlpha'
         ResonantRaman.__init__(self, *args, **kwargs)
 
-    def check_approximation(self, value):
+    def set_approximation(self, value):
         raise ValueError('Approximation can not be set.')
 
     def read_excitations(self):
@@ -69,11 +69,11 @@ class Profeta(ResonantRaman):
     Phys. Rev. B 63 (2000) 245415
     """
     def __init__(self, *args, **kwargs):
-        self.check_approximation(kwargs.pop('approximation', 'Profeta'))
+        self.set_approximation(kwargs.pop('approximation', 'Profeta'))
         self.nonresonant = kwargs.pop('nonresonant', True)
         ResonantRaman.__init__(self, *args, **kwargs)
 
-    def check_approximation(self, value):
+    def set_approximation(self, value):
         approx = value.lower()
         if approx in ['profeta', 'placzek', 'p-p']:
             self._approx = value

@@ -139,7 +139,7 @@ class ResonantRaman(Vibrations):
 
     @approximation.setter
     def approximation(self, value):
-        self.check_approximation(value)
+        self.set_approximation(value)
 
     @staticmethod
     def m2(z):

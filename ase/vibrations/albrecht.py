@@ -35,9 +35,9 @@ class Albrecht(ResonantRaman):
 
         ResonantRaman.__init__(self, *args, **kwargs)
 
-        self.check_approximation(approximation)
+        self.set_approximation(approximation)
 
-    def check_approximation(self, value):
+    def set_approximation(self, value):
         approx = value.lower()
         if approx in ['albrecht', 'albrecht b', 'albrecht c', 'albrecht bc']:
             if not self.overlap:
