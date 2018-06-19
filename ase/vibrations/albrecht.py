@@ -365,7 +365,7 @@ class Albrecht(ResonantRaman):
     def electronic_me_Qcc(self, omega, gamma):
         """Evaluate an electronic matric element."""
         self.read()
-        approx = self.approximation.lower()
+        approx = self.approximation
         assert(self.combinations == 1)
         # XXXX check for wrong approx somewhere else
         Vel_Qcc = np.zeros((len(self.om_Q), 3, 3), dtype=complex)
