@@ -2,7 +2,7 @@ import sys
 from ase.build import molecule
 from ase.calculators.aims import Aims
 from ase.optimize import BFGS
-from ase.calculators.ipi import IPICalculator
+from ase.calculators.socketio import SocketIOCalculator
 
 port = 27182
 species_dir = '/home/aimsuser/src/fhi-aims.171221_1/species_defaults/light'
@@ -19,6 +19,6 @@ calc = Aims(command=command,
 
 opt = BFGS(atoms, trajectory='opt.aims.traj', logfile='opt.aims.log')
 
-with IPICalculator(calc, log=sys.stdout, port=port) as calc:
+with SocketIOCalculator(calc, log=sys.stdout, port=port) as calc:
     atoms.calc = calc
     opt.run(fmax=0.05)

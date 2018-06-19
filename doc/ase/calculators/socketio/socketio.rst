@@ -1,4 +1,4 @@
-.. module:: ase.calculators.ipi
+.. module:: ase.calculators.socketio
 
 ===========================================
 Communication with calculators over sockets
@@ -26,6 +26,8 @@ coordinates through a socket connection, and the code returns
 energies, forces, and stress to the server.  That way the startup
 overhead is eliminated, and the codes can reuse and extrapolate
 wavefunctions and other quantities for increased efficiency.
+
+ASE provides such a server in the form of a calculator.
 
 Which codes can be used with ASE/i-PI?
 --------------------------------------
@@ -59,24 +61,29 @@ How to use ASE/i-PI
 
 Example using Quantum Espresso
 
-.. literalinclude:: ase_ipi_espresso.py
+.. literalinclude:: socketio_espresso.py
 
 Example using FHI-aims
 
-.. literalinclude:: ase_ipi_aims.py
+.. literalinclude:: socketio_aims.py
 
 Example using Siesta
 
-.. literalinclude:: ase_ipi_siesta.py
+.. literalinclude:: socketio_siesta.py
 
 Use ASE as a client
 -------------------
 
-ASE can run as an i-PI client using the IPIClient class.
+ASE can run as a client using the SocketClient class.  This may be
+useful for controlling calculations remotely or using a serial process
+to control a parallel one.
 
 Module documentation
 --------------------
 
-.. autoclass:: ase.calculators.ipi.IPICalculator
+.. autoclass:: ase.calculators.socketio.SocketIOCalculator
 
-.. autoclass:: ase.calculators.ipi.IPIClient
+.. autoclass:: ase.calculators.socketio.SocketClient
+
+.. autoclass:: ase.calculators.socketio.SocketServer
+

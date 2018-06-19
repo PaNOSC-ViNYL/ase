@@ -12,7 +12,7 @@ Git master branch
 * Test suite now runs in parallel.
 
 * Socked-based interface to certain calculators through the
-  :mod:`~ase.calculators.ipi` module:
+  :mod:`~ase.calculators.socketio` module:
   Added support for
   communicating coordinates, forces and other quantities over
   sockets using the i-PI protocol.  This removes the overhead for

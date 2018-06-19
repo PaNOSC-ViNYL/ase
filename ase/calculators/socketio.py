@@ -195,7 +195,7 @@ class IPIProtocol:
         return r
 
 
-class IPIServer:
+class SocketServer:
     default_port = 31415
 
     def __init__(self, client_command=None, port=None,
@@ -260,7 +260,7 @@ class IPIServer:
 
         self.proc = None
 
-        self.ipi = None
+        self.protocol = None
         self.clientsocket = None
         self.address = None
 
@@ -302,21 +302,21 @@ class IPIServer:
         if log:
             print('Accepted connection from {}'.format(self.address), file=log)
 
-        self.ipi = IPIProtocol(self.clientsocket, txt=log)
+        self.protocol = IPIProtocol(self.clientsocket, txt=log)
 
     def close(self):
         if self._closed:
             return
 
         if self.log:
-            print('Close IPI server', file=self.log)
+            print('Close socket server', file=self.log)
         self._closed = True
 
         # Proper way to close sockets?
         # And indeed i-pi connections...
-        # if self.ipi is not None:
-        #     self.ipi.end()  # Send end-of-communication string
-        self.ipi = None
+        # if self.protocol is not None:
+        #     self.protocol.end()  # Send end-of-communication string
+        self.protocol = None
         if self.clientsocket is not None:
             self.clientsocket.close() #shutdown(socket.SHUT_RDWR)
         if self.proc is not None:
@@ -344,12 +344,12 @@ class IPIServer:
 
         #If we have not established connection yet, we must block
         # until the client catches up:
-        if self.ipi is None:
+        if self.protocol is None:
             self._accept()
-        return self.ipi.calculate(atoms.positions, atoms.cell)
+        return self.protocol.calculate(atoms.positions, atoms.cell)
 
 
-class IPIClient:
+class SocketClient:
     def __init__(self, host='localhost', port=None,
                  unixsocket=None, timeout=None, log=None):
         self.host = host
@@ -364,8 +364,8 @@ class IPIClient:
             sock = socket.socket(socket.AF_INET)
             sock.connect((host, port))
         sock.settimeout(timeout)
-        self.ipi = IPIProtocol(sock, txt=log)
-        self.log = self.ipi.log
+        self.protocol = IPIProtocol(sock, txt=log)
+        self.log = self.protocol.log
         self.closed = False
 
         self.bead_index = 0
@@ -374,15 +374,15 @@ class IPIClient:
 
     def close(self):
         if not self.closed:
-            self.log('Close IPIClient')
+            self.log('Close SocketClient')
             self.closed = True
-            self.ipi.socket.close()
+            self.protocol.socket.close()
 
     def irun(self, atoms, use_stress=True):
         try:
             while True:
                 try:
-                    msg = self.ipi.recvmsg()
+                    msg = self.protocol.recvmsg()
                 except SocketClosed:
                     # If socket was closed after a step, it is a clean exit
                     self.close()
@@ -391,10 +391,10 @@ class IPIClient:
                     self.close()
                     return
                 elif msg == 'STATUS':
-                    self.ipi.sendmsg(self.state)
+                    self.protocol.sendmsg(self.state)
                 elif msg == 'POSDATA':
                     assert self.state == 'READY'
-                    cell, icell, positions = self.ipi.recvposdata()
+                    cell, icell, positions = self.protocol.recvposdata()
                     atoms.cell[:] = cell
                     atoms.positions[:] = positions
                     # User may wish to do something with the atoms object now.
@@ -410,11 +410,11 @@ class IPIClient:
                     yield
                 elif msg == 'GETFORCE':
                     assert self.state == 'HAVEDATA', self.state
-                    self.ipi.sendforce(energy, forces, virial)
+                    self.protocol.sendforce(energy, forces, virial)
                     self.state = 'NEEDINIT'
                 elif msg == 'INIT':
                     assert self.state == 'NEEDINIT'
-                    bead_index, initbytes = self.ipi.recvinit()
+                    bead_index, initbytes = self.protocol.recvinit()
                     self.bead_index = bead_index
                     self.bead_initbytes = initbytes
                     self.state = 'READY'
@@ -428,13 +428,21 @@ class IPIClient:
             pass
 
 
-class IPICalculator(Calculator):
+class SocketIOCalculator(Calculator):
     implemented_properties = ['energy', 'forces', 'stress']
-    ipi_supported_changes = {'positions', 'cell'}
+    supported_changes = {'positions', 'cell'}
 
     def __init__(self, calc=None, port=None,
                  unixsocket=None, timeout=None, log=None):
-        """Initialize IPI calculator.
+        """Initialize socket I/O calculator.
+
+        This calculator launches a server which passes atomic
+        coordinates and unit cells to an external code via a socket,
+        and receives energy, forces, and stress in return.
+
+        ASE integrates this with the Quantum Espresso, FHI-aims and
+        Siesta calculators.  This works with any external code that
+        supports running as a client over the i-PI protocol.
 
         Parameters:
 
@@ -472,7 +480,7 @@ class IPICalculator(Calculator):
         In order to correctly close the sockets, it is
         recommended to use this class within a with-block:
 
-        with IPICalculator(...) as calc:
+        with SocketIOCalculator(...) as calc:
             atoms.calc = calc
             atoms.get_forces()
             atoms.rattle()
@@ -507,25 +515,25 @@ class IPICalculator(Calculator):
 
     def todict(self):
         d = {'type': 'calculator',
-                'name': 'ipi'}
+             'name': 'socket-driver'}
         if self.calc is not None:
             d['calc'] = self.calc.todict()
         return d
 
     def launch_server(self, cmd=None):
-        self.server = IPIServer(client_command=cmd, port=self._port,
-                                unixsocket=self._unixsocket,
-                                timeout=self.timeout, log=self.log)
+        self.server = SocketServer(client_command=cmd, port=self._port,
+                                   unixsocket=self._unixsocket,
+                                   timeout=self.timeout, log=self.log)
 
     def calculate(self, atoms=None, properties=['energy'],
                   system_changes=all_changes):
         bad = [change for change in system_changes
-               if change not in self.ipi_supported_changes]
+               if change not in self.supported_changes]
 
         if self.calculator_initialized and any(bad):
             raise PropertyNotImplementedError(
                 'Cannot change {} through IPI protocol.  '
-                'Please create new IPI calculator.'
+                'Please create new socket calculator.'
                 .format(bad if len(bad) > 1 else bad[0]))
 
         self.calculator_initialized = True
@@ -548,6 +556,8 @@ class IPICalculator(Calculator):
     def close(self):
         if self.server is not None:
             self.server.close()
+            self.server = None
+            self.calculator_initialized = False
 
     def __enter__(self):
         return self

@@ -8,7 +8,7 @@ atoms.rattle(stdev=0.1)
 # Environment-dependent parameters:
 pseudopotentials = {'H': 'H.pbe-rrkjus.UPF',
                     'O': 'O.pbe-rrkjus.UPF'}
-command = 'pw.x < {prefix}.pwi -ipi {host}:{port} > {prefix}.pwo'
+command = 'pw.x < PREFIX.pwi -ipi localhost:{port} > PREFIX.pwo'
 pseudo_dir='.'
 
 espresso = Espresso(command=command,
@@ -19,7 +19,7 @@ espresso = Espresso(command=command,
 opt = BFGS(atoms, trajectory='opt.traj',
            logfile='opt.log')
 
-with espresso.ipi() as calc:
+with espresso.socket_driver() as calc:
     atoms.calc = calc
     opt.run(fmax=0.05)
 

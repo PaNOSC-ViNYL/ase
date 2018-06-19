@@ -2,7 +2,7 @@ import sys
 from ase.build import molecule
 from ase.calculators.siesta import Siesta
 from ase.optimize import BFGS
-from ase.calculators.ipi import IPICalculator
+from ase.calculators.socketio import SocketIOCalculator
 
 unixsocket = 'siesta'
 
@@ -19,6 +19,7 @@ atoms.rattle(stdev=0.1)
 siesta = Siesta(fdf_arguments=fdf_arguments)
 opt = BFGS(atoms, trajectory='opt.siesta.traj', logfile='opt.siesta.log')
 
-with IPICalculator(siesta, log=sys.stdout, unixsocket=unixsocket) as calc:
+with SocketIOCalculator(siesta, log=sys.stdout,
+                        unixsocket=unixsocket) as calc:
     atoms.calc = calc
     opt.run(fmax=0.05)

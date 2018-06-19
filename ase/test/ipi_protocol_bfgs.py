@@ -4,7 +4,7 @@ import threading
 
 import numpy as np
 
-from ase.calculators.ipi import IPIClient, IPICalculator
+from ase.calculators.socketio import SocketClient, SocketIOCalculator
 from ase.calculators.emt import EMT
 from ase.optimize import BFGS
 from ase.cluster.icosahedron import Icosahedron
@@ -27,8 +27,8 @@ def getatoms():
 def run_server(launchclient=True):
     atoms = getatoms()
 
-    with IPICalculator(log=sys.stdout, port=port,
-                       timeout=timeout) as calc:
+    with SocketIOCalculator(log=sys.stdout, port=port,
+                            timeout=timeout) as calc:
         if launchclient:
             thread = launch_client_thread()
         atoms.calc = calc
@@ -72,8 +72,8 @@ def run_client():
 
     try:
         with open('client.log', 'w') as fd:
-            client = IPIClient(log=fd, port=port,
-                               timeout=timeout)
+            client = SocketClient(log=fd, port=port,
+                                  timeout=timeout)
             client.run(atoms, use_stress=False)
     except BrokenPipe:
         # I think we can find a way to close sockets so as not to get an
