@@ -273,8 +273,7 @@ class SQLite3Database(Database, object):
 
         if id is None:
             q = self.default + ', ' + ', '.join('?' * len(values))
-            cur.execute("""INSERT INTO systems VALUES ({}) 
-            ON CONFLICT (unique_id) DO NOTHING""".format(q), values)
+            cur.execute("""INSERT INTO systems VALUES ({})""".format(q), values)
             id = self.get_last_id(cur)
         else:
             q = ', '.join(name + '=?' for name in self.columnnames[1:])
@@ -339,8 +338,7 @@ class SQLite3Database(Database, object):
                     text_key_values.append([key, value, i])
 
         N_rows = len(values_collect)
-        statement = """INSERT INTO systems VALUES ({})
-        ON CONFLICT (unique_id) DO NOTHING"""
+        statement = """INSERT INTO systems VALUES ({})"""
 
         last_id = self.get_last_id(cur)
         q = self.default + ', ' + ', '.join('?' * len(values[0]))
