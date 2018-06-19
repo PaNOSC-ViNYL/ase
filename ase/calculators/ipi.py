@@ -1,4 +1,5 @@
 from __future__ import print_function
+import os
 import socket
 from subprocess import Popen
 
@@ -7,6 +8,10 @@ import numpy as np
 from ase.calculators.calculator import (Calculator, all_changes,
                                         PropertyNotImplementedError)
 import ase.units as units
+
+
+def actualunixsocketname(name):
+    return '/tmp/ipi_{}'.format(name)
 
 
 class SocketClosed(OSError):
@@ -149,26 +154,34 @@ class IPIProtocol:
         self.log(' end')
         self.sendmsg('EXIT')
 
+    def recvinit(self):
+        self.log(' recvinit')
+        bead_index = self.recv(1, np.int32)
+        nbytes = self.recv(1, np.int32)
+        initbytes = self.recv(nbytes, np.byte)
+        return bead_index, initbytes
+
     def sendinit(self):
         # XXX Not sure what this function is supposed to send.
         # It 'works' with QE, but for now we try not to call it.
         self.log(' sendinit')
         self.sendmsg('INIT')
-        self.send(0, np.int32)  # 'bead index' always zero
-        # number of bits (don't they mean bytes?) in initialization string:
-        # Why does quantum espresso seem to want -1?  Is that normal?
-        self.send(-1, np.int32)
-        self.send(np.empty(0), np.byte)  # initialization string
+        self.send(0, np.int32)  # 'bead index' always zero for now
+        # We send one byte, which is zero, since things may not work
+        # with 0 bytes.  Apparently implementations ignore the
+        # initialization string anyway.
+        self.send(1, np.int32)
+        self.send(np.zeros(1), np.byte)  # initialization string
 
     def calculate(self, positions, cell):
         self.log('calculate')
         msg = self.status()
         # We don't know how NEEDINIT is supposed to work, but some codes
         # seem to be okay if we skip it and send the positions instead.
-        #if msg == 'NEEDINIT':
-        #    self.sendinit()
-        #    msg = self.status()
-        #assert msg == 'READY', msg
+        if msg == 'NEEDINIT':
+            self.sendinit()
+            msg = self.status()
+        assert msg == 'READY', msg
         icell = np.linalg.pinv(cell).transpose()
         self.sendposdata(cell, icell, positions)
         msg = self.status()
@@ -218,20 +231,29 @@ class IPIServer:
         self.unixsocket = unixsocket
         self.timeout = timeout
         self._closed = False
+        self._created_socket_file = None  # file to be unlinked in close()
 
         if unixsocket is not None:
             self.serversocket = socket.socket(socket.AF_UNIX)
-            self.serversocket.bind(unixsocket)
+            actualsocket = actualunixsocketname(unixsocket)
+            try:
+                self.serversocket.bind(actualsocket)
+            except OSError as err:
+                raise OSError('{}: {}'.format(err, repr(actualsocket)))
+            self._created_socket_file = actualsocket
+            conn_name = 'UNIX-socket {}'.format(actualsocket)
         else:
             self.serversocket = socket.socket(socket.AF_INET)
             self.serversocket.setsockopt(socket.SOL_SOCKET,
                                          socket.SO_REUSEADDR, 1)
             self.serversocket.bind(('', port))
+            conn_name = 'INET port {}'.format(port)
+
+        if log:
+            print('Accepting clients on {}'.format(conn_name), file=log)
 
         self.serversocket.settimeout(timeout)
 
-        if log:
-            print('Accepting IPI clients on port {}'.format(port), file=log)
         self.serversocket.listen(1)
 
         self.log = log
@@ -307,7 +329,10 @@ class IPIServer:
                 warnings.warn('Subprocess exited with status {}'
                               .format(exitcode))
         if self.serversocket is not None:
-            self.serversocket.close() #shutdown(socket.SHUT_RDWR)
+            self.serversocket.close()
+        if self._created_socket_file is not None:
+            assert self._created_socket_file.startswith('/tmp/ipi_')
+            os.unlink(self._created_socket_file)
         #self.log('IPI server closed')
 
     def calculate(self, atoms):
@@ -333,7 +358,8 @@ class IPIClient:
 
         if unixsocket is not None:
             sock = socket.socket(socket.AF_UNIX)
-            sock.connect(unixsocket)
+            actualsocket = actualunixsocketname(unixsocket)
+            sock.connect(actualsocket)
         else:
             sock = socket.socket(socket.AF_INET)
             sock.connect((host, port))
@@ -342,6 +368,8 @@ class IPIClient:
         self.log = self.ipi.log
         self.closed = False
 
+        self.bead_index = 0
+        self.bead_initbytes = b''
         self.state = 'READY'
 
     def close(self):
@@ -383,7 +411,15 @@ class IPIClient:
                 elif msg == 'GETFORCE':
                     assert self.state == 'HAVEDATA', self.state
                     self.ipi.sendforce(energy, forces, virial)
+                    self.state = 'NEEDINIT'
+                elif msg == 'INIT':
+                    assert self.state == 'NEEDINIT'
+                    bead_index, initbytes = self.ipi.recvinit()
+                    self.bead_index = bead_index
+                    self.bead_initbytes = initbytes
                     self.state = 'READY'
+                else:
+                    raise KeyError('bad message', msg)
         finally:
             self.close()
 
@@ -497,15 +533,8 @@ class IPICalculator(Calculator):
         if self.server is None:
             assert self.calc is not None
             cmd = self.calc.command.replace('PREFIX', self.calc.prefix)
-            #cmd = cmd.format(port=self.server.port,
-            #                 unixsocket=self.server.unixsocket,
-            #                 prefix=self.calc.prefix)
             self.calc.write_input(atoms, properties=properties,
                                   system_changes=system_changes)
-            #else:
-            #    cmd = None  # User configures/launches subprocess
-                # (and is responsible for having generated any necessary files)
-            #if self.server is None:
             self.launch_server(cmd)
 
         self.atoms = atoms.copy()
