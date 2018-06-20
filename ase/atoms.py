@@ -1456,7 +1456,7 @@ class Atoms(object):
         self._masked_rotate(center, axis, diff, mask)
 
     def rotate_dihedral(self, a1, a2=None, a3=None, a4=None,
-                        angle=None, mask=None):
+                        angle=None, mask=None, indices=None):
         """Rotate dihedral angle.
 
         Complementing the two routines above: rotate a group by a
@@ -1465,7 +1465,7 @@ class Atoms(object):
         """
         if isinstance(a1, int):
             start = self.get_dihedral(a1, a2, a3, a4)
-            self.set_dihedral(a1, a2, a3, a4, angle + start, mask)
+            self.set_dihedral(a1, a2, a3, a4, angle + start, mask, indices)
         else:
             warnings.warn(
                 'Please use new API: '
@@ -1473,12 +1473,12 @@ class Atoms(object):
                 'where angle is given in degrees')
             if angle is None:
                 angle = a2
-                if mask is None:
+                if mask is None and indices is None:
                     mask = a3
             else:
                 assert a2 is None and a3 is None and a4 is None
             start = self.get_dihedral(a1)
-            self.set_dihedral(a1, angle + start, mask)
+            self.set_dihedral(a1, angle + start, mask, indices)
 
     def get_angle(self, a1, a2, a3, mic=False):
         """Get angle formed by three atoms.
