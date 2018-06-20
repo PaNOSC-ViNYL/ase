@@ -22,16 +22,13 @@ from ase.io.espresso import label_to_symbol
 
 def read_atom_line(line_full):
     """
-    From  biopython package
-
-    https://github.com/biopython/biopython/blob/master/Bio/PDB/PDBParser.py
-                
+    Read atom line from pdb format     
     HETATM    1  H14 ORTE    0       6.301   0.693   1.919  1.00  0.00           H
     """
 
     line = line_full.rstrip('\n')
-    record_type = line[0:6]
-    if record_type == "ATOM  " or record_type == "HETATM":
+    type_atm = line[0:6]
+    if type_atm == "ATOM  " or type_atm == "HETATM":
 
         fullname = line[12:16]
         
@@ -56,16 +53,6 @@ def read_atom_line(line_full):
         
         resseq = int(line[22:26].split()[0])  # sequence identifier
         icode = line[26]  # insertion code
-
-        if record_type == "HETATM":  # hetero atom flag
-            if resname == "HOH" or resname == "WAT":
-                hetero_flag = "W"
-            else:
-                hetero_flag = "H"
-        else:
-            hetero_flag = " "
-        
-        residue_id = (hetero_flag, resseq, icode)
         
         # atomic coordinates
         try:
@@ -73,8 +60,6 @@ def read_atom_line(line_full):
             y = float(line[38:46])
             z = float(line[46:54])
         except Exception:
-            # Should we allow parsing to continue in permissive mode?
-            # If so, what coordinates should we default to?  Easier to abort!
             raise ValueError("Invalid or missing coordinate(s)")
         coord = np.array((x, y, z), dtype=np.float64)
         
@@ -86,10 +71,6 @@ def read_atom_line(line_full):
             pass
         
         if occupancy is not None and occupancy < 0:
-            # TODO - Should this be an error in strict mode?
-            # self._handle_PDB_exception("Negative occupancy",
-            #                            global_line_counter)
-            # This uses fixed text so the warning occurs once only:
             warnings.warn("Negative occupancy in one or more atoms")
 
         try:
@@ -103,7 +84,6 @@ def read_atom_line(line_full):
     else:
         raise ValueError("Only ATOM and HETATM supported")
         
-
     return symbol, name, altloc, resname, coord, occupancy, bfactor, resseq
 
 def read_proteindatabank(fileobj, index=-1, read_arrays=True):
