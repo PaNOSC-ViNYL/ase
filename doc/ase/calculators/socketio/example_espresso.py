@@ -1,3 +1,4 @@
+import sys
 from ase.build import molecule
 from ase.optimize import BFGS
 from ase.calculators.espresso import Espresso
@@ -19,7 +20,7 @@ espresso = Espresso(command=command,
 opt = BFGS(atoms, trajectory='opt.traj',
            logfile='opt.log')
 
-with espresso.socket_driver() as calc:
+with espresso.socket_driver(log=sys.stdout) as calc:
     atoms.calc = calc
     opt.run(fmax=0.05)
 

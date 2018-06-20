@@ -1,5 +1,4 @@
 import sys
-from subprocess import Popen
 
 from ase.build import molecule
 from ase.io import write
@@ -18,8 +17,9 @@ with SocketIOCalculator(log=sys.stdout,
                         unixsocket=unixsocket) as calc:
     # Server is now running and waiting for connections.
     # If you want to launch the client process here directly,
-    # instead of manually in the terminal, uncomment this line:
+    # instead of manually in the terminal, uncomment these lines:
     #
+    # from subprocess import Popen
     # proc = Popen([sys.executable, 'example_client_gpaw.py'])
 
     atoms.calc = calc

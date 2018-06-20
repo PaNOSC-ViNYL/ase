@@ -57,8 +57,8 @@ Codes may require different commands, keywords, or compilation options
 in order to run in driver mode.  See the code's documentation for
 details.  The i-PI documentation may also be useful.
 
-How to use ASE/i-PI
--------------------
+How to use the ASE socket I/O interface
+---------------------------------------
 
 Example using Quantum Espresso
 
@@ -79,8 +79,10 @@ Example using Siesta
 
 .. literalinclude:: example_siesta.py
 
-Use ASE as a client
--------------------
+For codes other than these, see the next section.
+
+Run server and client manually
+------------------------------
 
 ASE can run as a client using the SocketClient class.  This may be
 useful for controlling calculations remotely or using a serial process
@@ -95,6 +97,9 @@ Run it and then run the client:
 .. literalinclude:: example_client_gpaw.py
 
 This also demonstrates how to use the interface with GPAW.
+Instead of running the client script, it is also possible
+to run any other program that acts as a client.  This
+includes the codes listed in the compatibility table above.
 
 Module documentation
 --------------------
@@ -102,5 +107,8 @@ Module documentation
 .. autoclass:: ase.calculators.socketio.SocketIOCalculator
 
 .. autoclass:: ase.calculators.socketio.SocketClient
+
+The SocketServer allows launching a server without the need
+to create a calculator:
 
 .. autoclass:: ase.calculators.socketio.SocketServer
