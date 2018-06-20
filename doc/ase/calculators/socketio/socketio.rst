@@ -29,10 +29,10 @@ wavefunctions and other quantities for increased efficiency.
 
 ASE provides such a server in the form of a calculator.
 
-Which codes can be used with ASE/i-PI?
---------------------------------------
+Which codes can be used with socket I/O calculators?
+----------------------------------------------------
 
-Below is a list of codes that can run as i-PI clients, and whether ASE
+Below is a list of codes that can run as clients, and whether ASE
 provides a calculator that supports doing so.
 
 ================ =========================================
@@ -45,7 +45,8 @@ DFTB+            Yes, presumably (untested)
 Yaff             No; there is no ASE calculator for Yaff
 cp2k             No; ASE uses cp2k shell instead
 Lammps           No; ASE uses lammpsrun/lammpslib instead
-ASE              Yes - ASE implements a client as well
+ASE              Yes - ASE provides a client as well
+GPAW             Yes, using the ASE client
 ================ =========================================
 
 The codes that are "not supported" by ASE can still be used as
@@ -61,15 +62,15 @@ How to use ASE/i-PI
 
 Example using Quantum Espresso
 
-.. literalinclude:: socketio_espresso.py
+.. literalinclude:: example_espresso.py
 
 Example using FHI-aims
 
-.. literalinclude:: socketio_aims.py
+.. literalinclude:: example_aims.py
 
 Example using Siesta
 
-.. literalinclude:: socketio_siesta.py
+.. literalinclude:: example_siesta.py
 
 Use ASE as a client
 -------------------
@@ -77,6 +78,18 @@ Use ASE as a client
 ASE can run as a client using the SocketClient class.  This may be
 useful for controlling calculations remotely or using a serial process
 to control a parallel one.
+
+This example will launch a server:
+
+.. literalinclude:: example_server.py
+
+Run it and then run the client:
+
+.. literalinclude:: example_client_gpaw.py
+
+As per the instructions in the server script, it is also possible to
+launch the client script directly from within the server script.
+
 
 Module documentation
 --------------------
