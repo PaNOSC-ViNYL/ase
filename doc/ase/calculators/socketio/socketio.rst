@@ -64,6 +64,13 @@ Example using Quantum Espresso
 
 .. literalinclude:: example_espresso.py
 
+.. note::
+
+   In order to secure smooth termination of the connection, it is wise
+   to close the connection after use.  This can be done by calling
+   ``calc.close()`` at the end or, more elegantly, by enclosing
+   using the ``with`` statement as done in all examples here.
+
 Example using FHI-aims
 
 .. literalinclude:: example_aims.py
@@ -79,7 +86,7 @@ ASE can run as a client using the SocketClient class.  This may be
 useful for controlling calculations remotely or using a serial process
 to control a parallel one.
 
-This example will launch a server:
+This example will launch a server without (necessarily) launching any client:
 
 .. literalinclude:: example_server.py
 
@@ -87,9 +94,7 @@ Run it and then run the client:
 
 .. literalinclude:: example_client_gpaw.py
 
-As per the instructions in the server script, it is also possible to
-launch the client script directly from within the server script.
-
+This also demonstrates how to use the interface with GPAW.
 
 Module documentation
 --------------------
@@ -99,4 +104,3 @@ Module documentation
 .. autoclass:: ase.calculators.socketio.SocketClient
 
 .. autoclass:: ase.calculators.socketio.SocketServer
-

@@ -295,8 +295,11 @@ class SocketServer:
 
         self.serversocket.settimeout(self.timeout)
         self.clientsocket.settimeout(self.timeout)
+
         if log:
-            print('Accepted connection from {}'.format(self.address), file=log)
+            # For unix sockets, address is b''.
+            source = ('client' if self.address == b'' else self.address)
+            print('Accepted connection from {}'.format(source), file=log)
 
         self.protocol = IPIProtocol(self.clientsocket, txt=log)
 
@@ -347,7 +350,10 @@ class SocketServer:
 
 class SocketClient:
     def __init__(self, host='localhost', port=None,
-                 unixsocket=None, timeout=None, log=None):
+                 unixsocket=None, timeout=None, log=None, world=None):
+        if world is None:
+            from ase.parallel import world
+        self.world = world
         self.host = host
         self.port = port
         self.unixsocket = unixsocket
