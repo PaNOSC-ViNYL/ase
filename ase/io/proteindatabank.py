@@ -30,45 +30,28 @@ def read_atom_line(line_full):
     type_atm = line[0:6]
     if type_atm == "ATOM  " or type_atm == "HETATM":
 
-        fullname = line[12:16]
-        
-        # get rid of whitespace in atom names
-        split_list = fullname.split()
-        if len(split_list) != 1:
-            # atom name has internal spaces, e.g. " N B ", so
-            # we do not strip spaces
-            name = fullname
-        else:
-            # atom name is like " CA ", so we can strip spaces
-            name = split_list[0]
+        name = line[12:16].strip()
 
         altloc = line[16]
         resname = line[17:20]
         chainid = line[21]            
-        
-        try:
-            serial_number = int(line[6:11])
-        except Exception:
-            serial_number = 0
         
         resseq = int(line[22:26].split()[0])  # sequence identifier
         icode = line[26]  # insertion code
         
         # atomic coordinates
         try:
-            x = float(line[30:38])
-            y = float(line[38:46])
-            z = float(line[46:54])
-        except Exception:
+            coord = np.array([float(line[30:38]),
+                              float(line[38:46]),
+                              float(line[46:54])], dtype=np.float64)
+        except ValueError:
             raise ValueError("Invalid or missing coordinate(s)")
-        coord = np.array((x, y, z), dtype=np.float64)
         
         # occupancy & B factor
         try:
             occupancy = float(line[54:60])
         except:
             occupancy = None  # Rather than arbitrary zero or one
-            pass
         
         if occupancy is not None and occupancy < 0:
             warnings.warn("Negative occupancy in one or more atoms")
