@@ -21,10 +21,6 @@ class SocketClosed(OSError):
 class IPIProtocol:
     """Communication using IPI protocol."""
 
-    statements = {'POSDATA', 'GETFORCE', 'STATUS', 'INIT', 'EXIT'}
-    # The statement '' means end program.
-    responses = {'READY', 'HAVEDATA', 'FORCEREADY', 'NEEDINIT'}
-
     def __init__(self, socket, txt=None):
         self.socket = socket
 
@@ -32,7 +28,7 @@ class IPIProtocol:
             log = lambda *args: None
         else:
             def log(*args):
-                print('IPI:', *args, file=txt)
+                print('Driver:', *args, file=txt)
                 txt.flush()
         self.log = log
 
