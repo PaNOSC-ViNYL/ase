@@ -1538,7 +1538,7 @@ class Atoms(object):
         return get_angles(v12, v32, cell=cell, pbc=pbc)
 
 
-    def set_angle(self, a1, a2=None, a3=None, angle=None, mask=None):
+    def set_angle(self, a1, a2=None, a3=None, angle=None, mask=None, indices=None):
         """Set angle (in degrees) formed by three atoms.
 
         Sets the angle between vectors a2->a1 and a2->a3.
@@ -1561,9 +1561,11 @@ class Atoms(object):
             angle *= 180 / pi
 
         # If not provided, set mask to the last atom in the angle description
-        if mask is None:
+        if mask is None and indices is None:
             mask = np.zeros(len(self))
             mask[a3] = 1
+        elif indices:
+            mask = [index in indices for index in range(len(self))]
         # Compute necessary in angle change, from current value
         current = self.get_angle(a1, a2, a3)
         diff = (angle - current) * pi / 180
@@ -1576,6 +1578,18 @@ class Atoms(object):
         axis = np.cross(v10, v12)
         center = self.positions[a2]
         self._masked_rotate(center, axis, diff, mask)
+
+
+    def change_angle(self, a1, a2=None, a3=None, angle=None, mask=None, indices=None):
+        """Change the angle between three atoms by angle.
+
+        Combines :meth:`ase.Atoms.get_angle` and :meth:`ase.Atoms.set_angle` to change the angle between
+        three atoms and a group of atoms. If *mask* and *indices* are not set,
+        only *a3* is moved."""
+
+        oldAngle = self.get_angle(a1, a2, a3)
+        self.set_angle(a1, a2, a3, oldAngle+angle, mask=mask, indices=indices)
+
 
     def rattle(self, stdev=0.001, seed=42):
         """Randomly displace atoms.
@@ -1668,13 +1682,19 @@ class Atoms(object):
             return D_len
 
 
-    def set_distance(self, a0, a1, distance, fix=0.5, mic=False):
+    def set_distance(self, a0, a1, distance, fix=0.5, mic=False, mask=None, indices=None):
         """Set the distance between two atoms.
 
         Set the distance between atoms *a0* and *a1* to *distance*.
         By default, the center of the two atoms will be fixed.  Use
         *fix=0* to fix the first atom, *fix=1* to fix the second
-        atom and *fix=0.5* (default) to fix the center of the bond."""
+        atom and *fix=0.5* (default) to fix the center of the bond.
+
+        If *mask* or *indices* are set (*mask* overwrites *indices*),
+        only the atoms defined there are moved. It is assumed they
+        move together with *a1*. Therefore if *fix=1*, only *a0* will
+        be moved.
+        """
 
         R = self.arrays['positions']
         D = np.array([R[a1] - R[a0]])
@@ -1684,8 +1704,35 @@ class Atoms(object):
         else:
             D_len = np.array([np.sqrt((D**2).sum())])
         x = 1.0 - distance / D_len[0]
-        R[a0] += (x * fix) * D[0]
-        R[a1] -= (x * (1.0 - fix)) * D[0]
+
+        if mask is None and indices is None:
+            indices = [ a0, a1 ]
+        elif mask:
+            indices = [ i for i in range(len(self)) if mask[i] ]
+
+        for i in indices:
+            if i == a0:
+                R[a0] += (x * fix) * D[0]
+            else:
+                R[i] -= (x * (1.0 - fix)) * D[0]
+
+    def change_distance(self, a0, a1, change=None, factor=False, fix=0.5, mic=False, mask=None, indices=None):
+        """Change the distance between two atoms.
+
+        Makes use of :meth:`ase.Atoms.get_distance` and :meth:`ase.Atoms.set_distance` to change
+        or scale (if *factor* is set) the distance between two atoms.
+
+        If *factor* is True, *change* is a factor multiplying the distance.
+        """
+
+        oldDist = self.get_distance(a0, a1, mic=mic)
+        if factor:
+            newDist = oldDist * change
+        else:
+            newDist = oldDist + change
+        self.set_distance(a0, a1, newDist, fix=fix, mic=mic, mask=mask, indices=indices)
+
+
 
     def get_scaled_positions(self, wrap=True):
         """Get positions relative to unit cell.
