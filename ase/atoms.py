@@ -1460,9 +1460,8 @@ class Atoms(object):
                         angle=None, mask=None, indices=None):
         """Rotate dihedral angle.
 
-        Complementing the two routines above: rotate a group by a
-        predefined dihedral angle, starting from its current
-        configuration.
+        Same usage as in :meth:`ase.Atoms.set_dihedral`: Rotate a group by a
+        predefined dihedral angle, starting from its current configuration.
         """
         if isinstance(a1, int):
             start = self.get_dihedral(a1, a2, a3, a4)
@@ -1586,8 +1585,11 @@ class Atoms(object):
         """Change the angle between three atoms by angle.
 
         Combines :meth:`ase.Atoms.get_angle` and :meth:`ase.Atoms.set_angle` to
-        change the angle between three atoms and a group of atoms. If *mask*
-        and *indices* are not set, only *a3* is moved."""
+        change the angle between three atoms and a group of atoms.
+
+        If *mask* and *indices* are given (see :meth:`ase.Atoms.set_dihedral`),
+        *indices* overwrites *mask*. If *mask* and *indices* are not set, only
+        *a3* is moved."""
 
         oldAngle = self.get_angle(a1, a2, a3)
         self.set_angle(a1, a2, a3, oldAngle+angle, mask=mask, indices=indices)
@@ -1693,10 +1695,9 @@ class Atoms(object):
         atom and *fix=0.5* (default) to fix the center of the bond.
 
         If *mask* or *indices* are set (*mask* overwrites *indices*),
-        only the atoms defined there are moved. It is assumed they
-        move together with *a1*. Therefore if *fix=1*, only *a0* will
-        be moved.
-        """
+        only the atoms defined there are moved (see :meth:`ase.Atoms.set_dihedral`).
+        It is assumed they move together with *a1*. Therefore if
+        *fix=1*, only *a0* will be moved."""
 
         R = self.arrays['positions']
         D = np.array([R[a1] - R[a0]])
@@ -1725,7 +1726,8 @@ class Atoms(object):
         to change or scale (if *factor* is set) the distance between two atoms.
 
         If *factor* is True, *change* is a factor multiplying the distance.
-        """
+
+        See :meth:`ase.Atoms.set_dihedral` for description of *mask* and *indices*."""
 
         oldDist = self.get_distance(a0, a1, mic=mic)
         if factor:
