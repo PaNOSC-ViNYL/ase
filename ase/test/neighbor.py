@@ -118,8 +118,6 @@ nl2 = NewPrimitiveNeighborList(cutoff_a, skin=0.0, sorted=True, use_scaled_posit
 nl.update(pbc_c, cell_cv, spos_ac)
 nl2.update(pbc_c, cell_cv, spos_ac)
 
-assert np.array_equal(nl.get_connectivity_matrix(),nl2.get_connectivity_matrix())
-
 a0, offsets0 = nl.get_neighbors(0)
 b0 = np.zeros_like(a0)
 d0 = np.dot(spos_ac[a0] + offsets0 - spos_ac[0], cell_cv)
