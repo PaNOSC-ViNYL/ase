@@ -1412,7 +1412,8 @@ class Atoms(object):
         a3->a4 by changing the atom indexed by a4
         if mask is not None, all the atoms described in mask
         (read: the entire subgroup) are moved. Alternatively to the mask,
-        the indices of the atoms to be rotated can be supplied.
+        the indices of the atoms to be rotated can be supplied. If both
+        *mask* and *indices* are given, *indices* overwrites *mask*.
 
         example: the following defines a very crude
         ethane-like molecule and twists one half of it by 30 degrees.
@@ -1461,7 +1462,7 @@ class Atoms(object):
 
         Complementing the two routines above: rotate a group by a
         predefined dihedral angle, starting from its current
-        configuration
+        configuration.
         """
         if isinstance(a1, int):
             start = self.get_dihedral(a1, a2, a3, a4)
@@ -1495,7 +1496,7 @@ class Atoms(object):
         a1s = self.positions[indices[:, 0]]
         a2s = self.positions[indices[:, 1]]
         a3s = self.positions[indices[:, 2]]
-        
+
         v12 = a1s - a2s
         v32 = a3s - a2s
 
@@ -1505,14 +1506,14 @@ class Atoms(object):
         if mic:
             cell = self._cell
             pbc = self._pbc
-        
+
         return get_angles(v12, v32, cell=cell, pbc=pbc)[0]
 
 
     def get_angles(self, indices, mic=False):
         """Get angle formed by three atoms for multiple groupings.
 
-        calculate angle in degrees between vectors between atoms a2->a1 
+        calculate angle in degrees between vectors between atoms a2->a1
         and a2->a3, where a1, a2, and a3 are in each row of indices.
 
         Use mic=True to use the Minimum Image Convention and calculate
@@ -1534,16 +1535,17 @@ class Atoms(object):
         if mic:
             cell = self._cell
             pbc = self._pbc
-        
+
         return get_angles(v12, v32, cell=cell, pbc=pbc)
 
 
     def set_angle(self, a1, a2=None, a3=None, angle=None, mask=None, indices=None):
         """Set angle (in degrees) formed by three atoms.
 
-        Sets the angle between vectors a2->a1 and a2->a3.
+        Sets the angle between vectors *a2*->*a1* and *a2*->*a3*.
 
-        Same usage as in set_dihedral()."""
+        Same usage as in :meth:`ase.Atoms.set_dihedral`. If *mask* and *indices*
+        are given, *indices* overwrites *mask*."""
 
         if not isinstance(a1, int):
             # old API (uses radians)
@@ -1583,9 +1585,9 @@ class Atoms(object):
     def change_angle(self, a1, a2, a3, angle, mask=None, indices=None):
         """Change the angle between three atoms by angle.
 
-        Combines :meth:`ase.Atoms.get_angle` and :meth:`ase.Atoms.set_angle` to change the angle between
-        three atoms and a group of atoms. If *mask* and *indices* are not set,
-        only *a3* is moved."""
+        Combines :meth:`ase.Atoms.get_angle` and :meth:`ase.Atoms.set_angle` to
+        change the angle between three atoms and a group of atoms. If *mask*
+        and *indices* are not set, only *a3* is moved."""
 
         oldAngle = self.get_angle(a1, a2, a3)
         self.set_angle(a1, a2, a3, oldAngle+angle, mask=mask, indices=indices)
@@ -1719,8 +1721,8 @@ class Atoms(object):
     def change_distance(self, a0, a1, change=None, factor=False, fix=0.5, mic=False, mask=None, indices=None):
         """Change the distance between two atoms.
 
-        Makes use of :meth:`ase.Atoms.get_distance` and :meth:`ase.Atoms.set_distance` to change
-        or scale (if *factor* is set) the distance between two atoms.
+        Makes use of :meth:`ase.Atoms.get_distance` and :meth:`ase.Atoms.set_distance`
+        to change or scale (if *factor* is set) the distance between two atoms.
 
         If *factor* is True, *change* is a factor multiplying the distance.
         """
