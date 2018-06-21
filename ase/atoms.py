@@ -1580,7 +1580,7 @@ class Atoms(object):
         self._masked_rotate(center, axis, diff, mask)
 
 
-    def change_angle(self, a1, a2=None, a3=None, angle=None, mask=None, indices=None):
+    def change_angle(self, a1, a2, a3, angle, mask=None, indices=None):
         """Change the angle between three atoms by angle.
 
         Combines :meth:`ase.Atoms.get_angle` and :meth:`ase.Atoms.set_angle` to change the angle between
