@@ -1446,7 +1446,7 @@ class Atoms(object):
         if mask is None and indices is None:
             mask = np.zeros(len(self))
             mask[a4] = 1
-        elif indices:
+        elif indices is not None:
             mask = [index in indices for index in range(len(self))]
 
         # compute necessary in dihedral change, from current value
@@ -1566,7 +1566,7 @@ class Atoms(object):
         if mask is None and indices is None:
             mask = np.zeros(len(self))
             mask[a3] = 1
-        elif indices:
+        elif indices is not None:
             mask = [index in indices for index in range(len(self))]
         # Compute necessary in angle change, from current value
         current = self.get_angle(a1, a2, a3)
