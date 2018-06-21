@@ -1409,13 +1409,18 @@ class Atoms(object):
     def set_dihedral(self, a1, a2=None, a3=None, a4=None, angle=None,
                      mask=None, indices=None):
         """Set the dihedral angle (degrees) between vectors a1->a2 and
-        a3->a4 by changing the atom indexed by a4
-        if mask is not None, all the atoms described in mask
+        a3->a4 by changing the atom indexed by a4.
+
+        If mask is not None, all the atoms described in mask
         (read: the entire subgroup) are moved. Alternatively to the mask,
         the indices of the atoms to be rotated can be supplied. If both
         *mask* and *indices* are given, *indices* overwrites *mask*.
 
-        example: the following defines a very crude
+        **Important**: If *mask* or *indices* is given and does not contain
+        *a4*, *a4* will NOT be moved. In most cases you therefore want
+        to include *a4* in *mask*/*indices*.
+
+        Example: the following defines a very crude
         ethane-like molecule and twists one half of it by 30 degrees.
 
         >>> from math import pi
@@ -1696,8 +1701,9 @@ class Atoms(object):
 
         If *mask* or *indices* are set (*mask* overwrites *indices*),
         only the atoms defined there are moved (see :meth:`ase.Atoms.set_dihedral`).
-        It is assumed they move together with *a1*. Therefore if
-        *fix=1*, only *a0* will be moved."""
+
+        It is assumed that the atoms in *mask*/*indices* move together
+        with *a1*. If *fix=1*, only *a0* will therefore be moved."""
 
         R = self.arrays['positions']
         D = np.array([R[a1] - R[a0]])
