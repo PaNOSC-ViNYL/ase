@@ -684,6 +684,28 @@ class NewPrimitiveNeighborList:
         return (self.pair_second[self.first_neigh[a]:self.first_neigh[a+1]],
                 self.offset_vec[self.first_neigh[a]:self.first_neigh[a+1]])
 
+    def get_connectivity_matrix(self):
+        """Return connectivity matrix (dtype=np.bool_ !).
+
+        A numpy matrix of size (nAtoms, nAtoms) will be returned.
+        Connected atoms i and j will have matrix[i,j] == 1, unconnected
+        matrix[i,j] == 0. If bothways=True the matrix will be symmetric,
+        otherwise not!
+        """
+
+        try:
+            nAtoms = len(self.positions)
+        except:
+            return None
+
+        matrix = np.zeros((nAtoms, nAtoms),dtype=np.bool_)
+
+        for i in range(nAtoms):
+            for idx in self.get_neighbors(i)[0]:
+                matrix[i,idx] = 1
+
+        return matrix
+
 
 class PrimitiveNeighborList:
     """Neighbor list that works without Atoms objects.
@@ -842,6 +864,28 @@ class PrimitiveNeighborList:
 
         return self.neighbors[a], self.displacements[a]
 
+    def get_connectivity_matrix(self):
+        """Return connectivity matrix (dtype=np.bool_ !).
+
+        A numpy matrix of size (nAtoms, nAtoms) will be returned.
+        Connected atoms i and j will have matrix[i,j] == 1, unconnected
+        matrix[i,j] == 0. If bothways=True the matrix will be symmetric,
+        otherwise not!
+        """
+
+        try:
+            nAtoms = len(self.neighbors)
+        except:
+            return None
+
+        matrix = np.zeros((nAtoms, nAtoms), dtype=np.bool_)
+
+        for i in range(nAtoms):
+            for idx in self.neighbors[i]:
+                matrix[i,idx] = 1
+
+        return matrix
+
 
 class NeighborList:
     """Neighbor list object.
@@ -881,6 +925,9 @@ class NeighborList:
 
     def get_neighbors(self, a):
         return self.nl.get_neighbors(a)
+
+    def get_connectivity_matrix(self):
+        return self.nl.get_connectivity_matrix()
 
     @property
     def nupdates(self):

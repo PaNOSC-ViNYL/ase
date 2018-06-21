@@ -50,6 +50,9 @@ nl = NeighborList([0.5, 0.5], skin=0.1, sorted=True, self_interaction=False)
 assert nl.update(h2)
 assert not nl.update(h2)
 assert (nl.get_neighbors(0)[0] == [1]).all()
+m = np.zeros((2,2))
+m[0,1] = 1
+assert np.array_equal(nl.get_connectivity_matrix(), m)
 
 h2[1].z += 0.09
 assert not nl.update(h2)
@@ -67,7 +70,6 @@ assert nl.get_neighbors(0)[1].shape == (0, 3)
 assert nl.get_neighbors(0)[1].dtype == int
 
 x = bulk('X', 'fcc', a=2**0.5)
-print(x)
 
 nl = NeighborList([0.5], skin=0.01, bothways=True, self_interaction=False)
 nl.update(x)
@@ -115,6 +117,8 @@ nl = PrimitiveNeighborList(cutoff_a, skin=0.0, sorted=True, use_scaled_positions
 nl2 = NewPrimitiveNeighborList(cutoff_a, skin=0.0, sorted=True, use_scaled_positions=True)
 nl.update(pbc_c, cell_cv, spos_ac)
 nl2.update(pbc_c, cell_cv, spos_ac)
+
+assert np.array_equal(nl.get_connectivity_matrix(),nl2.get_connectivity_matrix())
 
 a0, offsets0 = nl.get_neighbors(0)
 b0 = np.zeros_like(a0)
