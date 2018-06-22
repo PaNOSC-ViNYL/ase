@@ -1,9 +1,10 @@
 from __future__ import print_function
 from collections import Counter
+from itertools import combinations
 import copy
 import numpy as np
 from scipy.spatial import cKDTree as KDTree
-from ase import Atoms
+from ase import Atoms, Atom
 from ase.build import tools as asetools
 from ase.visualize import view
 from ase.spacegroup import get_spacegroup
@@ -268,40 +269,16 @@ class SymmetryEquivalenceCheck(object):
         """Return the symbol of the least frequent element."""
         elem1, elem2 = self._get_element_count()
         assert elem1 == elem2
-        minimum_value = 2 * len(self.s1)  # Set the value to a large value
-        least_freq_element = "X"
-        for key, value in elem1.items():
-            if value < minimum_value:
-                least_freq_element = key
-                minimum_value = value
-        return least_freq_element
+        return elem1.most_common()[-1][0]
 
     def _extract_positions_of_least_frequent_element(self):
         """Extract a dictionary of positions of each element."""
         least_freq_element = self._get_least_frequent_element()
 
-        atoms1 = None
-        atoms2 = None
-
-        for i in range(len(self.s1)):
-            symbol = self.s1[i].symbol
-            if symbol == least_freq_element:
-                pos = self.s1.get_positions(wrap=True)[i, :]
-                if atoms1 is None:
-                    atoms1 = Atoms(symbol, positions=[pos])
-                else:
-                    atoms1.extend(Atoms(symbol, positions=[pos]))
-
-            symbol = self.s2[i].symbol
-            if symbol == least_freq_element:
-                pos = self.s2.get_positions(wrap=True)[i, :]
-                if atoms2 is None:
-                    atoms2 = Atoms(symbol, positions=[pos])
-                else:
-                    atoms2.extend(Atoms(symbol, positions=[pos]))
-        atoms1.set_cell(self.s1.get_cell())
-        atoms2.set_cell(self.s2.get_cell())
-        return atoms1, atoms2
+        indices1 = [a.index for a in self.s1 if a.symbol == least_freq_element]
+        indices2 = [a.index for a in self.s2 if a.symbol == least_freq_element]
+        # Is wrapping of the positions necessary?
+        return self.s1[indices1], self.s2[indices2]
 
     def _positions_match(self, rotation_reflection_matrices, translations):
         """Check if the position and elements match.
@@ -334,160 +311,56 @@ class SymmetryEquivalenceCheck(object):
                     return True
         return False
 
-    def _expand(self, ref_atoms):
-        """Add additional atoms to for atoms close to the cell boundaries.
+    def _expand(self, ref_atoms, tol=0.0001):
+        """If an atom is closer to a boundary than tol it is repeated at the 
+        opposite boundaries.
 
         This ensures that atoms having crossed the cell boundaries due to
         numerical noise are properly detected.
-        """
-        expanded_atoms = copy.deepcopy(ref_atoms)
 
-        cell = ref_atoms.get_cell().T
-        normal_vectors = [np.cross(cell[:, 0], cell[:, 1]),
-                          np.cross(cell[:, 0], cell[:, 2]),
-                          np.cross(cell[:, 1], cell[:, 2])]
+        The distance between a position and cell boundary is calculated as:
+        dot(position, (b_vec x c_vec) / (|b_vec| |c_vec|) ), where x is the 
+        cross product.
+        """
+        syms = ref_atoms.get_chemical_symbols()
+        cell = ref_atoms.get_cell()
+        positions = ref_atoms.get_positions(wrap=True)
+        expanded_atoms = ref_atoms.copy()
+
+        # Calculate normal vectors to the unit cell faces
+        normal_vectors = np.array([np.cross(cell[1, :], cell[2, :]),
+                                   np.cross(cell[0, :], cell[2, :]),
+                                   np.cross(cell[0, :], cell[1, :])])
         normal_vectors = [vec / np.sqrt(np.sum(vec**2)) for vec
                           in normal_vectors]
-        positions = ref_atoms.get_positions(wrap=True)
-        tol = 0.0001
 
-        for i in range(len(ref_atoms)):
-            surface_close = [False, False, False, False, False, False]
-            # Face 1
-            distance = np.abs(positions[i, :].dot(normal_vectors[0]))
-            symbol = ref_atoms[i].symbol
-            if distance < tol:
-                newpos = positions[i, :] + cell[:, 2]
-                newAtom = Atoms(symbol, positions=[newpos])
-                expanded_atoms.extend(newAtom)
-                surface_close[0] = True
+        # Are the positions close to the unit cell faces
+        pos2faces = np.abs(positions.dot(np.array(normal_vectors).T))
 
-            # Face 2
-            vec = positions[i, :] - cell[:, 2]
-            distance = np.abs(vec.dot(normal_vectors[0]))
-            if distance < tol:
-                newpos = positions[i, :] - cell[:, 2]
-                newAtom = Atoms(symbol, positions=[newpos])
-                expanded_atoms.extend(newAtom)
-                surface_close[1] = True
+        # Or the opposite faces
+        pos2oppofaces = np.abs(np.dot(positions - np.sum(cell, axis=0),
+                                      np.array(normal_vectors).T))
 
-            # Face 3
-            distance = np.abs(positions[i, :].dot(normal_vectors[1]))
-            if distance < tol:
-                newpos = positions[i, :] + cell[:, 1]
-                newAtom = Atoms(symbol, positions=[newpos])
-                expanded_atoms.extend(newAtom)
-                surface_close[2] = True
-
-            # Face 4
-            vec = positions[i, :] - cell[:, 1]
-            distance = np.abs(vec.dot(normal_vectors[1]))
-            if distance < tol:
-                newpos = positions[i, :] - cell[:, 1]
-                newAtom = Atoms(symbol, positions=[newpos])
-                expanded_atoms.extend(newAtom)
-                surface_close[3] = True
-
-            # Face 5
-            distance = np.abs(positions[i, :].dot(normal_vectors[2]))
-            if distance < tol:
-                newpos = positions[i, :] + cell[:, 0]
-                newAtom = Atoms(symbol, positions=[newpos])
-                expanded_atoms.extend(newAtom)
-                surface_close[4] = True
-
-            # Face 6
-            vec = positions[i, :] - cell[:, 0]
-            distance = np.abs(vec.dot(normal_vectors[2]))
-            if distance < tol:
-                newpos = positions[i, :] - cell[:, 0]
-                newAtom = Atoms(symbol, positions=[newpos])
-                expanded_atoms.extend(newAtom)
-                surface_close[5] = True
-
-            # Take edges into account
-            if (surface_close[0] and surface_close[2]):
-                newpos = positions[i, :] + cell[:, 1] + cell[:, 2]
-                newAtom = Atoms(symbol, positions=[newpos])
-                expanded_atoms.extend(newAtom)
-            if (surface_close[0] and surface_close[4]):
-                newpos = positions[i, :] + cell[:, 0] + cell[:, 2]
-                newAtom = Atoms(symbol, positions=[newpos])
-                expanded_atoms.extend(newAtom)
-            if (surface_close[0] and surface_close[3]):
-                newpos = positions[i, :] - cell[:, 1] + cell[:, 2]
-                newAtom = Atoms(symbol, positions=[newpos])
-                expanded_atoms.extend(newAtom)
-            if (surface_close[0] and surface_close[5]):
-                newpos = positions[i, :] - cell[:, 0] + cell[:, 2]
-                newAtom = Atoms(symbol, positions=[newpos])
-                expanded_atoms.extend(newAtom)
-            if (surface_close[3] and surface_close[4]):
-                newpos = positions[i, :] + cell[:, 0] - cell[:, 1]
-                newAtom = Atoms(symbol, positions=[newpos])
-                expanded_atoms.extend(newAtom)
-            if (surface_close[3] and surface_close[1]):
-                newpos = positions[i, :] - cell[:, 1] - cell[:, 2]
-                newAtom = Atoms(symbol, positions=[newpos])
-                expanded_atoms.extend(newAtom)
-            if (surface_close[3] and surface_close[5]):
-                newpos = positions[i, :] - cell[:, 1] - cell[:, 0]
-                newAtom = Atoms(symbol, positions=[newpos])
-                expanded_atoms.extend(newAtom)
-            if (surface_close[1] and surface_close[5]):
-                newpos = positions[i, :] - cell[:, 0] - cell[:, 2]
-                newAtom = Atoms(symbol, positions=[newpos])
-                expanded_atoms.extend(newAtom)
-            if (surface_close[2] and surface_close[5]):
-                newpos = positions[i, :] - cell[:, 0] + cell[:, 1]
-                newAtom = Atoms(symbol, positions=[newpos])
-                expanded_atoms.extend(newAtom)
-            if (surface_close[2] and surface_close[4]):
-                newpos = positions[i, :] + cell[:, 0] + cell[:, 1]
-                newAtom = Atoms(symbol, positions=[newpos])
-                expanded_atoms.extend(newAtom)
-            if (surface_close[1] and surface_close[2]):
-                newpos = positions[i, :] + cell[:, 1] - cell[:, 2]
-                newAtom = Atoms(symbol, positions=[newpos])
-                expanded_atoms.extend(newAtom)
-            if (surface_close[1] and surface_close[4]):
-                newpos = positions[i, :] + cell[:, 0] - cell[:, 2]
-                newAtom = Atoms(symbol, positions=[newpos])
-                expanded_atoms.extend(newAtom)
-
-            # Take corners into account
-            if (surface_close[0] and surface_close[2] and surface_close[4]):
-                newpos = positions[i, :] + cell[:, 0] + cell[:, 1] + cell[:, 2]
-                newAtom = Atoms(symbol, positions=[newpos])
-                expanded_atoms.extend(newAtom)
-            elif (surface_close[0] and surface_close[3] and surface_close[4]):
-                newpos = positions[i, :] + cell[:, 0] - cell[:, 1] + cell[:, 2]
-                newAtom = Atoms(symbol, positions=[newpos])
-                expanded_atoms.extend(newAtom)
-            elif (surface_close[0] and surface_close[2] and surface_close[5]):
-                newpos = positions[i, :] - cell[:, 0] + cell[:, 1] + cell[:, 2]
-                newAtom = Atoms(symbol, positions=[newpos])
-                expanded_atoms.extend(newAtom)
-            elif (surface_close[0] and surface_close[3] and surface_close[5]):
-                newpos = positions[i, :] - cell[:, 0] - cell[:, 1] + cell[:, 2]
-                newAtom = Atoms(symbol, positions=[newpos])
-                expanded_atoms.extend(newAtom)
-            elif (surface_close[1] and surface_close[3] and surface_close[4]):
-                newpos = positions[i, :] + cell[:, 0] - cell[:, 1] - cell[:, 2]
-                newAtom = Atoms(symbol, positions=[newpos])
-                expanded_atoms.extend(newAtom)
-            elif (surface_close[1] and surface_close[3] and surface_close[5]):
-                newpos = positions[i, :] - cell[:, 0] - cell[:, 1] - cell[:, 2]
-                newAtom = Atoms(symbol, positions=[newpos])
-                expanded_atoms.extend(newAtom)
-            elif (surface_close[1] and surface_close[2] and surface_close[4]):
-                newpos = positions[i, :] + cell[:, 0] + cell[:, 1] - cell[:, 2]
-                newAtom = Atoms(symbol, positions=[newpos])
-                expanded_atoms.extend(newAtom)
-            elif (surface_close[1] and surface_close[2] and surface_close[5]):
-                newpos = positions[i, :] - cell[:, 0] + cell[:, 1] - cell[:, 2]
-                newAtom = Atoms(symbol, positions=[newpos])
-                expanded_atoms.extend(newAtom)
+        for i, i2face in enumerate(pos2faces):
+            # Append indices for positions close to the other faces
+            # and convert to boolean array signifying if the position at
+            # index i is close to the first faces (0, 1, 2) or the opposite
+            # faces (3, 4, 5)
+            i_close2face = np.append(i2face, pos2oppofaces[i]) < tol
+            # For each position i.e. row it holds that
+            # 1 x True -> close to face -> 1 extra atom at opposite face
+            # 2 x True -> close to edge -> 3 extra atoms at opposite edges
+            # 3 x True -> close to corner -> 7 extra atoms opposite corners
+            for j in range(sum(i_close2face)):
+                for c in combinations(np.nonzero(i_close2face)[0], j + 1):
+                    # Get the displacement vectors by adding the corresponding
+                    # cell vectors, if the atom is close to an opposite face
+                    # i.e. k > 2 subtract the cell vector
+                    disp_vec = np.zeros(3)
+                    for k in c:
+                        disp_vec += cell[k % 3] * (int(k < 3) * 2 - 1)
+                    pos = positions[i] + disp_vec
+                    expanded_atoms.append(Atom(syms[i], position=pos))
 
         return expanded_atoms
 
