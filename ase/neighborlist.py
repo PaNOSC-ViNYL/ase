@@ -82,7 +82,8 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
               Example: {(1, 6): 1.1, (1, 1): 1.0, ('C', 'C'): 1.85}
             * A list/array with a per atom value: This specifies the radius of
               an atomic sphere for each atoms. If spheres overlap, atoms are
-              within each others neighborhood.
+              within each others neighborhood. See :func:`ase.utils.natural_cutoffs`
+              for an example on how to get such a list.
     self_interaction: bool
         Return the atom itself as its own neighbor if set to true.
         Default: False
@@ -438,7 +439,8 @@ def neighbor_list(quantities, a, cutoff, self_interaction=False,
               Example: {(1, 6): 1.1, (1, 1): 1.0, ('C', 'C'): 1.85}
             * A list/array with a per atom value: This specifies the radius of
               an atomic sphere for each atoms. If spheres overlap, atoms are
-              within each others neighborhood.
+              within each others neighborhood. See :func:`ase.utils.natural_cutoffs`
+              for an example on how to get such a list.
 
     self_interaction: bool
         Return the atom itself as its own neighbor if set to true.
@@ -920,7 +922,9 @@ class NeighborList:
     cutoffs: list of float
         List of cutoff radii - one for each atom. If the spheres (defined by
         their cutoff radii) of two atoms overlap, they will be counted as
-        neighbors.
+        neighbors. See :func:`ase.utils.natural_cutoffs` for an example on how to
+        get such a list.
+
     skin: float
         If no atom has moved more than the skin-distance since the
         last call to the ``update()`` method, then the neighbor list
