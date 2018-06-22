@@ -691,6 +691,32 @@ class NewPrimitiveNeighborList:
         Connected atoms i and j will have matrix[i,j] == 1, unconnected
         matrix[i,j] == 0. If bothways=True the matrix will be symmetric,
         otherwise not!
+
+        Note that the old and new neighborlists might give different results
+        for periodic systems if bothways=False.
+
+        Example:
+
+        Determine which molecule in a system atom 1 belongs to.
+
+        >>> from ase import io, neighborlist
+        >>> from scipy import sparse
+        >>> mol = io.read('system.xyz')
+        >>> radii = {}
+        >>> radii[ 'H' ] = 0.30
+        >>> radii[ 'C' ] = 0.70
+        >>> radii[ 'N' ] = 0.70
+        >>> neighborList = neighborlist.NeighborList(cutOff,self_interaction=False,bothways=True)
+        >>> neighborList.update(molecule)
+        >>> matrix = neighborList.get_connectivity_matrix()
+        >>> graph = sparse.csr_matrix(matrix)
+        >>> n_components, component_list = sparse.csgraph.connected_components(graph)
+        >>> idx = 1
+        >>> molIdx = component_list[idx]
+        >>> print("There are {:} molecules in the system".format(n_components))
+        >>> print("Atom {:} is part of molecule {:}".format(idx, molIdx))
+        >>> molIdxs = [ i for i in range(len(component_list)) if component_list[i] == molIdx ]
+        >>> print("The following atoms are part of molecule {:}: {:}".format(molIdx, molIdxs))
         """
 
         try:
@@ -871,6 +897,9 @@ class PrimitiveNeighborList:
         Connected atoms i and j will have matrix[i,j] == 1, unconnected
         matrix[i,j] == 0. If bothways=True the matrix will be symmetric,
         otherwise not!
+
+        See :meth:`neighborlist.NewPrimitiveNeighborList.get_connectivity_matrix`
+        for an example how to use this.
         """
 
         try:
