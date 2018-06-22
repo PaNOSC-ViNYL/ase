@@ -700,12 +700,10 @@ class NewPrimitiveNeighborList:
         Determine which molecule in a system atom 1 belongs to.
 
         >>> from ase import io, neighborlist
+        >>> from ase.utils import natural_cutoffs
         >>> from scipy import sparse
         >>> mol = io.read('system.xyz')
-        >>> radii = {}
-        >>> radii[ 'H' ] = 0.30
-        >>> radii[ 'C' ] = 0.70
-        >>> radii[ 'N' ] = 0.70
+        >>> cutOff = natural_cutoffs(mol)
         >>> neighborList = neighborlist.NeighborList(cutOff,self_interaction=False,bothways=True)
         >>> neighborList.update(molecule)
         >>> matrix = neighborList.get_connectivity_matrix()
