@@ -1,15 +1,20 @@
 import numpy as np
-from collections import OrderedDict
+0;136;0cfrom collections import OrderedDict
 
 
 class PDOStype:
     def __init__(self, energy, weights,
+                 spin=None, l=None, m=None,
                  **kwargs):
         """Basic PDOS derived type"""
         self.energy = energy
         self.weights = weights
 
-        # Story any other information about this
+        self.spin = spin
+        self.l = l
+        self.m = m
+
+        # Store any other information about this
         # PDOS that the user might want to use later.
         self.__dict__.update(**kwargs)
 
