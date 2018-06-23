@@ -1,6 +1,7 @@
 from math import sqrt
 
 import numpy as np
+from scipy import sparse as sp
 
 from ase.data import atomic_numbers
 from ase.geometry import complete_cell
@@ -565,6 +566,61 @@ def first_neighbors(natoms, first_atom):
         mask = seed == -1
     return seed
 
+def get_connectivity_matrix(nl, sparse=True):
+    """Return connectivity matrix for a given NeighborList (dtype=numpy.int8).
+
+    A matrix of shape (nAtoms, nAtoms) will be returned.
+    Connected atoms i and j will have matrix[i,j] == 1, unconnected
+    matrix[i,j] == 0. If bothways=True the matrix will be symmetric,
+    otherwise not!
+
+    If *sparse* is True, a scipy csr matrix is returned.
+    If *sparse* is False, a numpy matrix is returned.
+
+    Note that the old and new neighborlists might give different results
+    for periodic systems if bothways=False.
+
+    Example:
+
+    Determine which molecule in a system atom 1 belongs to.
+
+    >>> from ase import io, neighborlist
+    >>> from ase.utils import natural_cutoffs
+    >>> from scipy import sparse
+    >>> mol = io.read('system.xyz')
+    >>> cutOff = natural_cutoffs(mol)
+    >>> neighborList = neighborlist.NeighborList(cutOff,self_interaction=False,bothways=True)
+    >>> neighborList.update(molecule)
+    >>> matrix = neighborList.get_connectivity_matrix()
+    >>> #or: matrix = neighborlist.get_connectivity_matrix(neighborList.nl)
+    >>> n_components, component_list = sparse.csgraph.connected_components(graph)
+    >>> idx = 1
+    >>> molIdx = component_list[idx]
+    >>> print("There are {} molecules in the system".format(n_components))
+    >>> print("Atom {} is part of molecule {}".format(idx, molIdx))
+    >>> molIdxs = [ i for i in range(len(component_list)) if component_list[i] == molIdx ]
+    >>> print("The following atoms are part of molecule {}: {}".format(molIdx, molIdxs))
+    """
+
+    if isinstance(nl,NewPrimitiveNeighborList):
+        nAtoms = len(nl.positions)
+    else:
+        nAtoms = len(nl.coordinates)
+
+    if sparse:
+        matrix = sp.dok_matrix((nAtoms, nAtoms), dtype=np.int8)
+    else:
+        matrix = np.zeros((nAtoms, nAtoms),dtype=np.int8)
+
+    for i in range(nAtoms):
+        for idx in nl.get_neighbors(i)[0]:
+            matrix[i,idx] = 1
+
+    if sparse:
+        matrix.tocsr()
+
+    return matrix
+
 
 class NewPrimitiveNeighborList:
     """Neighbor list object. Wrapper around neighbor_list and first_neighbors.
@@ -686,51 +742,6 @@ class NewPrimitiveNeighborList:
         return (self.pair_second[self.first_neigh[a]:self.first_neigh[a+1]],
                 self.offset_vec[self.first_neigh[a]:self.first_neigh[a+1]])
 
-    def get_connectivity_matrix(self):
-        """Return connectivity matrix (dtype=np.bool_ !).
-
-        A numpy matrix of size (nAtoms, nAtoms) will be returned.
-        Connected atoms i and j will have matrix[i,j] == 1, unconnected
-        matrix[i,j] == 0. If bothways=True the matrix will be symmetric,
-        otherwise not!
-
-        Note that the old and new neighborlists might give different results
-        for periodic systems if bothways=False.
-
-        Example:
-
-        Determine which molecule in a system atom 1 belongs to.
-
-        >>> from ase import io, neighborlist
-        >>> from ase.utils import natural_cutoffs
-        >>> from scipy import sparse
-        >>> mol = io.read('system.xyz')
-        >>> cutOff = natural_cutoffs(mol)
-        >>> neighborList = neighborlist.NeighborList(cutOff,self_interaction=False,bothways=True)
-        >>> neighborList.update(molecule)
-        >>> matrix = neighborList.get_connectivity_matrix()
-        >>> graph = sparse.csr_matrix(matrix)
-        >>> n_components, component_list = sparse.csgraph.connected_components(graph)
-        >>> idx = 1
-        >>> molIdx = component_list[idx]
-        >>> print("There are {:} molecules in the system".format(n_components))
-        >>> print("Atom {:} is part of molecule {:}".format(idx, molIdx))
-        >>> molIdxs = [ i for i in range(len(component_list)) if component_list[i] == molIdx ]
-        >>> print("The following atoms are part of molecule {:}: {:}".format(molIdx, molIdxs))
-        """
-
-        try:
-            nAtoms = len(self.positions)
-        except:
-            return None
-
-        matrix = np.zeros((nAtoms, nAtoms),dtype=np.bool_)
-
-        for i in range(nAtoms):
-            for idx in self.get_neighbors(i)[0]:
-                matrix[i,idx] = 1
-
-        return matrix
 
 
 class PrimitiveNeighborList:
@@ -890,31 +901,6 @@ class PrimitiveNeighborList:
 
         return self.neighbors[a], self.displacements[a]
 
-    def get_connectivity_matrix(self):
-        """Return connectivity matrix (dtype=np.bool_ !).
-
-        A numpy matrix of size (nAtoms, nAtoms) will be returned.
-        Connected atoms i and j will have matrix[i,j] == 1, unconnected
-        matrix[i,j] == 0. If bothways=True the matrix will be symmetric,
-        otherwise not!
-
-        See :meth:`neighborlist.NewPrimitiveNeighborList.get_connectivity_matrix`
-        for an example how to use this.
-        """
-
-        try:
-            nAtoms = len(self.neighbors)
-        except:
-            return None
-
-        matrix = np.zeros((nAtoms, nAtoms), dtype=np.bool_)
-
-        for i in range(nAtoms):
-            for idx in self.neighbors[i]:
-                matrix[i,idx] = 1
-
-        return matrix
-
 
 class NeighborList:
     """Neighbor list object.
@@ -957,8 +943,8 @@ class NeighborList:
     def get_neighbors(self, a):
         return self.nl.get_neighbors(a)
 
-    def get_connectivity_matrix(self):
-        return self.nl.get_connectivity_matrix()
+    def get_connectivity_matrix(self, sparse=True):
+        return get_connectivity_matrix(self.nl, sparse)
 
     @property
     def nupdates(self):

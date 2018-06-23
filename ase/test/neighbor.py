@@ -47,12 +47,16 @@ for sorted in [False, True]:
 
 h2 = Atoms('H2', positions=[(0, 0, 0), (0, 0, 1)])
 nl = NeighborList([0.5, 0.5], skin=0.1, sorted=True, self_interaction=False)
+nl2 = NeighborList([0.5, 0.5], skin=0.1, sorted=True, self_interaction=False, primitive=NewPrimitiveNeighborList)
+assert nl2.update(h2)
 assert nl.update(h2)
 assert not nl.update(h2)
 assert (nl.get_neighbors(0)[0] == [1]).all()
 m = np.zeros((2,2))
 m[0,1] = 1
-assert np.array_equal(nl.get_connectivity_matrix(), m)
+assert np.array_equal(nl.get_connectivity_matrix(sparse=False), m)
+assert np.array_equal(nl.get_connectivity_matrix(sparse=True).todense(), m)
+assert np.array_equal(nl.get_connectivity_matrix().todense(), nl2.get_connectivity_matrix().todense())
 
 h2[1].z += 0.09
 assert not nl.update(h2)
