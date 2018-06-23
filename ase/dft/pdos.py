@@ -4,25 +4,18 @@ from collections import OrderedDict
 
 class PDOStype:
     def __init__(self, energy, weights,
-                 spin=None, l=None, m=None,
-                 **kwargs):
+                 info=None):
         """Basic PDOS derived type"""
         self.energy = energy
         self.weights = weights
 
-        self.spin = spin
-        self.l = l
-        self.m = m
 
         # Store any other information about this
         # PDOS that the user might want to use later.
-        self.__dict__.update(**kwargs)
-
-    def get_energy(self):
-        return self.energy
-
-    def get_weights(self):
-        return self.weights
+        if info is None:
+            self.info = {}
+        else:
+            self.info = dict(info)
 
 
 class PDOS:
@@ -48,14 +41,21 @@ class PDOS:
                 # "energy" and "weights"
                 en = value.pop('energy')
                 weights = value.pop('weights')
-                self.pdos[key] = PDOStype(en, weights, **value)
+                self.pdos[key] = PDOStype(en, weights, info=value)
         else:
             # Let's assume it's a zip(names, things)
             # and things is a dict
             for names, things in dos:
                 en = things.pop('energy')
                 weights = things.pop('weights')
-                self.pdos[names] = PDOStype(en, weights, **things)
+                self.pdos[names] = PDOStype(en, weights, info=things)
+
+    def __iter__(self):
+        self._it = iter(self.pdos.items())
+        return self
+
+    def __next__(self):
+        return next(self._it)
 
     def delta(self, x, x0):
         """Return a delta-function centered at 'x0'."""
@@ -93,8 +93,8 @@ class PDOSPlot:
                                    ylabel=ylabel)
 
         for name, _pdos in self.pdos.pdos.items():
-            energies = _pdos.get_energy()
-            weights = _pdos.get_weights()
+            energies = _pdos.energy
+            weights = _pdos.weights
             en, w = self.pdos.smear(energies, weights)
             ax.plot(en, w, label=name)
 
