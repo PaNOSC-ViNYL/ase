@@ -1,5 +1,6 @@
 import numpy as np
 from collections import OrderedDict
+import itertools
 
 
 class PDOStype:
@@ -37,20 +38,19 @@ class PDOS:
         if dos:
             if isinstance(dos, dict):
                 # assume it's a dict of dicts
-                for key, value in dos.items():
+                for name, things in dos.items():
                     # The dict needs to have
                     # "energy" and "weights"
-                    en = value.pop('energy')
-                    weights = value.pop('weights')
-                    self.pdos[key] = PDOStype(weights, energy=en, info=value)
+                    en = things.pop('energy', None)
+                    weights = things.pop('weights')
+                    self.add(name, weights, energy=en, **things)
             else:
                 # Let's assume it's a zip(names, things)
                 # and things is a dict
                 for names, things in dos:
-                    en = things.pop('energy')
+                    en = things.pop('energy', None)
                     weights = things.pop('weights')
-                    self.pdos[names] = PDOStype(weights,
-                                                energy=en, info=things)
+                    self.add(name, weights, energy=en, **things)
 
     def add(self, name, weights, energy=None, **info):
         self.pdos[name] = PDOStype(weights, energy=energy, info=info)
@@ -91,6 +91,7 @@ class PDOS:
     def sample(self, npts=401, width=0.1, type='Gauss',
                window=None, grid=None):
 
+        # What exactly should 'sampling' do?
         if grid is not None:
             sampling = self.sampling  # Should this be something else?
         else:
@@ -144,6 +145,52 @@ class PDOS:
                        emin=None, emax=None,
                        ymin=None, ymax=None, ylabel=None)
         return pdp.plot(*plotargs, **plotkwargs)
+
+    @staticmethod
+    def resample(doslist, names=None, grid=None):
+
+        doslist = np.asarray(doslist)
+        # Check correct dimensionality, either [...] or [[..], [..], ...]
+        if doslist.ndim not in [1, 2]:
+            msg = ('Incorrect number of dimensions for doslist.'
+                   'Should be either 1 or 2, got {}'.format(doslist.ndim))
+            raise ValueError(msg)
+
+        if doslist.ndim == 1:
+            # Add extra axis to preserve syntax
+            doslist = doslist[np.newaxis]
+
+        if grid is not None:
+            grid = np.asarray(grid)
+            # Check correct dimensionality, either [...] or [[..], [..], ...]
+            if doslist.ndim not in [1, 2]:
+                msg = ('Incorrect number of dimensions for energy grid.'
+                       'Should be either 1 or 2, got {}'.format(grid.ndim))
+                raise ValueError(msg)
+
+            if grid.ndim == 1:
+                # Use same grid for every dos
+                grid = itertools.cycle(grid[np.newaxis])
+        else:
+            # Use None as energy grid
+            grid = itertools.cycle([None])
+
+        if names is None:
+            names = range(len(doslist))
+        else:
+            # This could fail if names is just a string
+            # but do we want to test every possibility?
+            # Greater or equal, have at least enough names
+            if len(names) >= len(doslist):
+                msg = ('Not enough provided number of names.'
+                       'Expected at least {}, got {}'.format(len(doslist),
+                                                             len(names)))
+                raise ValueError(msg)
+
+        pdos = PDOS()
+        for name, en, dos in zip(names, grid, doslist):
+            pdos.add(name, dos, energy=en)
+        return pdos
 
 
 class PDOSPlot:
