@@ -19,10 +19,11 @@ class PDOStype:
 
 
 class PDOS:
-    def __init__(self, dos=None):
+    def __init__(self, dos=None, sampling={'type': 'raw'}):
 
         # We maintain the order as well as we can
         self.pdos = OrderedDict()
+        self.sampling = sampling
 
         # This needs to be made more robust.
         # Just a quick implementation
@@ -66,7 +67,7 @@ class PDOS:
         x1 = -((x - x0) / width)**2
         return np.exp(x1) / (np.sqrt(np.pi) * width)
 
-    def smear(self, energy, weights, npts=401, width=0.1):
+    def smear(self, energy, weights, npts=401, width=0.1, grid=None):
         """Add Gaussian smearing, and map energies and weights on grid
         of length npts. Disabled for 0 width
         """
@@ -74,17 +75,28 @@ class PDOS:
         if width == 0.0:
             return energy, weights
         else:
-            dos = np.zeros(npts)
-            energies = np.linspace(min(energy), max(energy), npts)
+            if grid is None:
+                # Make new linear uniform grid
+                dos = np.zeros(npts)
+                energy_grid = np.linspace(min(energy), max(energy), npts)
+            else:
+                # Use the energy we specified as the grid
+                dos = np.zeros(len(grid))
+                energy_grid = grid
 
             for en, w in zip(energy, weights):
-                dos += w * self.delta(energies, en, width)
-            return energies, dos
+                dos += w * self.delta(energy_grid, en, width)
+            return energy_grid, dos
 
     def sample(self, npts=401, width=0.1, type='Gauss',
-               window=None, grid=None, sampling={'type': 'raw'}):
+               window=None, grid=None):
 
-        pdos_new = PDOS()
+        if grid is not None:
+            sampling = self.sampling  # Should this be something else?
+        else:
+            sampling = {'type': 'uniform'}
+
+        pdos_new = PDOS(sampling=sampling)
 
         if window is None:
             emin, emax = None, None
@@ -98,14 +110,26 @@ class PDOS:
         for name, pd in self:
             energy = pd.energy
 
-            idx = (emin <= energy) & (energy <= emax)
-            energy = energy[idx]
-            weights = pd.weights[idx]
+            if energy is None:
+                # Check if we can use the grid as the energies instead
+                if grid is None:
+                    msg = ('Either the PDOStype must contain'
+                           ' energies or grid must be specified')
+                    raise ValueError(msg)
+                else:
+                    # Should this raise a warning?
+                    energy = grid
 
-            energy_lin, weights = self.smear(energy, weights,
-                                             npts=npts, width=width)
+            energy_grid, weights = self.smear(energy, pd.weights,
+                                              npts=npts, width=width,
+                                              grid=grid)
 
-            pdos_new.add(name, weights, energy=energy_lin, info=pd.info)
+            # Apply window
+            idx = (emin <= energy_grid) & (energy_grid <= emax)
+            energy_grid = energy_grid[idx]
+            weights = weights[idx]
+
+            pdos_new.add(name, weights, energy=energy_grid, info=pd.info)
 
         return pdos_new
 
