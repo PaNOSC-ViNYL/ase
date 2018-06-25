@@ -1,62 +1,47 @@
 import numpy as np
-from collections import OrderedDict
-import itertools
-
-
-class PDOStype:
-    def __init__(self, weights=None,
-                 energy=None, info=None):
-        """Basic PDOS derived type"""
-        self.energy = energy
-        self.weights = weights
-
-        # Store any other information about this
-        # PDOS that the user might want to use later.
-        # From atoms.info
-        if info is None:
-            self.info = {}
-        else:
-            self.info = dict(info)
 
 
 class PDOS:
-    def __init__(self, dos=None, sampling={'type': 'raw'}):
-
-        # We maintain the order as well as we can
-        self.pdos = OrderedDict()
+    def __init__(self, energy, weights, info=None, sampling={'type': 'raw'}):
+        """
+        Docstring here
+        """
+        self.energy = np.asarray(energy)
+        self.weights = np.asarray(weights)
         self.sampling = sampling
 
-        # This needs to be made more robust.
-        # Just a quick implementation
-        # Possible alternatives to consider: what if we're just
-        # adding two lists (of lists) instead?
-        # Possbility of telling that the energies are on the
-        # same scale, so we only need to store it once?
+        # Energy format: [e1, e2, ...]
+        if self.energy.ndim > 1:
+            msg = ('Incorrect Energy dimensionality. '
+                   'Expected 1 got {}'.format(
+                       self.energy.ndim))
+            raise ValueError(msg)
 
-        # Let's allow the user to set up an empty PDOS object,
-        # and then add the energies and DOS afterwards
-        if dos:
-            if isinstance(dos, dict):
-                # assume it's a dict of dicts
-                for name, things in dos.items():
-                    # The dict needs to have
-                    # "energy" and "weights"
-                    en = things.pop('energy', None)
-                    weights = things.pop('weights', None)
-                    self.add(name, weights=weights, energy=en, **things)
-            else:
-                # Let's assume it's a zip(names, things)
-                # and things is a dict
-                for names, things in dos:
-                    en = things.pop('energy', None)
-                    weights = things.pop('weights', None)
-                    self.add(name, weights=weights, energy=en, **things)
+        # Make weights of the format [[w1, w2, ...], [w1, w2, ..], ...]
+        if self.weights.ndim != 2:
+            msg = ('Incorrect weight dimensionality. '
+                   'Expected 2, got {}'.format(
+                       self.weights.ndim))
+            raise ValueError(msg)
+        if not self.weights.shape[1] == self.energy.shape[0]:
+            msg = ('Weight dimensionality does not match energy.'
+                   ' Expected {}, got {}'.format(self.energy.shape[0],
+                                                 self.weights.shape[1]))
+            raise ValueError(msg)
 
-    def add(self, name, weights=None, energy=None, **info):
-        self.pdos[name] = PDOStype(weights=weights, energy=energy, info=info)
+        # One entry for info for each weight
+        if info is None:
+            info = [None for _ in range(len(self.weights))]
+        else:
+            if not len(info) == len(weights):
+                msg = ('Incorrect number of entries in '
+                       'info. Expected {}, got {}'.format(
+                           len(self.weights), len(info)))
+                raise ValueError(info)
+        self.info = info
 
     def __iter__(self):
-        return iter(self.pdos.items())
+        return iter(self.weights)
 
     def delta(self, x, x0, width):
         """Return a delta-function centered at 'x0'."""
@@ -84,17 +69,74 @@ class PDOS:
                 dos += w * self.delta(energy_grid, en, width)
             return energy_grid, dos
 
-    def sample(self, npts=401, width=0.1, type='Gauss',
-               window=None, grid=None):
+    def sample(self, grid, width=0.1, type='Gauss'):
+        """Sample weights onto new specified grid"""
 
-        # What exactly should 'sampling' do?
-        if grid is not None:
-            sampling = self.sampling  # Should this be something else?
+        npts = len(grid)
+        sampling = self.sampling.copy()
+        sampling.update(dict(width=width,
+                             smeartype=type,
+                             npts=npts,
+                             type='grid'))
+
+        weights_grid = np.zeros((self.weights.shape[0], npts))
+        for ii, w in enumerate(self.weights):
+
+            energy_grid, weights = self.smear(self.energy, w,
+                                              npts=npts, width=width,
+                                              grid=grid)
+
+            weights_grid[ii] = weights
+
+        pdos_new = PDOS(energy_grid, weights_grid,
+                        info=self.info, sampling=sampling)
+        return pdos_new
+
+    def sample_uniform(self, npts=401, width=0.1, window=None, type='Gauss'):
+        """Sample onto uniform grid"""
+        if window is None:
+            emin, emax = None, None
         else:
-            sampling = {'type': 'uniform'}
+            emin, emax = window
 
-        pdos_new = PDOS(sampling=sampling)
+        if emin is None:
+            emin = self.energy.min()
+        if emax is None:
+            emax = self.energy.max()
 
+        grid_uniform = np.linspace(emin, emax, npts)
+
+        return self.sample(grid_uniform, width=width, type=type)
+
+    @staticmethod
+    def resample(doslist, grid, width=0.1, type='Gauss'):
+        """Take list of PDOS objects, and combine into 1, with same grid"""
+
+        # Count the total number of weights
+        n_weights = sum(1 for dos in doslist
+                        for _ in dos.weights)
+        npts = len(grid)
+
+        weight_grid = np.zeros((n_weights, npts))
+        info_new = []
+        # Do sampling
+        ii = 0
+        for dos in doslist:
+            pdos_sample = dos.sample(grid, width=width,
+                                     type=type)
+            info_new.extend(pdos_sample.info)
+            for w_i in pdos_sample.weights:
+                weight_grid[ii] = w_i
+                ii += 1
+        return PDOS(energy=grid, weights=weight_grid, info=info_new)
+
+    @staticmethod
+    def resample_uniform(doslist, window=None,
+                         npts=401, width=0.1, type='Gauss'):
+        """Resample list of PDOS objects onto uniform grid.
+        Takes the lowest and highest energies as grid range, if
+        no window is specified"""
+        # Parse window
         if window is None:
             emin, emax = None, None
         else:
@@ -103,32 +145,14 @@ class PDOS:
             emin = -np.infty
         if emax is None:
             emax = np.infty
+        dosen = [dos.energy for dos in doslist]
+        # If needed, adjust emin and emax to be within
+        # the range of sampled data
+        emin = max(np.min(dosen), emin)
+        emax = min(np.max(dosen), emax)
 
-        for name, pd in self:
-            energy = pd.energy
-
-            if energy is None:
-                # Check if we can use the grid as the energies instead
-                if grid is None:
-                    msg = ('Either the PDOStype must contain'
-                           ' energies or grid must be specified')
-                    raise ValueError(msg)
-                else:
-                    # Should this raise a warning?
-                    energy = grid
-
-            energy_grid, weights = self.smear(energy, pd.weights,
-                                              npts=npts, width=width,
-                                              grid=grid)
-
-            # Apply window
-            idx = (emin <= energy_grid) & (energy_grid <= emax)
-            energy_grid = energy_grid[idx]
-            weights = weights[idx]
-
-            pdos_new.add(name, weights=weights, energy=energy_grid, info=pd.info)
-
-        return pdos_new
+        grid_uniform = np.linspace(emin, emax, npts)
+        return PDOS.resample(doslist, grid_uniform, width=width, type=type)
 
     def plot(self, *plotargs,
              # We need to grab the init keywords
@@ -141,52 +165,6 @@ class PDOS:
                        emin=None, emax=None,
                        ymin=None, ymax=None, ylabel=None)
         return pdp.plot(*plotargs, **plotkwargs)
-
-    @staticmethod
-    def resample(doslist, names=None, grid=None):
-
-        doslist = np.asarray(doslist)
-        # Check correct dimensionality, either [...] or [[..], [..], ...]
-        if doslist.ndim not in [1, 2]:
-            msg = ('Incorrect number of dimensions for doslist.'
-                   'Should be either 1 or 2, got {}'.format(doslist.ndim))
-            raise ValueError(msg)
-
-        if doslist.ndim == 1:
-            # Add extra axis to preserve syntax
-            doslist = doslist[np.newaxis]
-
-        if grid is not None:
-            grid = np.asarray(grid)
-            # Check correct dimensionality, either [...] or [[..], [..], ...]
-            if doslist.ndim not in [1, 2]:
-                msg = ('Incorrect number of dimensions for energy grid.'
-                       'Should be either 1 or 2, got {}'.format(grid.ndim))
-                raise ValueError(msg)
-
-            if grid.ndim == 1:
-                # Use same grid for every dos
-                grid = itertools.cycle(grid[np.newaxis])
-        else:
-            # Use None as energy grid
-            grid = itertools.cycle([None])
-
-        if names is None:
-            names = range(len(doslist))
-        else:
-            # This could fail if names is just a string
-            # but do we want to test every possibility?
-            # Greater or equal, have at least enough names
-            if len(names) >= len(doslist):
-                msg = ('Not enough provided number of names.'
-                       'Expected at least {}, got {}'.format(len(doslist),
-                                                             len(names)))
-                raise ValueError(msg)
-
-        pdos = PDOS()
-        for name, en, weights in zip(names, grid, doslist):
-            pdos.add(name, weights=weights, energy=en)
-        return pdos
 
 
 class PDOSPlot:
@@ -205,8 +183,10 @@ class PDOSPlot:
 
         ax = self.ax
 
-        for name, _pdos in self.pdos:
-            ax.plot(_pdos.energy, _pdos.weights, label=name)
+        for ii, w_i in enumerate(self.pdos.weights):
+            # We can add smater labeling later
+            label = self.pdos.info[ii]
+            ax.plot(self.pdos.energy, w_i, label=label)
 
         self.finish_plot(filename, show, show_legend, loc)
 
