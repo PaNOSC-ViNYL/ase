@@ -589,7 +589,7 @@ def get_connectivity_matrix(nl, sparse=True):
     >>> from scipy import sparse
     >>> mol = io.read('system.xyz')
     >>> cutOff = natural_cutoffs(mol)
-    >>> neighborList = neighborlist.NeighborList(cutOff,self_interaction=False,bothways=True)
+    >>> neighborList = neighborlist.NeighborList(cutOff, self_interaction=False, bothways=True)
     >>> neighborList.update(molecule)
     >>> matrix = neighborList.get_connectivity_matrix()
     >>> #or: matrix = neighborlist.get_connectivity_matrix(neighborList.nl)
@@ -602,7 +602,7 @@ def get_connectivity_matrix(nl, sparse=True):
     >>> print("The following atoms are part of molecule {}: {}".format(molIdx, molIdxs))
     """
 
-    if isinstance(nl,NewPrimitiveNeighborList):
+    if isinstance(nl, NewPrimitiveNeighborList):
         nAtoms = len(nl.positions)
     else:
         nAtoms = len(nl.coordinates)
@@ -610,14 +610,11 @@ def get_connectivity_matrix(nl, sparse=True):
     if sparse:
         matrix = sp.dok_matrix((nAtoms, nAtoms), dtype=np.int8)
     else:
-        matrix = np.zeros((nAtoms, nAtoms),dtype=np.int8)
+        matrix = np.zeros((nAtoms, nAtoms), dtype=np.int8)
 
     for i in range(nAtoms):
         for idx in nl.get_neighbors(i)[0]:
-            matrix[i,idx] = 1
-
-    if sparse:
-        matrix.tocsr()
+            matrix[i, idx] = 1
 
     return matrix
 
