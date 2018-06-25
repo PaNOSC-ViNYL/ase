@@ -206,7 +206,7 @@ def test_reduce_to_primitive(comparator):
     except SpgLibNotFoundError:
         pass
 
-    # Reset the comparator tot its original state
+    # Reset the comparator to its original state
     comparator.to_primitive = False
 
 
@@ -253,3 +253,11 @@ s2 = Atoms(syms, cell=cell2, scaled_positions=p2, pbc=True)
 org_comparator = SymmetryEquivalenceCheck(scale_volume=True)
 
 assert org_comparator.compare(s1, s2)
+
+prim_comp = SymmetryEquivalenceCheck(to_primitive=True)
+s1 = bulk("Al", crystalstructure='fcc', a=3.2)
+s1 = s1 * (2, 2, 2)
+s2 = s1.copy()
+s1.positions[0, :] += .2
+
+assert prim_comp.compare(s2, s1) == prim_comp.compare(s1, s2)

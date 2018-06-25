@@ -334,10 +334,10 @@ class SymmetryEquivalenceCheck(object):
         normal_vectors = [vec / np.sqrt(np.sum(vec**2)) for vec
                           in normal_vectors]
 
-        # Are the positions close to the unit cell faces
+        # Get the distance to the unit cell faces from each atomic position
         pos2faces = np.abs(positions.dot(np.array(normal_vectors).T))
 
-        # Or the opposite faces
+        # And the opposite faces
         pos2oppofaces = np.abs(np.dot(positions - np.sum(cell, axis=0),
                                       np.array(normal_vectors).T))
 
@@ -351,6 +351,9 @@ class SymmetryEquivalenceCheck(object):
             # 1 x True -> close to face -> 1 extra atom at opposite face
             # 2 x True -> close to edge -> 3 extra atoms at opposite edges
             # 3 x True -> close to corner -> 7 extra atoms opposite corners
+            # E.g. to add atoms at all corners we need to use the cell
+            # vectors: (a, b, c, a + b, a + c, b + c, a + b + c), we use
+            # itertools.combinations to get them all
             for j in range(sum(i_close2face)):
                 for c in combinations(np.nonzero(i_close2face)[0], j + 1):
                     # Get the displacement vectors by adding the corresponding
@@ -371,25 +374,24 @@ class SymmetryEquivalenceCheck(object):
         Hence, try all cyclic permutations of x,y and z
         """
         pos1 = s1.get_positions()
-        for order in range(1):
-            all_match = True
-            used_indices = []
-            for i in range(len(s1)):
-                s1pos = np.zeros(3)
-                s1pos[0] = pos1[i, order]
-                s1pos[1] = pos1[i, (order + 1) % 3]
-                s1pos[2] = pos1[i, (order + 2) % 3]
-                dist, closest = kdtree.query(s1pos)
-                if closest in used_indices:
-                    return False
-                used_indices.append(closest)
-                if (s1[i].symbol != s2[closest].symbol or
-                        dist > self.position_tolerance):
-                    all_match = False
-                    break
-            if all_match:
-                return True
-        return False
+        for order in range(1):  # Is the order still needed?
+            pos_order = [order, (order + 1) % 3, (order + 2) % 3]
+            pos = pos1[:, np.argsort(pos_order)]
+            dists, closest_in_s2 = kdtree.query(pos)
+            # Check if the elements are the same
+            if not np.all(s2.numbers[closest_in_s2] == s1.numbers):
+                return False
+
+            # Check if any distance is too large
+            if np.any(dists > self.position_tolerance):
+                return False
+
+            # Check for duplicates in what atom is closest
+            sc = np.sort(closest_in_s2)  # sorted closest in s2
+            if np.any([sc[1:] == sc[:-1]]):
+                return False
+
+        return True
 
     def _get_rotation_reflection_matrices(self):
         """Compute candidates for the transformation matrix."""
