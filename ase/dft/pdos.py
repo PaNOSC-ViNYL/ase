@@ -4,7 +4,7 @@ import itertools
 
 
 class PDOStype:
-    def __init__(self, weights,
+    def __init__(self, weights=None,
                  energy=None, info=None):
         """Basic PDOS derived type"""
         self.energy = energy
@@ -42,18 +42,18 @@ class PDOS:
                     # The dict needs to have
                     # "energy" and "weights"
                     en = things.pop('energy', None)
-                    weights = things.pop('weights')
-                    self.add(name, weights, energy=en, **things)
+                    weights = things.pop('weights', None)
+                    self.add(name, weights=weights, energy=en, **things)
             else:
                 # Let's assume it's a zip(names, things)
                 # and things is a dict
                 for names, things in dos:
                     en = things.pop('energy', None)
-                    weights = things.pop('weights')
-                    self.add(name, weights, energy=en, **things)
+                    weights = things.pop('weights', None)
+                    self.add(name, weights=weights, energy=en, **things)
 
-    def add(self, name, weights, energy=None, **info):
-        self.pdos[name] = PDOStype(weights, energy=energy, info=info)
+    def add(self, name, weights=None, energy=None, **info):
+        self.pdos[name] = PDOStype(weights=weights, energy=energy, info=info)
 
     def __iter__(self):
         self._it = iter(self.pdos.items())
@@ -130,7 +130,7 @@ class PDOS:
             energy_grid = energy_grid[idx]
             weights = weights[idx]
 
-            pdos_new.add(name, weights, energy=energy_grid, info=pd.info)
+            pdos_new.add(name, weights=weights, energy=energy_grid, info=pd.info)
 
         return pdos_new
 
@@ -188,8 +188,8 @@ class PDOS:
                 raise ValueError(msg)
 
         pdos = PDOS()
-        for name, en, dos in zip(names, grid, doslist):
-            pdos.add(name, dos, energy=en)
+        for name, en, weights in zip(names, grid, doslist):
+            pdos.add(name, weights=weights, energy=en)
         return pdos
 
 
