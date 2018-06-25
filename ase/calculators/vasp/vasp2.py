@@ -32,6 +32,9 @@ import ase
 from ase.io import read
 from ase.utils import basestring
 
+from ase.calculators.vasp import VaspDos
+from ase.dft.pdos import PDOS
+
 from ase.calculators.calculator import (FileIOCalculator, ReadError,
                                         all_changes,
                                         PropertyNotImplementedError)
@@ -989,3 +992,58 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
             xc = np.append(xc, l_)
         assert len(xc) == 32
         return xc
+
+    def get_pdos(self, a=None):
+
+        if 'pdos' not in self.results:
+            Vdos = VaspDos(os.path.join(self.directory,
+                                        'DOSCAR'),
+                           efermi=self.get_fermi_level())
+            self.results['pdos'] = Vdos
+        else:
+            Vdos = self.results['pdos']
+
+        energy = Vdos.energy
+
+        orbs_all = self.get_orb_names(Vdos._site_dos.shape[1])
+        norb = len(orbs_all)
+        info = []
+        weights = np.zeros((norb * len(self.atoms), len(energy)))
+        ii = 0
+
+        for atom in self.atoms:
+            for orb in orbs_all:
+                info.append({'Atom': atom.index,
+                             'Symbol': atom.symbol,
+                             'Orbital': orb})
+                weights[ii] = Vdos.site_dos(atom.index, orb)
+                ii += 1
+        return PDOS(energy, weights, info=info)
+
+    def get_orb_names(self, ncol):
+        n = ncol
+        if n == 4:
+            norb = ['s', 'p', 'd']
+        elif n == 7:
+            norb = ['s-up', 's-down',
+                    'p-up', 'p-down',
+                    'd-up', 'd-down']
+        elif n == 10:
+            norb = ['s', 'py', 'pz', 'px',
+                    'dxy', 'dyz', 'dz2', 'dxz',
+                    'dx2']
+        elif n == 19:
+            norb = ['s-up', 's-down',
+                    'py-up', 'py-down',
+                    'pz-up', 'pz-down',
+                    'px-up', 'px-down',
+                    'dxy-up', 'dxy-down',
+                    'dyz-up', 'dyz-down',
+                    'dz2-up', 'dz2-down',
+                    'dxz-up', 'dxz-down',
+                    'dx2-up', 'dx2-down']
+        else:
+            msg = ('Number of columns should be '
+                   ' 4, 7, 10 or 19. Got {}'.format(n))
+            raise ValueError(msg)
+        return norb
