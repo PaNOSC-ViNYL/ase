@@ -42,9 +42,6 @@ class PDOS:
                 raise ValueError(info)
         self.info = info
 
-    def __iter__(self):
-        return iter(self.weights)
-
     def delta(self, x, x0, width):
         """Return a delta-function centered at 'x0'."""
         x1 = -((x - x0) / width)**2
