@@ -17,12 +17,14 @@ class PDOS:
                        self.energy.ndim))
             raise ValueError(msg)
 
-        # Make weights of the format [[w1, w2, ...], [w1, w2, ..], ...]
+        # Weights format: [[w1, w2, ...], [w1, w2, ..], ...]
         if self.weights.ndim != 2:
             msg = ('Incorrect weight dimensionality. '
                    'Expected 2, got {}'.format(
                        self.weights.ndim))
             raise ValueError(msg)
+
+        # Check weight shape matches energy
         if not self.weights.shape[1] == self.energy.shape[0]:
             msg = ('Weight dimensionality does not match energy.'
                    ' Expected {}, got {}'.format(self.energy.shape[0],
@@ -69,15 +71,15 @@ class PDOS:
                 dos += w * self.delta(energy_grid, en, width)
             return energy_grid, dos
 
-    def sample(self, grid, width=0.1, type='Gauss'):
+    def sample(self, grid, width=0.1, smearing='Gauss', gridtype='grid'):
         """Sample weights onto new specified grid"""
 
         npts = len(grid)
         sampling = self.sampling.copy()
         sampling.update(dict(width=width,
-                             smeartype=type,
+                             smearing=smearing,
                              npts=npts,
-                             type='grid'))
+                             type=gridtype))
 
         weights_grid = np.zeros((self.weights.shape[0], npts))
         for ii, w in enumerate(self.weights):
@@ -92,7 +94,8 @@ class PDOS:
                         info=self.info, sampling=sampling)
         return pdos_new
 
-    def sample_uniform(self, npts=401, width=0.1, window=None, type='Gauss'):
+    def sample_uniform(self, npts=401, width=0.1,
+                       window=None, smearing='Gauss'):
         """Sample onto uniform grid"""
         if window is None:
             emin, emax = None, None
@@ -106,10 +109,12 @@ class PDOS:
 
         grid_uniform = np.linspace(emin, emax, npts)
 
-        return self.sample(grid_uniform, width=width, type=type)
+        return self.sample(grid_uniform, width=width,
+                           smearing=smearing, gridtype='uniform')
 
     @staticmethod
-    def resample(doslist, grid, width=0.1, type='Gauss'):
+    def resample(doslist, grid, width=0.1, smearing='Gauss',
+                 gridtype='resample_grid'):
         """Take list of PDOS objects, and combine into 1, with same grid"""
 
         # Count the total number of weights
@@ -123,16 +128,21 @@ class PDOS:
         ii = 0
         for dos in doslist:
             pdos_sample = dos.sample(grid, width=width,
-                                     type=type)
+                                     smearing=smearing)
             info_new.extend(pdos_sample.info)
             for w_i in pdos_sample.weights:
                 weight_grid[ii] = w_i
                 ii += 1
-        return PDOS(energy=grid, weights=weight_grid, info=info_new)
+        sampling = {'smearing': smearing,
+                    'width': width,
+                    'npts': npts,
+                    'type': gridtype}
+        return PDOS(energy=grid, weights=weight_grid, info=info_new,
+                    sampling=sampling)
 
     @staticmethod
     def resample_uniform(doslist, window=None,
-                         npts=401, width=0.1, type='Gauss'):
+                         npts=401, width=0.1, smearing='Gauss'):
         """Resample list of PDOS objects onto uniform grid.
         Takes the lowest and highest energies as grid range, if
         no window is specified"""
@@ -152,7 +162,8 @@ class PDOS:
         emax = min(np.max(dosen), emax)
 
         grid_uniform = np.linspace(emin, emax, npts)
-        return PDOS.resample(doslist, grid_uniform, width=width, type=type)
+        return PDOS.resample(doslist, grid_uniform, width=width,
+                             smearing=smearing, gridtype='resample_uniform')
 
     def plot(self, *plotargs,
              # We need to grab the init keywords
