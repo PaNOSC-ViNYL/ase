@@ -603,10 +603,10 @@ def get_connectivity_matrix(nl, sparse=True):
     >>> print("The following atoms are part of molecule {}: {}".format(molIdx, molIdxs))
     """
 
-    if isinstance(nl, NewPrimitiveNeighborList):
-        nAtoms = len(nl.positions)
-    else:
-        nAtoms = len(nl.coordinates)
+    nAtoms = len(nl.cutoffs)
+
+    if nl.nupdates <= 0:
+        raise RuntimeError('Must call update(atoms) on your neighborlist first!')
 
     if sparse:
         matrix = sp.dok_matrix((nAtoms, nAtoms), dtype=np.int8)
