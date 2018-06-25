@@ -186,7 +186,7 @@ class PDOSPlot:
         for ii, w_i in enumerate(self.pdos.weights):
             # We can add smater labeling later
             label = self.pdos.info[ii]
-            ax.plot(self.pdos.energy, w_i, label=label)
+            ax.plot(self.pdos.energy, w_i, label=label, **plotkwargs)
 
         self.finish_plot(filename, show, show_legend, loc)
 
