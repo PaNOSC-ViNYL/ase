@@ -56,11 +56,7 @@ class PDOS:
         self.pdos[name] = PDOStype(weights=weights, energy=energy, info=info)
 
     def __iter__(self):
-        self._it = iter(self.pdos.items())
-        return self
-
-    def __next__(self):
-        return next(self._it)
+        return iter(self.pdos.items())
 
     def delta(self, x, x0, width):
         """Return a delta-function centered at 'x0'."""
