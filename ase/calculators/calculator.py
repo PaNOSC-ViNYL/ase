@@ -94,7 +94,8 @@ def compare_atoms(atoms1, atoms2, tol=1e-15):
 
 
 all_properties = ['energy', 'forces', 'stress', 'dipole',
-                  'charges', 'magmom', 'magmoms', 'free_energy']
+                  'charges', 'magmom', 'magmoms', 'free_energy',
+                  'potential_energy', 'kinetic_energy']
 
 
 all_changes = ['positions', 'numbers', 'cell', 'pbc',
