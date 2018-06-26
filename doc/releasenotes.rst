@@ -35,6 +35,9 @@ Git master branch
           for id in ids:
               db.update(id, ...)
 
+* Neighbor lists can now :meth:`get connectivity matrices
+  <ase.neighborlist.NeighborList.get_connectivity_matrix>`.
+
 
 Version 3.16.2
 ==============
