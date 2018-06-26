@@ -530,7 +530,7 @@ class SocketIOCalculator(Calculator):
 
             If calc is not None, a client process will be launched
             using calc.command, and the input file will be generated
-            using calc.write_input().  Otherwise only the server will
+            using ``calc.write_input()``.  Otherwise only the server will
             run, and it is up to the user to launch a compliant client
             process.
 
@@ -542,7 +542,7 @@ class SocketIOCalculator(Calculator):
         unixsocket: str or None
 
             if not None, ignore host and port, creating instead a
-            unix socket using this name prefixed with /tmp/ipi_.
+            unix socket using this name prefixed with ``/tmp/ipi_``.
             The socket is deleted when the calculator is closed.
 
         timeout: float >= 0 or None

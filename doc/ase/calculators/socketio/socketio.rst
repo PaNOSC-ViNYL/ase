@@ -66,10 +66,10 @@ Example using Quantum Espresso
 
 .. note::
 
-   In order to secure smooth termination of the connection, it is wise
-   to close the connection after use.  This can be done by calling
-   ``calc.close()`` at the end or, more elegantly, by enclosing
-   using the ``with`` statement as done in all examples here.
+   It is wise to ensure smooth termination of the connection.  This
+   can be done by calling ``calc.close()`` at the end or, more
+   elegantly, by enclosing using the ``with`` statement as done in all
+   examples here.
 
 Example using FHI-aims
 

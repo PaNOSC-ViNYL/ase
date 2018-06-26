@@ -6,6 +6,8 @@ from ase.calculators.aims import Aims
 from ase.calculators.socketio import SocketIOCalculator
 
 # Environment-dependent parameters -- please configure according to machine
+# Note that FHI-aim support for the i-PI protocol must be specifically
+# enabled at compile time, e.g.: make -f Makefile.ipi ipi.mpi
 species_dir = '/home/aimsuser/src/fhi-aims.171221_1/species_defaults/light'
 command = 'ipi.aims.171221_1.mpi.x'
 
