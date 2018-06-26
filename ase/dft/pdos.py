@@ -25,7 +25,7 @@ class PDOS:
             raise ValueError(msg)
 
         # Check weight shape matches energy
-        if not self.weights.shape[1] == self.energy.shape[0]:
+        if self.weights.shape[1] != self.energy.shape[0]:
             msg = ('Weight dimensionality does not match energy.'
                    ' Expected {}, got {}'.format(self.energy.shape[0],
                                                  self.weights.shape[1]))
@@ -35,7 +35,7 @@ class PDOS:
         if info is None:
             info = [None for _ in range(len(self.weights))]
         else:
-            if not len(info) == len(weights):
+            if len(info) != len(weights):
                 msg = ('Incorrect number of entries in '
                        'info. Expected {}, got {}'.format(
                            len(self.weights), len(info)))
@@ -47,47 +47,32 @@ class PDOS:
         x1 = -((x - x0) / width)**2
         return np.exp(x1) / (np.sqrt(np.pi) * width)
 
-    def smear(self, energy, weights, npts=401, width=0.1, grid=None):
-        """Add Gaussian smearing, and map energies and weights on grid
-        of length npts. Disabled for 0 width
-        """
-
+    def smear(self, energy_grid, width=0.1):
+        """Add Gaussian smearing, to all weights onto an energy grid.
+        Disabled for width=0.0"""
         if width == 0.0:
-            return energy, weights
-        else:
-            if grid is None:
-                # Make new linear uniform grid
-                dos = np.zeros(npts)
-                energy_grid = np.linspace(min(energy), max(energy), npts)
-            else:
-                # Use the energy we specified as the grid
-                dos = np.zeros(len(grid))
-                energy_grid = grid
+            return self.weights
 
-            for en, w in zip(energy, weights):
-                dos += w * self.delta(energy_grid, en, width)
-            return energy_grid, dos
+        en0 = self.energy[:, np.newaxis]  # Add axis to use NumPy broadcasting
+        weights_grid = np.dot(self.weights,
+                              self.delta(energy_grid, en0, width=width))
+
+        return weights_grid
 
     def sample(self, grid, width=0.1, smearing='Gauss', gridtype='grid'):
         """Sample weights onto new specified grid"""
 
         npts = len(grid)
-        sampling = self.sampling.copy()
-        sampling.update(dict(width=width,
-                             smearing=smearing,
-                             npts=npts,
-                             type=gridtype))
+        sampling = {'width': width,
+                    'smearing': smearing,
+                    'npts': npts,
+                    'type': gridtype}
 
         weights_grid = np.zeros((self.weights.shape[0], npts))
-        for ii, w in enumerate(self.weights):
 
-            energy_grid, weights = self.smear(self.energy, w,
-                                              npts=npts, width=width,
-                                              grid=grid)
+        weights_grid = self.smear(grid, width=width)
 
-            weights_grid[ii] = weights
-
-        pdos_new = PDOS(energy_grid, weights_grid,
+        pdos_new = PDOS(grid, weights_grid,
                         info=self.info, sampling=sampling)
         return pdos_new
 
@@ -115,8 +100,8 @@ class PDOS:
         """Take list of PDOS objects, and combine into 1, with same grid"""
 
         # Count the total number of weights
-        n_weights = sum(1 for dos in doslist
-                        for _ in dos.weights)
+        n_weights = sum(len(dos.weights) for dos in doslist)
+
         npts = len(grid)
 
         weight_grid = np.zeros((n_weights, npts))
