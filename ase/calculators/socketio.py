@@ -354,6 +354,28 @@ class SocketServer:
 class SocketClient:
     def __init__(self, host='localhost', port=None,
                  unixsocket=None, timeout=None, log=None, comm=None):
+        """Create client and connect to server.
+
+        Parameters:
+
+        host: string
+            Hostname of server.  Defaults to localhost
+        port: integer or None
+            Port to which to connect.  By default 31415.
+        unixsocket: string or None
+            If specified, use corresponding UNIX socket.
+            See documentation of unixsocket for SocketIOCalculator.
+        timeout: float or None
+            See documentation of timeout for SocketIOCalculator.
+        log: file object or None
+            Log events to this file
+        comm: communicator or None
+            MPI communicator object.  Defaults to ase.parallel.world.
+            When ASE runs in parallel, only the process with world.rank == 0
+            will communicate over the socket.  The received information
+            will then be broadcast on the communicator.  The SocketClient
+            must be created on all ranks of world, and will see the same
+            Atoms objects."""
         if comm is None:
             from ase.parallel import world
             comm = world
@@ -366,18 +388,20 @@ class SocketClient:
         self.comm = comm
 
         if self.comm.rank == 0:
-            self.host = host
-            self.port = port
-            self.unixsocket = unixsocket
-
             if unixsocket is not None:
                 sock = socket.socket(socket.AF_UNIX)
                 actualsocket = actualunixsocketname(unixsocket)
                 sock.connect(actualsocket)
             else:
+                if port is None:
+                    port = SocketServer.default_port
                 sock = socket.socket(socket.AF_INET)
                 sock.connect((host, port))
             sock.settimeout(timeout)
+            self.host = host
+            self.port = port
+            self.unixsocket = unixsocket
+
             self.protocol = IPIProtocol(sock, txt=log)
             self.log = self.protocol.log
             self.closed = False
@@ -517,16 +541,16 @@ class SocketIOCalculator(Calculator):
 
         unixsocket: str or None
 
-            if not None, ignore host and port, and create instead a
-            unix socket in the current working directory.  Caller may
-            wish to delete the socket after use.
+            if not None, ignore host and port, creating instead a
+            unix socket using this name prefixed with /tmp/ipi_.
+            The socket is deleted when the calculator is closed.
 
         timeout: float >= 0 or None
 
             timeout for connection, by default infinite.  See
-            documentation of Python sockets.  It is recommended to set
-            a sane timeout in case of undetected client-side failure,
-            but sane timeout values depend greatly on the application.
+            documentation of Python sockets.  For longer jobs it is
+            recommended to set a timeout in case of undetected
+            client-side failure.
 
         log: file object or None (default)
 
@@ -536,16 +560,14 @@ class SocketIOCalculator(Calculator):
         In order to correctly close the sockets, it is
         recommended to use this class within a with-block:
 
-        with SocketIOCalculator(...) as calc:
-            atoms.calc = calc
-            atoms.get_forces()
-            atoms.rattle()
-            atoms.get_forces()
+        >>> with SocketIOCalculator(...) as calc:
+        ...    atoms.calc = calc
+        ...    atoms.get_forces()
+        ...    atoms.rattle()
+        ...    atoms.get_forces()
 
         It is also possible to call calc.close() after
-        use, e.g. in a finally-block.
-
-        """
+        use.  This is best done in a finally-block."""
 
         Calculator.__init__(self)
         self.calc = calc
