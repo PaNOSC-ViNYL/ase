@@ -1035,6 +1035,11 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
 
     def get_pdos(self, a=None):
 
+        if a is None:
+            atoms = self.atoms
+        else:
+            atoms = self.atoms[a]
+
         if 'pdos' not in self.results:
             Vdos = VaspDos(os.path.join(self.directory,
                                         'DOSCAR'),
@@ -1051,10 +1056,44 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
         weights = np.zeros((norb * len(self.atoms), len(energy)))
         ii = 0
 
-        for atom in self.atoms:
+        def orb2l(orb):
+            converger = {'s': 0,
+                         'p': 1,
+                         'd': 2}
+            return converger[orb[0]]
+
+        def orb2m(orb):
+            if orb[0] == 's':
+                return 0
+            if norb in [3, 6]:
+                # Unknown
+                return None
+            conv = {'py': -1, 'pz': 0, 'px': 1,
+                    'dxy': -2, 'dyz': -1,
+                    'dz2': 0, 'dxz': 1, 'dx2': 2}
+            for key, value in conv.items():
+                if orb.startswith(key):
+                    return value
+            return None
+
+        def orb2spin(orb):
+            if '-up' in orb:
+                return 1
+            elif '-down' in orb:
+                return -1
+            else:
+                return None
+
+        for atom in atoms:
             for orb in orbs_all:
+                l_qn = orb2l(orb)
+                ml = orb2m(orb)
+                s = orb2spin(orb)
                 info.append({'Atom': atom.index,
                              'Symbol': atom.symbol,
+                             'l': l_qn,
+                             'm': ml,
+                             'spin': s,
                              'Orbital': orb})
                 weights[ii] = Vdos.site_dos(atom.index, orb)
                 ii += 1
