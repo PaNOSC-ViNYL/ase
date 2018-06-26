@@ -586,10 +586,13 @@ class ASEGUIWindow(MainWindow):
 
         self.size = np.array([450, 450])
 
+        self.fg = config['gui_foreground_color']
+        self.bg = config['gui_background_color']
+
         self.canvas = tk.Canvas(self.win,
                                 width=self.size[0],
                                 height=self.size[1],
-                                bg='white',
+                                bg=self.bg,
                                 highlightthickness=0)
         self.canvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
@@ -604,16 +607,17 @@ class ASEGUIWindow(MainWindow):
         self.canvas.bind('<Control-ButtonRelease>', bind(release, 'ctrl'))
         self.canvas.bind('<Shift-ButtonRelease>', bind(release, 'shift'))
         self.canvas.bind('<Configure>', resize)
-        self.canvas.bind('<Shift-B{right}-Motion>'.format(right=right),
-                         bind(scroll))
+        if not config['swap_mouse']:
+            self.canvas.bind('<Shift-B{right}-Motion>'.format(right=right),
+                             bind(scroll))
+        else:
+            self.canvas.bind('<Shift-B1-Motion>',
+                             bind(scroll))
 
         self.win.bind('<MouseWheel>', bind(scroll_event))
         self.win.bind('<Key>', bind(scroll))
         self.win.bind('<Shift-Key>', bind(scroll, 'shift'))
         self.win.bind('<Control-Key>', bind(scroll, 'ctrl'))
-
-        self.fg = config['gui_foreground_color']
-        self.bg = config['gui_background_color']
 
     def update_status_line(self, text):
         self.status.config(text=text)

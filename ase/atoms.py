@@ -471,7 +471,7 @@ class Atoms(object):
         """Set chemical symbols."""
         self.set_array('numbers', symbols2numbers(symbols), int, ())
 
-    def get_chemical_formula(self, mode='hill'):
+    def get_chemical_formula(self, mode='hill', empirical=False):
         """Get the chemical formula as a string based on the chemical symbols.
 
         Parameters:
@@ -493,9 +493,16 @@ class Atoms(object):
 
             'metal': The list of chemical symbols (alphabetical metals,
             and alphabetical non-metals)
+
+        empirical, bool (optional, default=False)
+            Divide the symbol counts by their greatest common divisor to yield
+            an empirical formula. Only for mode `metal` and `hill`.
         """
         if len(self) == 0:
             return ''
+
+        if mode in ('reduce', 'all') and empirical:
+            warnings.warn("Empirical chemical formula not available for mode '{}'".format(mode))
 
         if mode == 'reduce':
             numbers = self.get_atomic_numbers()
@@ -511,7 +518,8 @@ class Atoms(object):
                 if c > 1:
                     formula += str(c)
         elif mode == 'hill':
-            formula = formula_hill(self.get_atomic_numbers())
+            formula = formula_hill(self.get_atomic_numbers(),
+                                   empirical=empirical)
         elif mode == 'all':
             numbers = self.get_atomic_numbers()
             symbols = [chemical_symbols[n] for n in numbers]
@@ -520,9 +528,10 @@ class Atoms(object):
             for s in symbols:
                 formula += s
         elif mode == 'metal':
-            formula = formula_metal(self.get_atomic_numbers())
+            formula = formula_metal(self.get_atomic_numbers(),
+                                    empirical=empirical)
         else:
-            raise ValueError("Use mode = 'all', 'reduce' or 'hill'.")
+            raise ValueError("Use mode = 'all', 'reduce', 'hill' or 'metal'.")
 
         return formula
 

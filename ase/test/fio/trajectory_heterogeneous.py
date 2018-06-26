@@ -1,8 +1,8 @@
 from __future__ import print_function
-#import numpy as np
 from ase.constraints import FixAtoms, FixBondLength
 from ase.build import molecule, bulk
-from ase.io.trajectory import Trajectory, get_header_data#, headers_equal
+from ase.io.trajectory import Trajectory, get_header_data
+from ase.io import read
 
 a0 = molecule('H2O')
 a1 = a0.copy()
@@ -29,8 +29,6 @@ for i, img in enumerate(images):
     assert traj.multiple_headers == (i >= 2)
 traj.close()
 
-#view(images)
-
 rtraj = Trajectory('out.traj')
 newimages = list(rtraj)
 
@@ -43,4 +41,10 @@ for i in range(len(images)):
     print(h1)
     print(h2)
     print()
-    #assert headers_equal(h1, h2)
+    # assert headers_equal(h1, h2)
+
+# Test append mode:
+with Trajectory('out.traj', 'a') as atraj:
+    atraj.write(molecule('H2'))
+    atraj.write(molecule('H2'))
+read('out.traj@:')

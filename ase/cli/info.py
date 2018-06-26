@@ -1,5 +1,6 @@
 from __future__ import print_function
 import platform
+import os
 import sys
 
 from ase.utils import import_module, FileNotFoundError
@@ -67,7 +68,7 @@ def print_info():
             else:
                 githash = '-{:.10}'.format(githash)
             versions.append((name + '-' + module.__version__ + githash,
-                            module.__file__.rsplit('/', 1)[0] + '/'))
+                            module.__file__.rsplit(os.sep, 1)[0] + os.sep))
 
     for a, b in versions:
         print('{:25}{}'.format(a, b))

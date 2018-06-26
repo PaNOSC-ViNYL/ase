@@ -1,6 +1,10 @@
-""" test run for DFTB+ calculator
-    the tolerance is extremely loose, beause different sk files
-    give different results
+"""Test run for DFTB+ calculator.
+
+Use these .skf-files from dftb.org:
+
+    * trans3d/trans3d-0-1/Ni-Ni.skf
+    * trans3d/trans3d-0-1/Ni-N.skf
+    * mio/mio-1-1/N-N.skf
 
 """
 import os
@@ -13,12 +17,11 @@ from ase.build import fcc111, add_adsorbate
 
 h = 1.85
 d = 1.10
+k = 2
 
 slab = fcc111('Ni', size=(2, 2, 3), vacuum=10.0)
 calc1 = Dftb(label='slab',
-             kpts=[2, 2, 1],
-             Hamiltonian_MaxAngularMomentum_='',
-             Hamiltonian_MaxAngularMomentum_Ni='"d"',
+             kpts=[k, k, 1],
              Hamiltonian_SCC='YES')
 slab.set_calculator(calc1)
 dyn = QuasiNewton(slab, trajectory='slab.traj')
@@ -27,8 +30,6 @@ e_slab = slab.get_potential_energy()
 os.system('rm dftb_in.hsd')
 molecule = Atoms('2N', positions=[(0., 0., 0.), (0., 0., d)])
 calc2 = Dftb(label='n2',
-             Hamiltonian_MaxAngularMomentum_='',
-             Hamiltonian_MaxAngularMomentum_N='"p"',
              Hamiltonian_SCC='YES')
 molecule.set_calculator(calc2)
 dyn = QuasiNewton(molecule, trajectory='n2.traj')
@@ -40,19 +41,12 @@ add_adsorbate(slab2, molecule, h, 'ontop')
 constraint = FixAtoms(mask=[a.symbol != 'N' for a in slab2])
 slab2.set_constraint(constraint)
 calc3 = Dftb(label='slab2',
-             kpts=[2, 2, 1],
-             Hamiltonian_MaxAngularMomentum_='',
-             Hamiltonian_MaxAngularMomentum_N='"p"',
-             Hamiltonian_MaxAngularMomentum_Ni='"d"',
+             kpts=[k, k, 1],
              Hamiltonian_SCC='YES')
 slab2.set_calculator(calc3)
 dyn = QuasiNewton(slab2, trajectory='slab2.traj')
 dyn.run(fmax=0.05)
 
 adsorption_energy = e_slab + e_N2 - slab2.get_potential_energy()
-assert abs(adsorption_energy + 0.4227415) < 0.3
-files = ['band.out', 'detailed.out', 'dftb_in.hsd', 'dftb_pin.hsd',
-         'geo_end.gen', 'geo_end.xyz', 'results.tag',
-         'n2.traj', 'n2.traj.bak', 'n2.out',
-         'slab.traj', 'slab.traj.bak', 'slab.out',
-         'slab2.traj', 'slab2.traj.bak', 'slab2.out']
+print(adsorption_energy, 'eV')
+assert abs(adsorption_energy - -0.30) < 0.1

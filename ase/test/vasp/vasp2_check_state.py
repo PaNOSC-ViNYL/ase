@@ -35,6 +35,12 @@ atoms.set_calculator(calc)
 
 en1 = atoms.get_potential_energy()
 
+# Check that get_atoms() doesn't reset results
+r1 = dict(calc.results)         # Force a copy
+atoms2 = calc.get_atoms()
+r2 = dict(calc.results)
+assert r1 == r2
+
 # Make a parameter change to the calculator
 calc.set(sigma=0.5)
 

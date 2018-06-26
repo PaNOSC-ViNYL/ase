@@ -65,6 +65,11 @@ The covalent radii are taken from [Cordeo08]_.
 
 The source of the van der Waals radii is given in vdw.py_.
 
+A newer source of van der Waals radii is given in vdw_alvarez.py_.  These
+radii are taken from [Alvarez13]_.
+
+.. image:: atomic_radii.png
+
 .. [Meija2016] *Atomic weights of the elements 2013
     (IUPAC Technical Report).* Meija, J., Coplen, T., Berglund, M., et al.
     (2016).  Pure and Applied Chemistry, 88(3), pp. 265-291.
@@ -75,7 +80,14 @@ The source of the van der Waals radii is given in vdw.py_.
     Jorge Echeverría, Eduard Cremades, Flavia Barragán and Santiago Alvarez,
     Dalton Trans., 2008, 2832-2838 DOI:10.1039/B801115J
 
+.. [Alvarez13] *A cartography of the van der Waals territories*,
+    Alvarez, S.,
+    Dalton Trans., 2013, 42, 8617-8636,
+    DOI:10.1039/C3DT50599E
+
 .. _vdw.py: https://gitlab.com/ase/ase/blob/master/ase/data/vdw.py
+
+.. _vdw_alvarez.py: https://gitlab.com/ase/ase/blob/master/ase/data/vdw_alvarez.py
 
 
 How to extract isotope data from NIST
