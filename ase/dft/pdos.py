@@ -76,9 +76,10 @@ class PDOS:
                         info=self.info, sampling=sampling)
         return pdos_new
 
-    def sample_uniform(self, npts=401, width=0.1,
+    def sample_uniform(self, spacing=None, npts=None, width=0.1,
                        window=None, smearing='Gauss'):
         """Sample onto uniform grid"""
+
         if window is None:
             emin, emax = None, None
         else:
@@ -89,7 +90,8 @@ class PDOS:
         if emax is None:
             emax = self.energy.max()
 
-        grid_uniform = np.linspace(emin, emax, npts)
+        grid_uniform = PDOS._make_uniform_grid(emin, emax, spacing=spacing,
+                                               npts=npts, width=width)
 
         return self.sample(grid_uniform, width=width,
                            smearing=smearing, gridtype='uniform')
@@ -123,8 +125,8 @@ class PDOS:
                     sampling=sampling)
 
     @staticmethod
-    def resample_uniform(doslist, window=None,
-                         npts=401, width=0.1, smearing='Gauss'):
+    def resample_uniform(doslist, window=None, spacing=None,
+                         npts=None, width=0.1, smearing='Gauss'):
         """Resample list of PDOS objects onto uniform grid.
         Takes the lowest and highest energies as grid range, if
         no window is specified"""
@@ -138,14 +140,33 @@ class PDOS:
         if emax is None:
             emax = np.infty
         dosen = [dos.energy for dos in doslist]
+
         # If needed, adjust emin and emax to be within
         # the range of sampled data
         emin = max(np.min(dosen), emin)
         emax = min(np.max(dosen), emax)
 
-        grid_uniform = np.linspace(emin, emax, npts)
+        grid_uniform = PDOS._make_uniform_grid(emin, emax, spacing=spacing,
+                                               npts=npts, width=width)
+
         return PDOS.resample(doslist, grid_uniform, width=width,
                              smearing=smearing, gridtype='resample_uniform')
+
+    @staticmethod
+    def _make_uniform_grid(emin, emax, spacing=None, npts=None, width=0.1):
+        if spacing and npts:
+            msg = ('spacing and npts cannot both be defined'
+                   ' at the same time.')
+            raise ValueError(msg)
+        if not spacing and not npts:
+            # Default behavior
+            spacing = 0.2 * width
+        # Now either spacing or npts is defined
+        if npts:
+            grid_uniform = np.linspace(emin, emax, npts)
+        else:
+            grid_uniform = np.arange(emin, emax, spacing)
+        return grid_uniform
 
     def plot(self, *plotargs,
              # We need to grab the init keywords
