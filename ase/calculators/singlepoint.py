@@ -14,19 +14,24 @@ class SinglePointCalculator(Calculator):
 
     name = 'unknown'
 
-    def __init__(self, atoms, **results):
+    def __init__(self, atoms=None, **results):
         """Save energy, forces, stress, ... for the current configuration."""
         Calculator.__init__(self)
         self.results = {}
         for property, value in results.items():
-            assert property in all_properties
+            if property.startswith('nomad_'):
+                pass
+            else:
+                assert property in all_properties
             if value is None:
                 continue
-            if property in ['energy', 'magmom', 'free_energy']:
+            if(property in ['energy', 'magmom', 'free_energy'] or
+               property.startswith('nomad_')):
                 self.results[property] = value
             else:
                 self.results[property] = np.array(value, float)
-        self.atoms = atoms.copy()
+        if atoms:
+            self.atoms = atoms.copy()
 
     def __str__(self):
         tokens = []
