@@ -1,4 +1,4 @@
-.. module:: ase.calculators.ipi
+.. module:: ase.calculators.socketio
 
 ===========================================
 Communication with calculators over sockets
@@ -27,10 +27,12 @@ energies, forces, and stress to the server.  That way the startup
 overhead is eliminated, and the codes can reuse and extrapolate
 wavefunctions and other quantities for increased efficiency.
 
-Which codes can be used with ASE/i-PI?
---------------------------------------
+ASE provides such a server in the form of a calculator.
 
-Below is a list of codes that can run as i-PI clients, and whether ASE
+Which codes can be used with socket I/O calculators?
+----------------------------------------------------
+
+Below is a list of codes that can run as clients, and whether ASE
 provides a calculator that supports doing so.
 
 ================ =========================================
@@ -43,7 +45,8 @@ DFTB+            Yes, presumably (untested)
 Yaff             No; there is no ASE calculator for Yaff
 cp2k             No; ASE uses cp2k shell instead
 Lammps           No; ASE uses lammpsrun/lammpslib instead
-ASE              Yes - ASE implements a client as well
+ASE              Yes - ASE provides a client as well
+GPAW             Yes, using the ASE client
 ================ =========================================
 
 The codes that are "not supported" by ASE can still be used as
@@ -54,29 +57,58 @@ Codes may require different commands, keywords, or compilation options
 in order to run in driver mode.  See the code's documentation for
 details.  The i-PI documentation may also be useful.
 
-How to use ASE/i-PI
--------------------
+How to use the ASE socket I/O interface
+---------------------------------------
 
 Example using Quantum Espresso
 
-.. literalinclude:: ase_ipi_espresso.py
+.. literalinclude:: example_espresso.py
+
+.. note::
+
+   It is wise to ensure smooth termination of the connection.  This
+   can be done by calling ``calc.close()`` at the end or, more
+   elegantly, by enclosing using the ``with`` statement as done in all
+   examples here.
 
 Example using FHI-aims
 
-.. literalinclude:: ase_ipi_aims.py
+.. literalinclude:: example_aims.py
 
 Example using Siesta
 
-.. literalinclude:: ase_ipi_siesta.py
+.. literalinclude:: example_siesta.py
 
-Use ASE as a client
--------------------
+For codes other than these, see the next section.
 
-ASE can run as an i-PI client using the IPIClient class.
+Run server and client manually
+------------------------------
+
+ASE can run as a client using the SocketClient class.  This may be
+useful for controlling calculations remotely or using a serial process
+to control a parallel one.
+
+This example will launch a server without (necessarily) launching any client:
+
+.. literalinclude:: example_server.py
+
+Run it and then run the client:
+
+.. literalinclude:: example_client_gpaw.py
+
+This also demonstrates how to use the interface with GPAW.
+Instead of running the client script, it is also possible
+to run any other program that acts as a client.  This
+includes the codes listed in the compatibility table above.
 
 Module documentation
 --------------------
 
-.. autoclass:: ase.calculators.ipi.IPICalculator
+.. autoclass:: ase.calculators.socketio.SocketIOCalculator
 
-.. autoclass:: ase.calculators.ipi.IPIClient
+.. autoclass:: ase.calculators.socketio.SocketClient
+
+The SocketServer allows launching a server without the need
+to create a calculator:
+
+.. autoclass:: ase.calculators.socketio.SocketServer
