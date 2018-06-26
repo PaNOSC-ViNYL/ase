@@ -10,8 +10,13 @@ fdf_arguments = {'MD.TypeOfRun': 'Master',
                  'Master.code': 'i-pi',
                  'Master.interface': 'socket',
                  'Master.address': unixsocket,
-                 #'Master.port': port,
                  'Master.socketType': 'unix'}
+
+# To connect through INET socket instead, use:
+#   fdf_arguments['Master.port'] = port
+#   fdf_arguments['Master.socketType'] = 'inet'
+# Optional, for networking:
+#   fdf_arguments['Master.address'] = <hostname or IP address>
 
 atoms = molecule('H2O', vacuum=3.0)
 atoms.rattle(stdev=0.1)
@@ -23,3 +28,5 @@ with SocketIOCalculator(siesta, log=sys.stdout,
                         unixsocket=unixsocket) as calc:
     atoms.calc = calc
     opt.run(fmax=0.05)
+
+# Note: Siesta does not exit cleanly - expect nonzero exit codes.
