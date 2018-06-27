@@ -1,12 +1,12 @@
 from ase.structcomp import SymmetryEquivalenceCheck
 from ase.structcomp.structure_comparator import SpgLibNotFoundError
-import os
-from ase.test import NotAvailable
 from ase.build import bulk
 from ase import Atoms
-from ase.spacegroup import spacegroup, get_spacegroup, crystal
+from ase.spacegroup import spacegroup, crystal
 from random import randint
 import numpy as np
+
+heavy_test = False
 
 
 def get_atoms_with_mixed_elements(crystalstructure="fcc"):
@@ -91,7 +91,10 @@ def test_rot_120_deg(comparator):
 def test_rotations_to_standard(comparator):
     s1 = Atoms("Al")
     tol = 1E-6
-    for i in range(20):
+    num_tests = 4
+    if heavy_test:
+        num_tests = 20
+    for _ in range(num_tests):
         cell = np.random.rand(3, 3) * 4.0 - 4.0
         s1.set_cell(cell)
         new_cell = comparator._standarize_cell(s1).get_cell().T
@@ -129,7 +132,10 @@ def test_hcp_symmetry_ops(comparator):
     sg = spacegroup.Spacegroup(194)
     cell = s2.get_cell().T
     inv_cell = np.linalg.inv(cell)
-    for op in sg.get_rotations():
+    operations = sg.get_rotations()
+    if not heavy_test:
+        operations = operations[::int(np.ceil(len(operations) / 4))]
+    for op in operations:
         s1 = get_atoms_with_mixed_elements(crystalstructure="hcp")
         s2 = s1.copy()
         transformed_op = cell.dot(op).dot(inv_cell)
@@ -143,7 +149,10 @@ def test_fcc_symmetry_ops(comparator):
     sg = spacegroup.Spacegroup(225)
     cell = s2.get_cell().T
     inv_cell = np.linalg.inv(cell)
-    for op in sg.get_rotations():
+    operations = sg.get_rotations()
+    if not heavy_test:
+        operations = operations[::int(np.ceil(len(operations) / 4))]
+    for op in operations:
         s1 = get_atoms_with_mixed_elements()
         s2 = s1.copy()
         transformed_op = cell.dot(op).dot(inv_cell)
@@ -157,7 +166,10 @@ def test_bcc_symmetry_ops(comparator):
     sg = spacegroup.Spacegroup(229)
     cell = s2.get_cell().T
     inv_cell = np.linalg.inv(cell)
-    for op in sg.get_rotations():
+    operations = sg.get_rotations()
+    if not heavy_test:
+        operations = operations[::int(np.ceil(len(operations) / 4))]
+    for op in operations:
         s1 = get_atoms_with_mixed_elements(crystalstructure="bcc")
         s2 = s1.copy()
         transformed_op = cell.dot(op).dot(inv_cell)
@@ -210,6 +222,36 @@ def test_reduce_to_primitive(comparator):
     comparator.to_primitive = False
 
 
+def test_order_of_candidates():
+    prim_comp = SymmetryEquivalenceCheck(to_primitive=True)
+    s1 = bulk("Al", crystalstructure='fcc', a=3.2)
+    s1 = s1 * (2, 2, 2)
+    s2 = s1.copy()
+    s1.positions[0, :] += .2
+
+    assert prim_comp.compare(s2, s1) == prim_comp.compare(s1, s2)
+
+
+def test_original_paper_structures():
+    # Structures from the original paper:
+    # Comput. Phys. Commun. 183, 690-697 (2012)
+    # They should evaluate equal (within a certain tolerance)
+    syms = ['O', 'O', 'Mg', 'F']
+    cell1 = [(3.16, 0.00, 0.00), (-0.95, 4.14, 0.00), (-0.95, -0.22, 4.13)]
+    p1 = [(0.44, 0.40, 0.30), (0.94, 0.40, 0.79),
+          (0.45, 0.90, 0.79), (0.94, 0.40, 0.29)]
+    s1 = Atoms(syms, cell=cell1, scaled_positions=p1, pbc=True)
+
+    cell2 = [(6.00, 0.00, 0.00), (1.00, 3.00, 0.00), (2.00, -3.00, 3.00)]
+    p2 = [(0.00, 0.00, 0.00), (0.00, 0.00, 0.50),
+          (0.50, 0.00, 0.00), (0.00, 0.50, 0.00)]
+    s2 = Atoms(syms, cell=cell2, scaled_positions=p2, pbc=True)
+
+    # Scale volume is needed to check out equivalent
+    org_comparator = SymmetryEquivalenceCheck(scale_volume=True)
+    assert org_comparator.compare(s1, s2)
+
+
 def run_all_tests(comparator):
     test_compare(comparator)
     test_fcc_bcc(comparator)
@@ -226,6 +268,8 @@ def run_all_tests(comparator):
     test_bcc_translation(comparator)
     test_one_atom_out_of_pos(comparator)
     test_reduce_to_primitive(comparator)
+    test_order_of_candidates()
+    test_original_paper_structures()
 
 
 comparator = SymmetryEquivalenceCheck()
@@ -234,30 +278,3 @@ if comparator.use_cpp_version:
     comparator.use_cpp_version = False
 
 run_all_tests(comparator)
-
-# Structures from the original paper:
-# Comput. Phys. Commun. 183, 690-697 (2012)
-# They should evaluate equal (within a certain tolerance)
-syms = ['O', 'O', 'Mg', 'F']
-cell1 = [(3.16, 0.00, 0.00), (-0.95, 4.14, 0.00), (-0.95, -0.22, 4.13)]
-p1 = [(0.44, 0.40, 0.30), (0.94, 0.40, 0.79),
-      (0.45, 0.90, 0.79), (0.94, 0.40, 0.29)]
-s1 = Atoms(syms, cell=cell1, scaled_positions=p1, pbc=True)
-
-cell2 = [(6.00, 0.00, 0.00), (1.00, 3.00, 0.00), (2.00, -3.00, 3.00)]
-p2 = [(0.00, 0.00, 0.00), (0.00, 0.00, 0.50),
-      (0.50, 0.00, 0.00), (0.00, 0.50, 0.00)]
-s2 = Atoms(syms, cell=cell2, scaled_positions=p2, pbc=True)
-
-# Scale volume is needed to check out equivalent
-org_comparator = SymmetryEquivalenceCheck(scale_volume=True)
-
-assert org_comparator.compare(s1, s2)
-
-prim_comp = SymmetryEquivalenceCheck(to_primitive=True)
-s1 = bulk("Al", crystalstructure='fcc', a=3.2)
-s1 = s1 * (2, 2, 2)
-s2 = s1.copy()
-s1.positions[0, :] += .2
-
-assert prim_comp.compare(s2, s1) == prim_comp.compare(s1, s2)
