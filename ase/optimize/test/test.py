@@ -116,15 +116,14 @@ def run_test(atoms, optimizer, tag, fmax=0.02):
 
 
 def test_optimizer(systems, optimizer, calculator, prefix='', db=None):
-    for atoms in systems:
-        formula = atoms.get_chemical_formula()
+    for name, atoms in systems:
         if db is not None:
             optname = optimizer.__name__
-            id = db.reserve(optimizer=optname, name=formula)
+            id = db.reserve(optimizer=optname, name=name)
             if id is None:
                 continue
         atoms = atoms.copy()
-        tag = '{}{}-{}'.format(prefix, optname, formula)
+        tag = '{}{}-{}'.format(prefix, optname, name)
         atoms.calc = calculator(txt=tag + '.txt')
         error, nsteps, texcl, tincl = run_test(atoms, optimizer, tag)
 
@@ -132,7 +131,7 @@ def test_optimizer(systems, optimizer, calculator, prefix='', db=None):
             db.write(atoms,
                      id=id,
                      optimizer=optname,
-                     name=formula,
+                     name=name,
                      error=error,
                      n=nsteps,
                      t=texcl,
@@ -149,7 +148,8 @@ def main():
 
     args = parser.parse_args()
 
-    systems = [row.toatoms() for row in ase.db.connect(args.systems).select()]
+    systems = [(row.name, row.toatoms())
+               for row in ase.db.connect(args.systems).select()]
 
     db = ase.db.connect('results.db')
 
