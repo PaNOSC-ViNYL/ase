@@ -1,13 +1,9 @@
-from __future__ import print_function
 from collections import Counter
-from itertools import combinations
-import copy
+from itertools import combinations, product, filterfalse
 import numpy as np
 from scipy.spatial import cKDTree as KDTree
 from ase import Atoms, Atom
 from ase.build import tools as asetools
-from ase.visualize import view
-from ase.spacegroup import get_spacegroup
 
 try:
     import pystructcomp_cpp as pycpp
@@ -143,7 +139,7 @@ class SymmetryEquivalenceCheck(object):
 
     def _get_angles(self, cell):
         """Get the internal angles of the unit cell."""
-        cellT = cell.T
+        cellT = cell.copy().T
 
         # Normalize each vector
         for i in range(3):
@@ -174,15 +170,14 @@ class SymmetryEquivalenceCheck(object):
 
     def _scale_volumes(self):
         """Scale the cell of s1 to have the same volume as s2."""
-        v1 = np.linalg.det(self.s1.get_cell())
+        cell1 = self.s1.get_cell()
+        v1 = np.linalg.det(cell1)
         v2 = np.linalg.det(self.s2.get_cell())
 
         # Scale the cells
-        cell1 = self.s1.get_cell()
         coordinate_scaling = (v2 / v1)**(1.0 / 3.0)
         cell1 *= coordinate_scaling
-        self.s1.set_positions(self.s1.get_positions() * coordinate_scaling)
-        self.s1.set_cell(cell1)
+        self.s1.set_cell(cell1, scale_atoms=True)
 
     def _has_same_volume(self):
         vol1 = self.s1.get_volume()
@@ -297,7 +292,7 @@ class SymmetryEquivalenceCheck(object):
         tree = KDTree(exp2.get_positions())
         for i in range(translations.shape[0]):
             for matrix in rotation_reflection_matrices:
-                pos1 = copy.deepcopy(pos1_ref)
+                pos1 = pos1_ref.copy()
                 # Translate
                 pos1 -= translations[i, :]
 
@@ -312,14 +307,14 @@ class SymmetryEquivalenceCheck(object):
         return False
 
     def _expand(self, ref_atoms, tol=0.0001):
-        """If an atom is closer to a boundary than tol it is repeated at the 
+        """If an atom is closer to a boundary than tol it is repeated at the
         opposite boundaries.
 
         This ensures that atoms having crossed the cell boundaries due to
         numerical noise are properly detected.
 
         The distance between a position and cell boundary is calculated as:
-        dot(position, (b_vec x c_vec) / (|b_vec| |c_vec|) ), where x is the 
+        dot(position, (b_vec x c_vec) / (|b_vec| |c_vec|) ), where x is the
         cross product.
         """
         syms = ref_atoms.get_chemical_symbols()
@@ -387,22 +382,26 @@ class SymmetryEquivalenceCheck(object):
                 return False
 
             # Check for duplicates in what atom is closest
-            sc = np.sort(closest_in_s2)  # sorted closest in s2
-            if np.any([sc[1:] == sc[:-1]]):
+            if self._equal_elements_in_array(closest_in_s2):
                 return False
 
         return True
+
+    def _equal_elements_in_array(self, arr):
+        s = np.sort(arr)
+        return np.any(s[1:] == s[:-1])
 
     def _get_rotation_reflection_matrices(self):
         """Compute candidates for the transformation matrix."""
         atoms1_ref, atoms2_ref = \
             self._extract_positions_of_least_frequent_element()
         cell = self.s1.get_cell().T
+        cell_diag = np.sum(cell, axis=1)
         angle_tol = self.angle_tol
 
         # Additional vector that is added to make sure that
         # there always is an atom at the origin
-        delta_vec = 1E-6 * (cell[:, 0] + cell[:, 1] + cell[:, 2])
+        delta_vec = 1E-6 * cell_diag
 
         # Put on of the least frequent elements of structure 2 at the origin
         translation = atoms2_ref.get_positions()[0, :] - delta_vec
@@ -411,85 +410,82 @@ class SymmetryEquivalenceCheck(object):
         self.s2.set_positions(self.s2.get_positions() - translation)
         self.s2.wrap(pbc=[1, 1, 1])
 
-        # Store three reference vectors
-        ref_vec = atoms2_ref.get_cell().T
-        ref_vec_lengths = np.sqrt(np.sum(ref_vec**2, axis=0))
-
-        canditate_trans_mat = []
+        # Store three reference vectors and their lengths
+        ref_vec = atoms2_ref.get_cell()
+        ref_vec_lengths = np.linalg.norm(ref_vec, axis=1)
 
         # Compute ref vec angles
-        angle12_ref = np.arccos(ref_vec[:, 0].dot(ref_vec[:, 1]) /
-                                (ref_vec_lengths[0] * ref_vec_lengths[1]))
-        if angle12_ref > np.pi / 2.0:
-            angle12_ref = np.pi - angle12_ref
-        angle13_ref = np.arccos(ref_vec[:, 0].dot(ref_vec[:, 2]) /
-                                (ref_vec_lengths[0] * ref_vec_lengths[2]))
-        if angle13_ref > np.pi / 2.0:
-            angle13_ref = np.pi - angle13_ref
-        angle23_ref = np.arccos(ref_vec[:, 1].dot(ref_vec[:, 2]) /
-                                (ref_vec_lengths[1] * ref_vec_lengths[2]))
-        if angle23_ref > np.pi / 2.0:
-            angle23_ref = np.pi - angle23_ref
+        # inn = np.matmul(ref_vec.T, ref_vec)
+        # all_angles = np.arccos(inn / np.outer(ref_vec_lengths,
+        #                                       ref_vec_lengths))
+        # ref_angles are arranged as [angle12, angle13, angle23]
+        ref_angles = np.array(self._get_angles(ref_vec))
+        large_angles = ref_angles > np.pi / 2.0
+        ref_angles[large_angles] = np.pi - ref_angles[large_angles]
 
         sc_atom_search = atoms1_ref * (3, 3, 3)
         sc_pos = atoms1_ref.get_positions()
         # Translate by one cell diagonal
-        sc_pos += cell[:, 0] + cell[:, 1] + cell[:, 2]
+        sc_pos += cell_diag
         sc_pos_search = sc_atom_search.get_positions()
 
-        candidate_vecs = [[], [], []]
         translation = sc_pos[0, :] - delta_vec
 
         new_sc_pos = sc_pos_search - translation
-        lengths = np.sqrt(np.sum(new_sc_pos**2, axis=1))
-        for l in range(1, len(lengths)):
-            for k in range(3):
-                if (np.abs(lengths[l] - ref_vec_lengths[k]) <
-                        self.ltol * lengths[l] / len(self.s1)):
-                    candidate_vecs[k].append(new_sc_pos[l, :])
+        lengths = np.linalg.norm(new_sc_pos, axis=1)
 
-        # Check angles
-        refined_candidate_list = [[], [], []]
+        candidate_indices = []
+        rtol = self.ltol / len(self.s1)
+        for k in range(3):
+            correct_lengths_mask = np.isclose(lengths,
+                                              ref_vec_lengths[k],
+                                              rtol=rtol, atol=0)
+            # The first vector is not interesting
+            correct_lengths_mask[0] = False
+            candidate_indices.append(np.nonzero(correct_lengths_mask)[0])
 
-        for v1 in candidate_vecs[0]:
-            for v2 in candidate_vecs[1]:
-                if np.allclose(v1, v2, atol=1E-3):
-                    continue
-                v1len = np.sqrt(np.sum(v1**2))
-                v2len = np.sqrt(np.sum(v2**2))
-                angle12 = np.arccos(v1.dot(v2) / (v1len * v2len))
-                if angle12 > np.pi / 2.0:
-                    angle12 = np.pi - angle12
-                for v3 in candidate_vecs[2]:
-                    if (np.allclose(v1, v3, atol=1E-3) or
-                            np.allclose(v2, v3, atol=1E-3)):
-                        continue
-                    v3len = np.sqrt(np.sum(v3**2))
-                    angle13 = np.arccos(v1.dot(v3) / (v1len * v3len))
-                    if angle13 > np.pi / 2.0:
-                        angle13 = np.pi - angle13
+        # Now we calculate all relevant angles in one step. The relevant angles
+        # are the ones made by the current candidates. We will have to keep
+        # track of the indices in the angles matrix and the indices in the
+        # position and length arrays.
 
-                    angle23 = np.arccos(v2.dot(v3) / (v2len * v3len))
-                    if angle23 > np.pi / 2.0:
-                        angle23 = np.pi - angle23
+        # Get all candidate indices (aci), only unique values
+        aci = np.sort(list(set().union(*candidate_indices)))
+        # Make a dictionary from original positions and lengths index to
+        # index in angle matrix
+        i2ang = dict(zip(aci, range(len(aci))))
 
-                    if (np.abs(angle12 - angle12_ref) < angle_tol and
-                            np.abs(angle13 - angle13_ref) < angle_tol and
-                            np.abs(angle23 - angle23_ref) < angle_tol):
-                        refined_candidate_list[0].append(v1)
-                        refined_candidate_list[1].append(v2)
-                        refined_candidate_list[2].append(v3)
+        # Calculate the dot product divided by the lengths:
+        # cos(angle) = dot(vec1, vec2) / |vec1| |vec2|
+        cosa = np.inner(new_sc_pos[aci],
+                        new_sc_pos[aci]) / np.outer(lengths[aci],
+                                                    lengths[aci])
+        # Make sure the inverse cosine will work
+        cosa[cosa > 1] = 1
+        cosa[cosa < -1] = -1
+        angles = np.arccos(cosa)
+        # Do trick for enantiomorphic structures
+        angles[angles > np.pi / 2] = np.pi - angles[angles > np.pi / 2]
 
-        # Compute rotation/reflection
-        for v1, v2, v3 in zip(refined_candidate_list[0],
-                              refined_candidate_list[1],
-                              refined_candidate_list[2]):
-            T = np.zeros((3, 3))
-            T[:, 0] = v1
-            T[:, 1] = v2
-            T[:, 2] = v3
-            R = ref_vec.dot(np.linalg.inv(T))
-            canditate_trans_mat.append(R)
+        # Check which angles match the reference angles
+        # Test for all combinations on candidates. filterfalse makes sure
+        # that there are no duplicate candidates. product is the same as
+        # nested for loops.
+        refined_candidate_list = []
+        for p in filterfalse(self._equal_elements_in_array,
+                             product(*candidate_indices)):
+            a = np.array([angles[i2ang[p[0]], i2ang[p[1]]],
+                          angles[i2ang[p[0]], i2ang[p[2]]],
+                          angles[i2ang[p[1]], i2ang[p[2]]]])
+
+            if np.allclose(a, ref_angles, atol=angle_tol, rtol=0):
+                refined_candidate_list.append(new_sc_pos[np.array(p)].T)
+
+        # Get the rotation/reflection matrix [R] by:
+        # [R] = [V][T]^-1, where [V] is the reference vectors and
+        # [T] is the trial vectors
+        inverted_trial = np.linalg.inv([refined_candidate_list])[0]
+        canditate_trans_mat = np.matmul(ref_vec.T, inverted_trial)
         return canditate_trans_mat, atoms1_ref.get_positions()
 
     def _reduce_to_primitive(self, structure):
