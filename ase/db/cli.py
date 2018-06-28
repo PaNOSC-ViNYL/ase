@@ -182,11 +182,11 @@ def main(args):
                 nkvp = None
                 block_size = 500
                 n_structures = db.count(query)
-                n_blocks = int(n_structures / block_size) + 1
-                for block_id in range(0, n_blocks):
+                n_blocks = n_structures // block_size
+                for block_id in range(0, n_blocks + 1):
                     b0 = block_id * block_size
                     b1 = (block_id + 1) * block_size
-                    if block_id + 1 == n_blocks:
+                    if block_id == n_blocks:
                         b1 = n_structures
 
                     rows = list(islice(db.select(query, sort=args.sort), b0, b1))
