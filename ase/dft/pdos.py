@@ -39,7 +39,7 @@ class PDOS:
                 msg = ('Incorrect number of entries in '
                        'info. Expected {}, got {}'.format(
                            len(self.weights), len(info)))
-                raise ValueError(info)
+                raise ValueError(msg)
         self.info = info
 
     def delta(self, x, x0, width):
