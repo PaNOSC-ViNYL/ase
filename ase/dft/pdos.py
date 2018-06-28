@@ -51,7 +51,8 @@ class PDOS:
         """Add Gaussian smearing, to all weights onto an energy grid.
         Disabled for width=0.0"""
         if width == 0.0:
-            return self.weights
+            msg = 'Cannot add 0 width smearing'
+            raise ValueError(msg)
 
         en0 = self.energy[:, np.newaxis]  # Add axis to use NumPy broadcasting
         weights_grid = np.dot(self.weights,
