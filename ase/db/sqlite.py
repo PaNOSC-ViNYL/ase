@@ -420,54 +420,58 @@ class SQLite3Database(Database, object):
             deblob = _deblob
             decode = _decode
 
+        cn = self.columnnames
         values = self._old2new(values)
-        dct = {'id': values[0],
-               'unique_id': values[1],
-               'ctime': values[2],
-               'mtime': values[3],
-               'user': values[4],
-               'numbers': deblob(values[5], np.int32),
-               'positions': deblob(values[6], shape=(-1, 3)),
-               'cell': deblob(values[7], shape=(3, 3))}
+        dct = {'id': values[cn.index('id')],
+               'unique_id': values[cn.index('unique_id')],
+               'ctime': values[cn.index('ctime')],
+               'mtime': values[cn.index('mtime')],
+               'user': values[cn.index('username')],
+               'numbers': deblob(values[cn.index('numbers')], np.int32),
+               'positions': deblob(values[cn.index('positions')], shape=(-1, 3)),
+               'cell': deblob(values[cn.index('cell')], shape=(3, 3))}
 
-        if values[8] is not None:
-            dct['pbc'] = (values[8] & np.array([1, 2, 4])).astype(bool)
-        if values[9] is not None:
-            dct['initial_magmoms'] = deblob(values[9])
-        if values[10] is not None:
-            dct['initial_charges'] = deblob(values[10])
-        if values[11] is not None:
-            dct['masses'] = deblob(values[11])
-        if values[12] is not None:
-            dct['tags'] = deblob(values[12], np.int32)
-        if values[13] is not None:
-            dct['momenta'] = deblob(values[13], shape=(-1, 3))
-        if values[14] is not None:
-            dct['constraints'] = values[14]
-        if values[15] is not None:
-            dct['calculator'] = values[15]
-        if values[16] is not None:
-            dct['calculator_parameters'] = decode(values[16])
-        if values[17] is not None:
-            dct['energy'] = values[17]
-        if values[18] is not None:
-            dct['free_energy'] = values[18]
-        if values[19] is not None:
-            dct['forces'] = deblob(values[19], shape=(-1, 3))
-        if values[20] is not None:
-            dct['stress'] = deblob(values[20])
-        if values[21] is not None:
-            dct['dipole'] = deblob(values[21])
-        if values[22] is not None:
-            dct['magmoms'] = deblob(values[22])
-        if values[23] is not None:
-            dct['magmom'] = values[23]
-        if values[24] is not None:
-            dct['charges'] = deblob(values[24])
-        if values[25] != '{}':
-            dct['key_value_pairs'] = decode(values[25])
-        if len(values) >= 27 and values[26] != 'null':
-            dct['data'] = decode(values[26])
+        if values[cn.index('pbc')] is not None:
+            dct['pbc'] = (values[cn.index('pbc')] &
+                          np.array([1, 2, 4])).astype(bool)
+        if values[cn.index('initial_magmoms')] is not None:
+            dct['initial_magmoms'] = deblob(values[cn.index('initial_magmoms')])
+        if values[cn.index('initial_charges')] is not None:
+            dct['initial_charges'] = deblob(values[cn.index('initial_charges')])
+        if values[cn.index('masses')] is not None:
+            dct['masses'] = deblob(values[cn.index('masses')])
+        if values[cn.index('tags')] is not None:
+            dct['tags'] = deblob(values[cn.index('tags')], np.int32)
+        if values[cn.index('momenta')] is not None:
+            dct['momenta'] = deblob(values[cn.index('momenta')], shape=(-1, 3))
+        if values[cn.index('constraints')] is not None:
+            dct['constraints'] = values[cn.index('constraints')]
+        if values[cn.index('calculator')] is not None:
+            dct['calculator'] = values[cn.index('calculator')]
+        if values[cn.index('calculator_parameters')] is not None:
+            dct['calculator_parameters'] = \
+            decode(values[cn.index('calculator_parameters')])
+        if values[cn.index('energy')] is not None:
+            dct['energy'] = values[cn.index('energy')]
+        if values[cn.index('free_energy')] is not None:
+            dct['free_energy'] = values[cn.index('free_energy')]
+        if values[cn.index('forces')] is not None:
+            dct['forces'] = deblob(values[cn.index('forces')], shape=(-1, 3))
+        if values[cn.index('stress')] is not None:
+            dct['stress'] = deblob(values[cn.index('stress')])
+        if values[cn.index('dipole')] is not None:
+            dct['dipole'] = deblob(values[cn.index('dipole')])
+        if values[cn.index('magmoms')] is not None:
+            dct['magmoms'] = deblob(values[cn.index('magmoms')])
+        if values[cn.index('magmom')] is not None:
+            dct['magmom'] = values[cn.index('magmom')]
+        if values[cn.index('charges')] is not None:
+            dct['charges'] = deblob(values[cn.index('charges')])
+        if values[cn.index('key_value_pairs')] != '{}':
+            dct['key_value_pairs'] = decode(values[cn.index('key_value_pairs')])
+        if len(values) >= cn.index('data') + 1 and \
+        values[cn.index('data')] != 'null':
+            dct['data'] = decode(values[cn.index('data')])
         return AtomsRow(dct)
 
     def _old2new(self, values):
@@ -608,19 +612,19 @@ class SQLite3Database(Database, object):
         con = self._connect()
         self._initialize(con)
 
-        values = np.array([None for i in range(27)])
-        values[25] = '{}'
-        values[26] = 'null'
-
+        n_values = self.columnnames.index('data') + 1
+        values = np.array([None for i in range(n_values)])
+        values[self.columnnames.index('key_value_pairs')] = '{}'
+        values[self.columnnames.index('data')] = 'null'
         if columns == 'all':
-            columnindex = list(range(27))
+            columnindex = list(range(n_values))
         else:
-            columnindex = [c for c in range(0, 27)
+            columnindex = [c for c in range(n_values)
                            if self.columnnames[c] in columns]
 
         if not include_data:
-            if 26 in columnindex:
-                columnindex.remove(26)
+            if self.columnnames.index('data') in columnindex:
+                columnindex.remove(self.columnnames.index('data'))
 
         if sort:
             if sort[0] == '-':
