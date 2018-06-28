@@ -348,8 +348,7 @@ class SQLite3Database(Database, object):
         cur.executemany(statement.format(q), values_collect)
 
         if self.type == 'postgresql':
-            ids = cur.fetchall()
-            ids = [ids[i][0] for i in range(len(ids))]
+            ids = [id[0] for id in cur.fetchall()]
         else:
             last_id = self.get_last_id(cur)
             ids = range(last_id + 1 - N_rows, last_id + 1)
