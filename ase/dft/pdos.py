@@ -18,9 +18,11 @@ class PDOS:
             raise ValueError(msg)
 
         # Weights format: [[w1, w2, ...], [w1, w2, ..], ...]
+        # if self.weights.ndim == 1:
+        #     self.weights = self.weights[np.newaxis]
         if self.weights.ndim != 2:
             msg = ('Incorrect weight dimensionality. '
-                   'Expected 2, got {}'.format(
+                   'Expected 1 or 2, got {}'.format(
                        self.weights.ndim))
             raise ValueError(msg)
 
@@ -202,6 +204,27 @@ class PDOS:
 
         return PDOS(energy=self.energy, weights=weights_sum,
                     info=info_new, sampling=self.sampling)
+
+    def __getitem__(self, i):
+        if isinstance(i, int):
+            n_weights = len(self.weights)
+            if i < -n_weights or i >= n_weights:
+                raise IndexError('Index out of range.')
+            # We need to maintain correct dimensionality
+            # Is there a more elegant to do this?
+            info = [self.info[i]]
+            weights = self.weights[[i]]
+        else:
+            if isinstance(i, list) and len(i) > 0:
+                i = np.array(i)
+            info = self.info[i]
+            weights = self.weights[i]
+
+        pdos = self.__class__(energy=self.energy,
+                              weights=weights,
+                              info=info,
+                              sampling=self.sampling)
+        return pdos
 
 
 class PDOSPlot:
