@@ -1,5 +1,5 @@
-from ase.structcomp import SymmetryEquivalenceCheck
-from ase.structcomp.structure_comparator import SpgLibNotFoundError
+from ase.utils.structure_comparator import SymmetryEquivalenceCheck
+from ase.utils.structure_comparator import SpgLibNotFoundError
 from ase.build import bulk
 from ase import Atoms
 from ase.spacegroup import spacegroup, crystal

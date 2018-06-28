@@ -1,8 +1,10 @@
+"""Determine symmetry equivalence of two structures.
+Based on the recipe from Comput. Phys. Commun. 183, 690-697 (2012)."""
 from collections import Counter
 from itertools import combinations, product, filterfalse
 import numpy as np
 from scipy.spatial import cKDTree as KDTree
-from ase import Atoms, Atom
+from ase import Atom, Atoms
 from ase.build import tools as asetools
 
 try:
