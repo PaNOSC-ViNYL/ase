@@ -216,6 +216,16 @@ class PDOS:
         # Should this return a copy instead?
         return self[idx]
 
+    def split(self, key):
+        # Find all unique instances of key in info
+        unique = np.unique([info.get(key) for info in self.info
+                            if info.get(key, None) is not None])
+
+        pdos_lst = []
+        for value in unique:
+            pdos_lst.append(self.pick(key=value))
+        return pdos_lst
+
     def __getitem__(self, i):
         if isinstance(i, int):
             n_weights = len(self.weights)
