@@ -69,8 +69,6 @@ class PDOS:
                     'npts': npts,
                     'type': gridtype}
 
-        weights_grid = np.zeros((self.weights.shape[0], npts))
-
         weights_grid = self.smear(grid, width=width)
 
         pdos_new = PDOS(grid, weights_grid,
@@ -90,6 +88,8 @@ class PDOS:
             emin = self.energy.min()
         if emax is None:
             emax = self.energy.max()
+        emin -= 5 * width
+        emax += 5 * width
 
         grid_uniform = PDOS._make_uniform_grid(emin, emax, spacing=spacing,
                                                npts=npts, width=width)
@@ -131,21 +131,19 @@ class PDOS:
         """Resample list of PDOS objects onto uniform grid.
         Takes the lowest and highest energies as grid range, if
         no window is specified"""
+        dosen = [dos.energy for dos in doslist]
         # Parse window
         if window is None:
             emin, emax = None, None
         else:
             emin, emax = window
         if emin is None:
-            emin = -np.infty
+            emin = np.min(dosen)
         if emax is None:
-            emax = np.infty
-        dosen = [dos.energy for dos in doslist]
-
-        # If needed, adjust emin and emax to be within
-        # the range of sampled data
-        emin = max(np.min(dosen), emin)
-        emax = min(np.max(dosen), emax)
+            emax = np.max(dosen)
+        # Add a little extra to avoid stopping midpeak
+        emin -= 5 * width
+        emax += 5 * width
 
         grid_uniform = PDOS._make_uniform_grid(emin, emax, spacing=spacing,
                                                npts=npts, width=width)
@@ -200,20 +198,19 @@ class PDOS:
             info_new = [dict(set.intersection(*all_kv))]
         else:
             # We didn't find any shared (key, value) pairs
+            # This prevents set.intersection from blowing up
             info_new = None
 
         return PDOS(energy=self.energy, weights=weights_sum,
                     info=info_new, sampling=self.sampling)
 
     def pick(self, **kwargs):
-        # Pick key/value pairs
-        idx = []
-        for ii, d in enumerate(self.info):
-            for key, value in kwargs.items():
-                dval = d.get(key, None)
-                if dval == value:
-                    idx.append(ii)
-        # Should this return a copy instead?
+        # Pick key/value pairs using logical AND
+        # i.e., all conditions from kwargs must be met
+        idx = [i for i, d in enumerate(self.info)
+               if all(d.get(key) == value
+                      for key, value in kwargs.items())]
+
         return self[idx]
 
     def split(self, key):
@@ -223,6 +220,8 @@ class PDOS:
 
         pdos_lst = []
         for value in unique:
+            # Use **{key: value} instead of key=value,
+            # as key=value will litterally look up "key" in info.
             pdos_lst.append(self.pick(**{key: value}))
         return pdos_lst
 
@@ -231,13 +230,14 @@ class PDOS:
             n_weights = len(self.weights)
             if i < -n_weights or i >= n_weights:
                 raise IndexError('Index out of range.')
-            i = [i]          # Ensure our dimensionality is maintained
-        elif isinstance(i, list) and len(i) > 0:
-            i = np.array(i)
+
+        indices = np.arange(len(self.weights))[i]
+        if len(indices.shape) == 0:
+            indices = indices[np.newaxis]
 
         return PDOS(energy=self.energy,
-                    weights=self.weights[i],
-                    info=self.info[i],
+                    weights=self.weights[indices],
+                    info=self.info[indices],
                     sampling=self.sampling)
 
 
