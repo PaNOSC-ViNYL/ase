@@ -167,11 +167,12 @@ class PDOS:
             grid_uniform = np.arange(emin, emax, spacing)
         return grid_uniform
 
-    def plot(self, ax=None,
+    def plot(self, *plotargs,
+             # We need to grab the init keywords
+             ax=None,
              emin=None, emax=None,
              ymin=None, ymax=None, ylabel=None,
-             *plotargs, **plotkwargs):
-        # We need to grab init keywords
+             **plotkwargs):
 
         pdp = PDOSPlot(self, ax=None,
                        emin=None, emax=None,
@@ -267,9 +268,9 @@ class PDOSPlot:
                 kwargs['label'] = labels[ii]
             else:
                 kwargs['label'] = self.pdos.info[ii]
-            kwargs.update(plotkwargs)
+
             ax.plot(self.pdos.energy, w_i,
-                    **kwargs)
+                    **kwargs, **plotkwargs)
 
         self.finish_plot(filename, show, show_legend, loc)
 
