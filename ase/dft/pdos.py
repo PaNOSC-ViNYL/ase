@@ -253,38 +253,26 @@ class PDOSPlot:
                                         ylabel=ylabel)
 
     def plot(self, filename=None, show=None, colors=None,
-             labels=None, show_legend=True, loc=None, **plotkwargs):
+             show_legend=True, loc=None, **plotkwargs):
 
         ax = self.ax
 
         for ii, w_i in enumerate(self.pdos.weights):
             # We can add smater labeling later
-            kwargs = {}
-            if colors is not None:
-                kwargs['color'] = colors[ii]
-
-            # We could possibly have some better label logic here
-            if labels is not None:
-                kwargs['label'] = labels[ii]
-            else:
-                kwargs['label'] = self.pdos.info[ii]
-
-            ax.plot(self.pdos.energy, w_i,
-                    **kwargs, **plotkwargs)
+            label = self.pdos.info[ii]
+            ax.plot(self.pdos.energy, w_i, label=label, **plotkwargs)
 
         self.finish_plot(filename, show, show_legend, loc)
 
         return ax
 
     def prepare_plot(self, ax=None, emin=None, emax=None,
-                     ymin=None, ymax=None,
-                     ylabel=None, xlabel=None):
+                     ymin=None, ymax=None, ylabel=None):
         import matplotlib.pyplot as plt
         if ax is None:
             ax = plt.figure().add_subplot(111)
 
         ylabel = ylabel if ylabel is not None else 'DOS'
-        xlabel = xlabel if xlabel is not None else 'Energy [eV]'
         ax.axis(xmin=emin, xmax=emax, ymin=ymin, ymax=ymax)
         ax.set_ylabel(ylabel)
         self.ax = ax

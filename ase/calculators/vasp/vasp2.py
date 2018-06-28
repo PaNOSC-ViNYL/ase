@@ -32,9 +32,6 @@ import ase
 from ase.io import read
 from ase.utils import basestring
 
-from ase.calculators.vasp import VaspDos
-from ase.dft.pdos import PDOS
-
 from ase.calculators.calculator import (FileIOCalculator, ReadError,
                                         all_changes,
                                         PropertyNotImplementedError)
@@ -992,99 +989,3 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
             xc = np.append(xc, l_)
         assert len(xc) == 32
         return xc
-
-    def get_pdos(self, a=None):
-
-        if a is None:
-            atoms = self.atoms
-        else:
-            if isinstance(a, int):
-                a = [a]
-            atoms = self.atoms[a]
-
-        if 'pdos' not in self.results:
-            Vdos = VaspDos(os.path.join(self.directory,
-                                        'DOSCAR'),
-                           efermi=self.get_fermi_level())
-            self.results['pdos'] = Vdos
-        else:
-            Vdos = self.results['pdos']
-
-        energy = Vdos.energy
-
-        orbs_all = self.get_orb_names(Vdos._site_dos.shape[1])
-        norb = len(orbs_all)
-        info = []
-        weights = np.zeros((norb * len(atoms), len(energy)))
-        ii = 0
-
-        def orb2l(orb):
-            converger = {'s': 0,
-                         'p': 1,
-                         'd': 2}
-            return converger[orb[0]]
-
-        def orb2m(orb):
-            if orb[0] == 's':
-                return 0
-            if norb in [3, 6]:
-                # Unknown
-                return None
-            conv = {'py': -1, 'pz': 0, 'px': 1,
-                    'dxy': -2, 'dyz': -1,
-                    'dz2': 0, 'dxz': 1, 'dx2': 2}
-            for key, value in conv.items():
-                if orb.startswith(key):
-                    return value
-            return None
-
-        def orb2spin(orb):
-            if '-up' in orb:
-                return 1
-            elif '-down' in orb:
-                return -1
-            else:
-                return None
-
-        for atom in atoms:
-            for orb in orbs_all:
-                l_qn = orb2l(orb)
-                ml = orb2m(orb)
-                s = orb2spin(orb)
-                info.append({'atom': atom.index,
-                             'symbol': atom.symbol,
-                             'l': l_qn,
-                             'm': ml,
-                             'spin': s,
-                             'orbital': orb})
-                weights[ii] = Vdos.site_dos(atom.index, orb)
-                ii += 1
-        return PDOS(energy, weights, info=info)
-
-    def get_orb_names(self, ncol):
-        n = ncol
-        if n == 4:
-            norb = ['s', 'p', 'd']
-        elif n == 7:
-            norb = ['s-up', 's-down',
-                    'p-up', 'p-down',
-                    'd-up', 'd-down']
-        elif n == 10:
-            norb = ['s', 'py', 'pz', 'px',
-                    'dxy', 'dyz', 'dz2', 'dxz',
-                    'dx2']
-        elif n == 19:
-            norb = ['s-up', 's-down',
-                    'py-up', 'py-down',
-                    'pz-up', 'pz-down',
-                    'px-up', 'px-down',
-                    'dxy-up', 'dxy-down',
-                    'dyz-up', 'dyz-down',
-                    'dz2-up', 'dz2-down',
-                    'dxz-up', 'dxz-down',
-                    'dx2-up', 'dx2-down']
-        else:
-            msg = ('Number of columns should be '
-                   ' 4, 7, 10 or 19. Got {}'.format(n))
-            raise ValueError(msg)
-        return norb
