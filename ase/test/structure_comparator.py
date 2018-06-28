@@ -252,6 +252,14 @@ def test_original_paper_structures():
     assert org_comparator.compare(s1, s2)
 
 
+def test_symmetrical_one_element_out():
+    s1 = get_atoms_with_mixed_elements()
+    s1.set_chemical_symbols(['Zn', 'Zn', 'Al', 'Zn', 'Zn', 'Al', 'Zn', 'Zn'])
+    s2 = s1.copy()
+    s2.positions[0, :] += 0.2
+    assert not comparator.compare(s1, s2)
+
+
 def run_all_tests(comparator):
     test_compare(comparator)
     test_fcc_bcc(comparator)

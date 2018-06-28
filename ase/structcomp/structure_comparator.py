@@ -267,13 +267,25 @@ class SymmetryEquivalenceCheck(object):
         return elem1.most_common()[-1][0]
 
     def _extract_positions_of_least_frequent_element(self):
-        """Extract a dictionary of positions of each element."""
+        """Get the atoms object with all other elements than the specified
+        one removed. Wrap the positions to get everything in the cell."""
         least_freq_element = self._get_least_frequent_element()
 
-        indices1 = [a.index for a in self.s1 if a.symbol == least_freq_element]
-        indices2 = [a.index for a in self.s2 if a.symbol == least_freq_element]
-        # Is wrapping of the positions necessary?
-        return self.s1[indices1], self.s2[indices2]
+        atoms1 = Atoms(cell=self.s1.get_cell())
+        atoms2 = Atoms(cell=self.s2.get_cell())
+
+        pos1 = self.s1.get_positions(wrap=True)
+        pos2 = self.s2.get_positions(wrap=True)
+        for i in range(len(self.s1)):
+            symbol = self.s1[i].symbol
+            if symbol == least_freq_element:
+                atoms1.append(Atom(symbol, position=pos1[i, :]))
+
+            symbol = self.s2[i].symbol
+            if symbol == least_freq_element:
+                atoms2.append(Atom(symbol, position=pos2[i, :]))
+
+        return atoms1, atoms2
 
     def _positions_match(self, rotation_reflection_matrices, translations):
         """Check if the position and elements match.
@@ -293,6 +305,7 @@ class SymmetryEquivalenceCheck(object):
         for i in range(translations.shape[0]):
             for matrix in rotation_reflection_matrices:
                 pos1 = pos1_ref.copy()
+
                 # Translate
                 pos1 -= translations[i, :]
 
@@ -362,6 +375,10 @@ class SymmetryEquivalenceCheck(object):
 
         return expanded_atoms
 
+    def _equal_elements_in_array(self, arr):
+        s = np.sort(arr)
+        return np.any(s[1:] == s[:-1])
+
     def _elements_match(self, s1, s2, kdtree):
         """Check if all the elements in s1 match the corresponding position in s2
 
@@ -387,10 +404,6 @@ class SymmetryEquivalenceCheck(object):
 
         return True
 
-    def _equal_elements_in_array(self, arr):
-        s = np.sort(arr)
-        return np.any(s[1:] == s[:-1])
-
     def _get_rotation_reflection_matrices(self):
         """Compute candidates for the transformation matrix."""
         atoms1_ref, atoms2_ref = \
@@ -403,7 +416,7 @@ class SymmetryEquivalenceCheck(object):
         # there always is an atom at the origin
         delta_vec = 1E-6 * cell_diag
 
-        # Put on of the least frequent elements of structure 2 at the origin
+        # Put one of the least frequent elements of structure 2 at the origin
         translation = atoms2_ref.get_positions()[0, :] - delta_vec
         atoms2_ref.set_positions(atoms2_ref.get_positions() - translation)
         atoms2_ref.wrap(pbc=[1, 1, 1])
