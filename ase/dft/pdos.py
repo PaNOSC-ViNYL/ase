@@ -225,11 +225,10 @@ class PDOS:
         elif isinstance(i, list) and len(i) > 0:
             i = np.array(i)
 
-        pdos = self.__class__(energy=self.energy,
-                              weights=self.weights[i],
-                              info=self.info[i],
-                              sampling=self.sampling)
-        return pdos
+        return PDOS(energy=self.energy,
+                    weights=self.weights[i],
+                    info=self.info[i],
+                    sampling=self.sampling)
 
 
 class PDOSPlot:
