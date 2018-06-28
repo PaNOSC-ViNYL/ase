@@ -188,7 +188,7 @@ class SQLite3Database(Database, object):
 
         self.initialized = True
 
-    def _get_values(self, atoms, key_value_pairs={}, data={}, id=None):
+    def _get_values(self, atoms, key_value_pairs=None, data=None, id=None):
         mtime = now()
 
         if not isinstance(atoms, AtomsRow):
