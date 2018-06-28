@@ -1091,12 +1091,12 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
                 l_qn = orb2l(orb)
                 ml = orb2m(orb)
                 s = orb2spin(orb)
-                info.append({'Atom': atom.index,
-                             'Symbol': atom.symbol,
+                info.append({'atom': atom.index,
+                             'symbol': atom.symbol,
                              'l': l_qn,
                              'm': ml,
                              'spin': s,
-                             'Orbital': orb})
+                             'orbital': orb})
                 weights[ii] = Vdos.site_dos(atom.index, orb)
                 ii += 1
         return PDOS(energy, weights, info=info)
