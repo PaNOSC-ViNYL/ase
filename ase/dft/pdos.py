@@ -180,6 +180,29 @@ class PDOS:
                        ymin=None, ymax=None, ylabel=None)
         return pdp.plot(*plotargs, **plotkwargs)
 
+    def sum(self):
+        weights_sum = self.weights.sum(0)[np.newaxis]
+
+        # Find shared (key, value) pairs
+        # dict(set.intersection(*(set(d.items()) for d in info)))
+        all_kv = []
+        for d in self.info:
+            kv_pairs = set()
+            for key, value in d.items():
+                try:
+                    kv_pairs.add((key, value))
+                except TypeError:
+                    # Unhashable type, skip it
+                    pass
+            all_kv.append(kv_pairs)
+        info_new = dict(set.intersection(*all_kv))
+        if not info_new:
+            # We didn't find any shared (key, value) pairs
+            info_new = None
+
+        return PDOS(energy=self.energy, weights=weights_sum,
+                    info=info_new, sampling=self.sampling)
+
 
 class PDOSPlot:
     def __init__(self, pdos, ax=None,
