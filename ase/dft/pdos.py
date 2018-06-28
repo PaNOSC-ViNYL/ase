@@ -18,11 +18,9 @@ class PDOS:
             raise ValueError(msg)
 
         # Weights format: [[w1, w2, ...], [w1, w2, ..], ...]
-        # if self.weights.ndim == 1:
-        #     self.weights = self.weights[np.newaxis]
         if self.weights.ndim != 2:
             msg = ('Incorrect weight dimensionality. '
-                   'Expected 1 or 2, got {}'.format(
+                   'Expected 2, got {}'.format(
                        self.weights.ndim))
             raise ValueError(msg)
 
@@ -35,14 +33,14 @@ class PDOS:
 
         # One entry for info for each weight
         if info is None:
-            info = [None for _ in range(len(self.weights))]
+            info = [{} for _ in self.weights]
         else:
             if len(info) != len(weights):
                 msg = ('Incorrect number of entries in '
                        'info. Expected {}, got {}'.format(
                            len(self.weights), len(info)))
                 raise ValueError(msg)
-        self.info = info
+        self.info = np.asarray(info)  # Make info np array for slicing purposes
 
     def delta(self, x, x0, width):
         """Return a delta-function centered at 'x0'."""
@@ -61,7 +59,7 @@ class PDOS:
 
         return weights_grid
 
-    def sample(self, grid, width=0.1, smearing='Gauss', gridtype='grid'):
+    def sample(self, grid, width=0.1, smearing='Gauss', gridtype='general'):
         """Sample weights onto new specified grid"""
 
         npts = len(grid)
@@ -100,7 +98,7 @@ class PDOS:
 
     @staticmethod
     def resample(doslist, grid, width=0.1, smearing='Gauss',
-                 gridtype='resample_grid'):
+                 gridtype='general'):
         """Take list of PDOS objects, and combine into 1, with same grid"""
 
         # Count the total number of weights
@@ -152,7 +150,7 @@ class PDOS:
                                                npts=npts, width=width)
 
         return PDOS.resample(doslist, grid_uniform, width=width,
-                             smearing=smearing, gridtype='resample_uniform')
+                             smearing=smearing, gridtype='uniform')
 
     @staticmethod
     def _make_uniform_grid(emin, emax, spacing=None, npts=None, width=0.1):
@@ -197,32 +195,38 @@ class PDOS:
                     # Unhashable type, skip it
                     pass
             all_kv.append(kv_pairs)
-        info_new = dict(set.intersection(*all_kv))
-        if not info_new:
+        if all_kv:
+            info_new = [dict(set.intersection(*all_kv))]
+        else:
             # We didn't find any shared (key, value) pairs
             info_new = None
 
         return PDOS(energy=self.energy, weights=weights_sum,
                     info=info_new, sampling=self.sampling)
 
+    def pick(self, **kwargs):
+        # Pick key/value pairs
+        idx = []
+        for ii, d in enumerate(self.info):
+            for key, value in kwargs.items():
+                dval = d.get(key, None)
+                if dval == value:
+                    idx.append(ii)
+        # Should this return a copy instead?
+        return self[idx]
+
     def __getitem__(self, i):
         if isinstance(i, int):
             n_weights = len(self.weights)
             if i < -n_weights or i >= n_weights:
                 raise IndexError('Index out of range.')
-            # We need to maintain correct dimensionality
-            # Is there a more elegant to do this?
-            info = [self.info[i]]
-            weights = self.weights[[i]]
-        else:
-            if isinstance(i, list) and len(i) > 0:
-                i = np.array(i)
-            info = self.info[i]
-            weights = self.weights[i]
+            i = [i]          # Ensure our dimensionality is maintained
+        elif isinstance(i, list) and len(i) > 0:
+            i = np.array(i)
 
         pdos = self.__class__(energy=self.energy,
-                              weights=weights,
-                              info=info,
+                              weights=self.weights[i],
+                              info=self.info[i],
                               sampling=self.sampling)
         return pdos
 
