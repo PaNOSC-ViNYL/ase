@@ -223,7 +223,7 @@ class PDOS:
 
         pdos_lst = []
         for value in unique:
-            pdos_lst.append(self.pick(key=value))
+            pdos_lst.append(self.pick(**{key: value}))
         return pdos_lst
 
     def __getitem__(self, i):
