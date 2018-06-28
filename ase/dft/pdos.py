@@ -33,14 +33,14 @@ class PDOS:
 
         # One entry for info for each weight
         if info is None:
-            info = [None for _ in range(len(self.weights))]
+            info = [{} for _ in self.weights]
         else:
             if len(info) != len(weights):
                 msg = ('Incorrect number of entries in '
                        'info. Expected {}, got {}'.format(
                            len(self.weights), len(info)))
                 raise ValueError(msg)
-        self.info = info
+        self.info = np.asarray(info)  # Make info np array for slicing purposes
 
     def delta(self, x, x0, width):
         """Return a delta-function centered at 'x0'."""
@@ -51,7 +51,8 @@ class PDOS:
         """Add Gaussian smearing, to all weights onto an energy grid.
         Disabled for width=0.0"""
         if width == 0.0:
-            return self.weights
+            msg = 'Cannot add 0 width smearing'
+            raise ValueError(msg)
 
         en0 = self.energy[:, np.newaxis]  # Add axis to use NumPy broadcasting
         weights_grid = np.dot(self.weights,
@@ -59,7 +60,7 @@ class PDOS:
 
         return weights_grid
 
-    def sample(self, grid, width=0.1, smearing='Gauss', gridtype='grid'):
+    def sample(self, grid, width=0.1, smearing='Gauss', gridtype='general'):
         """Sample weights onto new specified grid"""
 
         npts = len(grid)
@@ -98,7 +99,7 @@ class PDOS:
 
     @staticmethod
     def resample(doslist, grid, width=0.1, smearing='Gauss',
-                 gridtype='resample_grid'):
+                 gridtype='general'):
         """Take list of PDOS objects, and combine into 1, with same grid"""
 
         # Count the total number of weights
@@ -150,7 +151,7 @@ class PDOS:
                                                npts=npts, width=width)
 
         return PDOS.resample(doslist, grid_uniform, width=width,
-                             smearing=smearing, gridtype='resample_uniform')
+                             smearing=smearing, gridtype='uniform')
 
     @staticmethod
     def _make_uniform_grid(emin, emax, spacing=None, npts=None, width=0.1):
@@ -179,6 +180,65 @@ class PDOS:
                        emin=None, emax=None,
                        ymin=None, ymax=None, ylabel=None)
         return pdp.plot(*plotargs, **plotkwargs)
+
+    def sum(self):
+        weights_sum = self.weights.sum(0)[np.newaxis]
+
+        # Find shared (key, value) pairs
+        # dict(set.intersection(*(set(d.items()) for d in info)))
+        all_kv = []
+        for d in self.info:
+            kv_pairs = set()
+            for key, value in d.items():
+                try:
+                    kv_pairs.add((key, value))
+                except TypeError:
+                    # Unhashable type, skip it
+                    pass
+            all_kv.append(kv_pairs)
+        if all_kv:
+            info_new = [dict(set.intersection(*all_kv))]
+        else:
+            # We didn't find any shared (key, value) pairs
+            info_new = None
+
+        return PDOS(energy=self.energy, weights=weights_sum,
+                    info=info_new, sampling=self.sampling)
+
+    def pick(self, **kwargs):
+        # Pick key/value pairs
+        idx = []
+        for ii, d in enumerate(self.info):
+            for key, value in kwargs.items():
+                dval = d.get(key, None)
+                if dval == value:
+                    idx.append(ii)
+        # Should this return a copy instead?
+        return self[idx]
+
+    def split(self, key):
+        # Find all unique instances of key in info
+        unique = np.unique([info.get(key) for info in self.info
+                            if info.get(key, None) is not None])
+
+        pdos_lst = []
+        for value in unique:
+            pdos_lst.append(self.pick(key=value))
+        return pdos_lst
+
+    def __getitem__(self, i):
+        if isinstance(i, int):
+            n_weights = len(self.weights)
+            if i < -n_weights or i >= n_weights:
+                raise IndexError('Index out of range.')
+            i = [i]          # Ensure our dimensionality is maintained
+        elif isinstance(i, list) and len(i) > 0:
+            i = np.array(i)
+
+        return PDOS(energy=self.energy,
+                    weights=self.weights[i],
+                    info=self.info[i],
+                    sampling=self.sampling)
 
 
 class PDOSPlot:
