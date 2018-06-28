@@ -1038,6 +1038,8 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
         if a is None:
             atoms = self.atoms
         else:
+            if isinstance(a, int):
+                a = [a]
             atoms = self.atoms[a]
 
         if 'pdos' not in self.results:
@@ -1053,7 +1055,7 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
         orbs_all = self.get_orb_names(Vdos._site_dos.shape[1])
         norb = len(orbs_all)
         info = []
-        weights = np.zeros((norb * len(self.atoms), len(energy)))
+        weights = np.zeros((norb * len(atoms), len(energy)))
         ii = 0
 
         def orb2l(orb):
