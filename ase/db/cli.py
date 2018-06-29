@@ -215,7 +215,7 @@ def main(args):
         return
 
     if add_key_value_pairs or delete_keys:
-        ids = [row['id'] for row in db.select(query)]
+        ids = [row['id'] for row in db.select(query, columns=['id'])]
         M = 0
         N = 0
         with db:
@@ -232,7 +232,7 @@ def main(args):
         return
 
     if args.delete:
-        ids = [row['id'] for row in db.select(query)]
+        ids = [row['id'] for row in db.select(query, columns=['id'])]
         if ids and not args.yes:
             msg = 'Delete %s? (yes/No): ' % plural(len(ids), 'row')
             if input(msg).lower() != 'yes':
@@ -312,6 +312,7 @@ def main(args):
             if c and c.startswith('++'):
                 keys = set()
                 for row in db.select(query,
+                                     columns=columns,
                                      limit=args.limit, offset=args.offset,
                                      include_data=False):
                     keys.update(row._keys)
@@ -330,7 +331,6 @@ def main(args):
                         columns.remove(col[1:])
                     else:
                         columns.append(col.lstrip('+'))
-
             table = Table(db, verbosity, args.cut)
             table.select(query, columns, args.sort, args.limit, args.offset)
             if args.csv:
