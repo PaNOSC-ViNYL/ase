@@ -77,11 +77,11 @@ class PostgreSQLDatabase(SQLite3Database):
 
         if not cur.fetchone()[0]:  # information schema doesn't exist.
             # Initialize database:
-            sql = ';\n'.join(init_statements)
+            sql = ';\n'.join(init_statements[:3])
             sql = schema_update(sql)
             cur.execute(sql)
             if self.create_indices:
-                cur.execute(';\n'.join(index_statements))
+                cur.execute(';\n'.join(index_statements[:4]))
             con.commit()
             self.version = VERSION
         else:
