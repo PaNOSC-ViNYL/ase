@@ -71,6 +71,12 @@ init_statements = [
     mass REAL,
     charge REAL)""",
 
+    """CREATE TABLE information (
+    name TEXT,
+    value TEXT)""",
+
+    "INSERT INTO information VALUES ('version', '{}')".format(VERSION),
+
     """CREATE TABLE species (
     Z INTEGER,
     n INTEGER,
@@ -92,13 +98,9 @@ init_statements = [
     key TEXT,
     value REAL,
     id INTEGER,
-    FOREIGN KEY (id) REFERENCES systems(id))""",
+    FOREIGN KEY (id) REFERENCES systems(id))"""
 
-    """CREATE TABLE information (
-    name TEXT,
-    value TEXT)""",
-
-    "INSERT INTO information VALUES ('version', '{}')".format(VERSION)]
+]
 
 index_statements = [
     'CREATE INDEX unique_id_index ON systems(unique_id)',
@@ -265,7 +267,7 @@ class SQLite3Database(Database, object):
         cur = con.cursor()
         text_key_values = []
         number_key_values = []
-        if id:
+        if id and self.type != 'postgresql':
             self._delete(cur, [id], ['keys', 'text_key_values',
                                      'number_key_values', 'species'])
         values, count, key_value_pairs \
@@ -273,34 +275,36 @@ class SQLite3Database(Database, object):
 
         if id is None:
             q = self.default + ', ' + ', '.join('?' * len(values))
-            cur.execute("""INSERT INTO systems VALUES ({})""".format(q), values)
+            cur.execute("""INSERT INTO systems VALUES ({})""".format(q),
+                        values)
             id = self.get_last_id(cur)
         else:
             q = ', '.join(name + '=?' for name in self.columnnames[1:])
             cur.execute('UPDATE systems SET {} WHERE id=?'.format(q),
                         values + (id,))
 
-        if count:
-            species = [(atomic_numbers[symbol], n, id)
-                       for symbol, n in count.items()]
-            cur.executemany('INSERT INTO species VALUES (?, ?, ?)',
-                            species)
+        if not self.type == 'postgresql':
+            if count:
+                species = [(atomic_numbers[symbol], n, id)
+                           for symbol, n in count.items()]
+                cur.executemany('INSERT INTO species VALUES (?, ?, ?)',
+                                species)
 
-        text_key_values = []
-        number_key_values = []
-        for key, value in key_value_pairs.items():
-            if isinstance(value, (numbers.Real, np.bool_)):
-                number_key_values.append([key, float(value), id])
-            else:
-                assert isinstance(value, basestring)
-                text_key_values.append([key, value, id])
+            text_key_values = []
+            number_key_values = []
+            for key, value in key_value_pairs.items():
+                if isinstance(value, (numbers.Real, np.bool_)):
+                    number_key_values.append([key, float(value), id])
+                else:
+                    assert isinstance(value, basestring)
+                    text_key_values.append([key, value, id])
 
-        cur.executemany('INSERT INTO text_key_values VALUES (?, ?, ?)',
-                        text_key_values)
-        cur.executemany('INSERT INTO number_key_values VALUES (?, ?, ?)',
-                        number_key_values)
-        cur.executemany('INSERT INTO keys VALUES (?, ?)',
-                        [(key, id) for key in key_value_pairs])
+            cur.executemany('INSERT INTO text_key_values VALUES (?, ?, ?)',
+                            text_key_values)
+            cur.executemany('INSERT INTO number_key_values VALUES (?, ?, ?)',
+                            number_key_values)
+            cur.executemany('INSERT INTO keys VALUES (?, ?)',
+                            [(key, id) for key in key_value_pairs])
 
         if self.connection is None:
             con.commit()
@@ -353,34 +357,34 @@ class SQLite3Database(Database, object):
             last_id = self.get_last_id(cur)
             ids = range(last_id + 1 - N_rows, last_id + 1)
 
-        # Update with id from systems
-        if len(ids) == 0:
-            if self.connection is None:
-                con.commit()
-                con.close()
-            return ids
-        
-        for spec in species:
-            spec[2] = ids[spec[2]]
-            spec = tuple(spec)
-        for tkv in text_key_values:
-            tkv[2] = ids[tkv[2]]
-            tkv = tuple(tkv)
-        for nkv in number_key_values:
-            nkv[2] = ids[nkv[2]]
-            nkv = tuple(nkv)
-        for key in keys:
-            key[1] = ids[key[1]]
-            key = tuple(key)
+            # Update with id from systems
+            if len(ids) == 0:
+                if self.connection is None:
+                    con.commit()
+                    con.close()
+                return ids
 
-        cur.executemany('INSERT INTO species VALUES (?, ?, ?)',
-                        species)
-        cur.executemany('INSERT INTO text_key_values VALUES (?, ?, ?)',
-                        text_key_values)
-        cur.executemany('INSERT INTO number_key_values VALUES (?, ?, ?)',
-                        number_key_values)
-        cur.executemany('INSERT INTO keys VALUES (?, ?)',
-                        keys)
+            for spec in species:
+                spec[2] = ids[spec[2]]
+                spec = tuple(spec)
+            for tkv in text_key_values:
+                tkv[2] = ids[tkv[2]]
+                tkv = tuple(tkv)
+            for nkv in number_key_values:
+                nkv[2] = ids[nkv[2]]
+                nkv = tuple(nkv)
+            for key in keys:
+                key[1] = ids[key[1]]
+                key = tuple(key)
+
+            cur.executemany('INSERT INTO species VALUES (?, ?, ?)',
+                            species)
+            cur.executemany('INSERT INTO text_key_values VALUES (?, ?, ?)',
+                            text_key_values)
+            cur.executemany('INSERT INTO number_key_values VALUES (?, ?, ?)',
+                            number_key_values)
+            cur.executemany('INSERT INTO keys VALUES (?, ?)',
+                            keys)
 
         if self.connection is None:
             con.commit()
@@ -428,35 +432,40 @@ class SQLite3Database(Database, object):
                'mtime': values[cn.index('mtime')],
                'user': values[cn.index('username')],
                'numbers': deblob(values[cn.index('numbers')], np.int32),
-               'positions': deblob(values[cn.index('positions')], shape=(-1, 3)),
+               'positions': deblob(values[cn.index('positions')],
+                                   shape=(-1, 3)),
                'cell': deblob(values[cn.index('cell')], shape=(3, 3))}
 
         if values[cn.index('pbc')] is not None:
             dct['pbc'] = (values[cn.index('pbc')] &
                           np.array([1, 2, 4])).astype(bool)
         if values[cn.index('initial_magmoms')] is not None:
-            dct['initial_magmoms'] = deblob(values[cn.index('initial_magmoms')])
+            dct['initial_magmoms'] = \
+                deblob(values[cn.index('initial_magmoms')])
         if values[cn.index('initial_charges')] is not None:
-            dct['initial_charges'] = deblob(values[cn.index('initial_charges')])
+            dct['initial_charges'] = \
+                deblob(values[cn.index('initial_charges')])
         if values[cn.index('masses')] is not None:
             dct['masses'] = deblob(values[cn.index('masses')])
         if values[cn.index('tags')] is not None:
             dct['tags'] = deblob(values[cn.index('tags')], np.int32)
         if values[cn.index('momenta')] is not None:
-            dct['momenta'] = deblob(values[cn.index('momenta')], shape=(-1, 3))
+            dct['momenta'] = deblob(values[cn.index('momenta')],
+                                    shape=(-1, 3))
         if values[cn.index('constraints')] is not None:
             dct['constraints'] = values[cn.index('constraints')]
         if values[cn.index('calculator')] is not None:
             dct['calculator'] = values[cn.index('calculator')]
         if values[cn.index('calculator_parameters')] is not None:
             dct['calculator_parameters'] = \
-            decode(values[cn.index('calculator_parameters')])
+                decode(values[cn.index('calculator_parameters')])
         if values[cn.index('energy')] is not None:
             dct['energy'] = values[cn.index('energy')]
         if values[cn.index('free_energy')] is not None:
             dct['free_energy'] = values[cn.index('free_energy')]
         if values[cn.index('forces')] is not None:
-            dct['forces'] = deblob(values[cn.index('forces')], shape=(-1, 3))
+            dct['forces'] = deblob(values[cn.index('forces')],
+                                   shape=(-1, 3))
         if values[cn.index('stress')] is not None:
             dct['stress'] = deblob(values[cn.index('stress')])
         if values[cn.index('dipole')] is not None:
@@ -468,9 +477,10 @@ class SQLite3Database(Database, object):
         if values[cn.index('charges')] is not None:
             dct['charges'] = deblob(values[cn.index('charges')])
         if values[cn.index('key_value_pairs')] != '{}':
-            dct['key_value_pairs'] = decode(values[cn.index('key_value_pairs')])
+            dct['key_value_pairs'] = \
+                decode(values[cn.index('key_value_pairs')])
         if len(values) >= cn.index('data') + 1 and \
-        values[cn.index('data')] != 'null':
+           values[cn.index('data')] != 'null':
             dct['data'] = decode(values[cn.index('data')])
         return AtomsRow(dct)
 
@@ -493,7 +503,6 @@ class SQLite3Database(Database, object):
         tables = ['systems']
         where = []
         args = []
-
         for n, key in enumerate(keys):
             if key == 'forces':
                 where.append('systems.fmax IS NOT NULL')
@@ -504,14 +513,23 @@ class SQLite3Database(Database, object):
                 where.append('systems.{} IS NOT NULL'.format(key))
             else:
                 if '-' not in key:
-                    tables.append('keys AS keys{}'.format(n))
-                    q = 'systems.id=keys{0}.id AND keys{0}.key=?'.format(n)
+                    if self.type == 'postgresql':
+                        """$ is placeholder for ? operator in postgresql """
+                        q = "systems.key_value_pairs $ '{}'".format(key)
+                    else:
+                        tables.append('keys AS keys{}'.format(n))
+                        q = 'systems.id=keys{0}.id AND keys{0}.key=?'.format(n)
+                        args.append(key)
                 else:
                     key = key.replace('-', '')
-                    q = 'systems.id=keys.id AND keys.key=?'
-                    q = 'NOT EXISTS (SELECT id FROM keys WHERE {})'.format(q)
+                    if self.type == 'postgresql':
+                        q = "NOT systems.key_value_pairs $ '{}'".format(key)
+                    else:
+                        q = 'systems.id=keys.id AND keys.key=?'
+                        q = 'NOT EXISTS (SELECT id FROM keys WHERE {})'\
+                            .format(q)
+                        args.append(key)
                 where.append(q)
-                args.append(key)
 
         # Special handling of "H=0" and "H<2" type of selections:
         bad = {}
@@ -587,7 +605,7 @@ class SQLite3Database(Database, object):
                 nnumber += 1
 
         if sort:
-            if sort_table != 'systems':
+            if sort_table != 'systems' and self.type != 'postgresql':
                 if not found_sort_table:
                     tables.append('{} AS sort_table'.format(sort_table))
                     where.append('systems.id=sort_table.id AND '
@@ -600,10 +618,14 @@ class SQLite3Database(Database, object):
         if where:
             sql += '\n  WHERE\n  ' + ' AND\n  '.join(where)
         if sort:
-            # XXX use "?" instead of "{}"
-            sql += '\nORDER BY {0}.{1} IS NULL, {0}.{1} {2}'.format(
-                sort_table, sort, order)
-
+            if self.type == 'postgresql' and not sort_table == 'systems':
+                sql += """\nORDER BY systems.key_value_pairs->>'{0}' IS NULL,
+                systems.key_value_pairs->>'{0}' {1}"""\
+                    .format(sort, order)
+            else:
+                # XXX use "?" instead of "{}"
+                sql += '\nORDER BY {0}.{1} IS NULL, {0}.{1} {2}'\
+                       .format(sort_table, sort, order)
         return sql, args
 
     def _select(self, keys, cmps, explain=False, verbosity=0,
@@ -684,7 +706,7 @@ class SQLite3Database(Database, object):
                 yield self._convert_tuple_to_row(tuple(values))
                 n += 1
 
-            if sort and sort_table != 'systems':
+            if sort and sort_table != 'systems' and self.type != 'postgresql':
                 # Yield rows without sort key last:
                 if limit is not None:
                     if n == limit:
@@ -694,7 +716,8 @@ class SQLite3Database(Database, object):
                 for row in self._select(keys + ['-' + sort], cmps,
                                         limit=limit, offset=offset,
                                         include_data=include_data,
-                                        columns=['id', 'key_value_pairs']):
+                                        columns=['id', 'ctime', 'numbers',
+                                                 'pbc', 'key_value_pairs']):
                     yield row
 
     @parallel_function
@@ -718,7 +741,11 @@ class SQLite3Database(Database, object):
         if len(ids) == 0:
             return
         con = self._connect()
-        self._delete(con.cursor(), ids)
+        if self.type == 'postgresql':
+            tables = ['systems']
+        else:
+            tables = None
+        self._delete(con.cursor(), ids, tables)
         con.commit()
         con.close()
 
