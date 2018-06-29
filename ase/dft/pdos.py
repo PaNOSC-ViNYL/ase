@@ -11,7 +11,7 @@ class PDOS:
         self.sampling = sampling
 
         # Energy format: [e1, e2, ...]
-        if self.energy.ndim > 1:
+        if self.energy.ndim != 1:
             msg = ('Incorrect Energy dimensionality. '
                    'Expected 1 got {}'.format(
                        self.energy.ndim))
@@ -42,10 +42,15 @@ class PDOS:
                 raise ValueError(msg)
         self.info = np.asarray(info)  # Make info np array for slicing purposes
 
-    def delta(self, x, x0, width):
+    def delta(self, x, x0, width, smearing='Gauss'):
         """Return a delta-function centered at 'x0'."""
-        x1 = -((x - x0) / width)**2
-        return np.exp(x1) / (np.sqrt(np.pi) * width)
+        if smearing.lower() == 'gauss':
+            x1 = -((x - x0) / width)**2
+            return np.exp(x1) / (np.sqrt(np.pi) * width)
+        else:
+            msg = 'Requested smearing type not recognized. Got {}'.format(
+                smearing)
+            raise ValueError(msg)
 
     def smear(self, energy_grid, width=0.1):
         """Add Gaussian smearing, to all weights onto an energy grid.
@@ -69,7 +74,7 @@ class PDOS:
                     'npts': npts,
                     'type': gridtype}
 
-        weights_grid = self.smear(grid, width=width)
+        weights_grid = self.smear(grid, width=width, smearing=smearing)
 
         pdos_new = PDOS(grid, weights_grid,
                         info=self.info, sampling=sampling)
