@@ -31,7 +31,7 @@ class Cursor:
         return self.cur.fetchall()
 
     def execute(self, statement, *args):
-        self.cur.execute(statement.replace('?', '%s'), *args)
+        self.cur.execute(statement.replace('?', '%s').replace('$', '?'), *args)
 
     def executemany(self, statement, *args):
         if len(args[0]) > 0:
@@ -45,7 +45,7 @@ class Cursor:
         statement = statement.replace('({})'.format(q), '%s')
         q = '({})'.format(q.replace('?', '%s'))
 
-        execute_values(self.cur, statement.replace('?', '%s'),
+        execute_values(self.cur, statement.replace('?', '%s').replace('$', '?'),
                        argslist=args[0], template=q, page_size=len(args[0]))
 
 
