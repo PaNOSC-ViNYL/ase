@@ -22,7 +22,7 @@ from ase.io.espresso import label_to_symbol
 
 def read_atom_line(line_full):
     """
-    Read atom line from pdb format     
+    Read atom line from pdb format
     HETATM    1  H14 ORTE    0       6.301   0.693   1.919  1.00  0.00           H
     """
 
@@ -34,11 +34,11 @@ def read_atom_line(line_full):
 
         altloc = line[16]
         resname = line[17:20]
-        chainid = line[21]            
-        
+        chainid = line[21]
+
         resseq = int(line[22:26].split()[0])  # sequence identifier
         icode = line[26]  # insertion code
-        
+
         # atomic coordinates
         try:
             coord = np.array([float(line[30:38]),
@@ -46,27 +46,27 @@ def read_atom_line(line_full):
                               float(line[46:54])], dtype=np.float64)
         except ValueError:
             raise ValueError("Invalid or missing coordinate(s)")
-        
+
         # occupancy & B factor
         try:
             occupancy = float(line[54:60])
-        except:
+        except ValueError:
             occupancy = None  # Rather than arbitrary zero or one
-        
+
         if occupancy is not None and occupancy < 0:
             warnings.warn("Negative occupancy in one or more atoms")
 
         try:
             bfactor = float(line[60:66])
-        except Exception:
+        except ValueError:
             bfactor = 0.0  # The PDB use a default of zero if the data is missing
-        
+
         segid = line[72:76]
         symbol = line[76:78].strip().upper()
 
     else:
         raise ValueError("Only ATOM and HETATM supported")
-        
+
     return symbol, name, altloc, resname, coord, occupancy, bfactor, resseq
 
 def read_proteindatabank(fileobj, index=-1, read_arrays=True):
@@ -78,12 +78,41 @@ def read_proteindatabank(fileobj, index=-1, read_arrays=True):
     images = []
     orig = np.identity(3)
     trans = np.zeros(3)
-    atoms = Atoms()
     occ = []
     bfactor = []
     residuenames = []
     residuenumber = []
     atomtypes = []
+
+    symbols = []
+    positions = []
+    cell = None
+    pbc = None
+
+    def build_atoms():
+        atoms = Atoms(symbols=symbols,
+                      cell=cell, pbc=pbc,
+                      positions=positions)
+
+        if not read_arrays:
+            return atoms
+
+        info = {'occupancy': occ,
+                'bfactor': bfactor,
+                'residuenames': residuenames,
+                'atomtypes': atomtypes,
+                'residuenumber': residuenumber}
+        for name, array in info.items():
+            if len(array) == 0:
+                pass
+            elif len(array) != len(atoms):
+                warnings.warn('Length of {} array, {}, '
+                              'different from number of atoms {}'.
+                              format(name, len(array), len(atoms)))
+            else:
+                atoms.set_array(name, np.array(array))
+        return atoms
+
     for line in fileobj.readlines():
         if line.startswith('CRYST1'):
             cellpar = [float(line[6:15]),  # a
@@ -92,8 +121,8 @@ def read_proteindatabank(fileobj, index=-1, read_arrays=True):
                        float(line[33:40]),  # alpha
                        float(line[40:47]),  # beta
                        float(line[47:54])]  # gamma
-            atoms.set_cell(cellpar_to_cell(cellpar))
-            atoms.pbc = True
+            cell = cellpar_to_cell(cellpar)
+            pbc = True
         for c in range(3):
             if line.startswith('ORIGX' + '123'[c]):
                 orig[c] = [float(line[10:20]),
@@ -107,7 +136,7 @@ def read_proteindatabank(fileobj, index=-1, read_arrays=True):
             # requires the element symbol to be in columns 77+78.
             # Fall back to Atom name for files that do not follow
             # the spec, e.g. packmol.
-            
+
             # line_info = symbol, name, altloc, resname, coord, occupancy,
             #             bfactor, resseq
             line_info = read_atom_line(line)
@@ -125,45 +154,28 @@ def read_proteindatabank(fileobj, index=-1, read_arrays=True):
             bfactor.append(line_info[6])
             residuenumber.append(line_info[7])
 
-            atoms.append(Atom(symbol, position))
+            symbols.append(symbol)
+            positions.append(position)
 
         if line.startswith('END'):
             # End of configuration reached
             # According to the latest PDB file format (v3.30),
             # this line should start with 'ENDMDL' (not 'END'),
-            # but in this way PDB trajectories from e.g. CP2K 
-            # are supported (also VMD supports this format). 
-            if read_arrays and len(occ) == len(atoms):
-                atoms.set_array('occupancy', np.array(occ))
-            if read_arrays and len(bfactor) == len(atoms):
-                atoms.set_array('bfactor', np.array(bfactor))
-            if not atoms.has('residuenames') and len(residuenames) == len(atoms):
-                atoms.set_array('residuenames', residuenames, str)
-            if not atoms.has('atomtypes') and len(atomtypes) == len(atoms):
-                atoms.set_array('atomtypes', atomtypes, str)
-            if not atoms.has('residuenumber') and len(residuenumber) == len(atoms):
-                atoms.set_array('residuenumber', residuenumber, int)
- 
+            # but in this way PDB trajectories from e.g. CP2K
+            # are supported (also VMD supports this format).
+            atoms = build_atoms()
             images.append(atoms)
-            atoms = Atoms()
             occ = []
             bfactor = []
             residuenames = []
             atomtypes = []
+            symbols = []
+            positions = []
+            cell = None
+            pbc = None
 
     if len(images) == 0:
-        # Single configuration with no 'END' or 'ENDMDL'
-        if read_arrays and len(occ) == len(atoms):
-            atoms.set_array('occupancy', np.array(occ))
-        if read_arrays and len(bfactor) == len(atoms):
-            atoms.set_array('bfactor', np.array(bfactor))
-        if not atoms.has('residuenames') and len(residuenames) == len(atoms):
-            atoms.set_array('residuenames', residuenames, str)
-        if not atoms.has('atomtypes') and len(atomtypes) == len(atoms):
-            atoms.set_array('atomtypes', atomtypes, str)
-        if not atoms.has('residuenumber') and len(residuenumber) == len(atoms):
-            atoms.set_array('residuenumber', residuenumber, int)
-
+        atoms = build_atoms()
         images.append(atoms)
     return images[index]
 

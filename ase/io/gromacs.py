@@ -143,7 +143,7 @@ def write_gromacs(fileobj, images):
     try:
         residuenumber = images[-1].get_array('residuenumber')
     except (KeyError):
-        residuenumber = np.ones(natoms, int) 
+        residuenumber = np.ones(natoms, int)
 
     pos = images[-1].get_positions()
     pos = pos / 10.0
@@ -163,9 +163,10 @@ def write_gromacs(fileobj, images):
     for resnb, resname, atomtype, xyz, vxyz in zip\
             (residuenumber, gromacs_residuenames, gromacs_atomtypes, pos, vel):
 
-        line = "{0:5d}{1:5s}{2:5s}{3:5d}{4:8.3f}{5:8.3f}{6:8.3f}{7:8.4f}{8:8.4f}{9:8.4f}\n".format(resnb, resname, atomtype, count, \
-                                                                                                 xyz[0], xyz[1], xyz[2], \
-                                                                                                 vxyz[0], vxyz[1], vxyz[2])
+        line = ("{0:5d}{1:5s}{2:5s}{3:5d}{4:8.3f}{5:8.3f}{6:8.3f}{7:8.4f}"
+                "{8:8.4f}{9:8.4f}\n"
+                .format(resnb, resname, atomtype, count,
+                        xyz[0], xyz[1], xyz[2], vxyz[0], vxyz[1], vxyz[2]))
         fileobj.write(line)
         count += 1
 
