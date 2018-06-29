@@ -548,7 +548,7 @@ class GUI(View, Status):
 
         Polling stops if the callback function raises StopIteration.
 
-        Run a movie manually, then quit::
+        Example to run a movie manually, then quit::
 
             from ase.collections import g2
             from ase.gui.gui import GUI
@@ -573,7 +573,7 @@ class GUI(View, Status):
                 callback(gui=self)
             except StopIteration:
                 pass
-            else:
+            finally:
                 # Reinsert self so we get called again:
                 self.window.win.after(ms, callbackwrapper)
 
