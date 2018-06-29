@@ -7,7 +7,7 @@ from ase.db.core import float_to_time_string, now
 
 all_columns = ['id', 'age', 'user', 'formula', 'calculator',
                'energy', 'fmax', 'pbc', 'volume',
-               'charge', 'mass', 'smax', 'magmom']
+               'charge', 'mass', 'smax', 'magmom', 'ctime']
 
 
 def get_sql_columns(columns):
