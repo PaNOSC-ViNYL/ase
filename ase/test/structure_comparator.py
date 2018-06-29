@@ -221,8 +221,8 @@ def test_reduce_to_primitive(comparator):
     comparator.to_primitive = False
 
 
-def test_order_of_candidates():
-    prim_comp = SymmetryEquivalenceCheck()
+def test_order_of_candidates(prim_comp):
+    #prim_comp = SymmetryEquivalenceCheck()
     s1 = bulk("Al", crystalstructure='fcc', a=3.2)
     s1 = s1 * (2, 2, 2)
     s2 = s1.copy()
@@ -251,7 +251,7 @@ def test_original_paper_structures():
     assert org_comparator.compare(s1, s2)
 
 
-def test_symmetrical_one_element_out():
+def test_symmetrical_one_element_out(comparator):
     s1 = get_atoms_with_mixed_elements()
     s1.set_chemical_symbols(['Zn', 'Zn', 'Al', 'Zn', 'Zn', 'Al', 'Zn', 'Zn'])
     s2 = s1.copy()
@@ -275,7 +275,7 @@ def run_all_tests(comparator):
     test_bcc_translation(comparator)
     test_one_atom_out_of_pos(comparator)
     test_reduce_to_primitive(comparator)
-    # test_order_of_candidates()
+    test_order_of_candidates(comparator)
     test_original_paper_structures()
 
 

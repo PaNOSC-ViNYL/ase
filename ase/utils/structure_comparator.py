@@ -227,6 +227,7 @@ class SymmetryEquivalenceCheck(object):
         if not self._has_same_volume():
             return False
 
+        self._set_reference_struct()
         if self.use_cpp_version:
             return self._compare_cpp()
         matrices, translations = self._get_rotation_reflection_matrices()
@@ -294,6 +295,24 @@ class SymmetryEquivalenceCheck(object):
                 atoms2.append(Atom(symbol, position=pos2[i, :]))
 
         return atoms1, atoms2
+
+    def _set_reference_struct(self):
+        """There is an intrinsic assymetry in the system because
+        one of the atoms are being expanded, while the other is not.
+        This can cause the algorithm to return different result
+        depending on which structure is passed first.
+        We adopt the convention of using the atoms object
+        having the fewest atoms in its expanded cell as the
+        reference object"""
+
+        exp1 = self._expand(self.s1)
+        exp2 = self._expand(self.s2)
+        if len(exp1) < len(exp2):
+            # s1 should be the reference structure
+            # We have to swap s1 and s2
+            s1_temp = self.s1.copy()
+            self.s1 = self.s2
+            self.s2 = s1_temp
 
     def _positions_match(self, rotation_reflection_matrices, translations):
         """Check if the position and elements match.
