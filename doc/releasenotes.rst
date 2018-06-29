@@ -38,6 +38,9 @@ Git master branch
 * Neighbor lists can now :meth:`get connectivity matrices
   <ase.neighborlist.NeighborList.get_connectivity_matrix>`.
 
+* New ``--show-keys`` and ``--show-values=...`` options for the
+  :ref:`ase db <cli>` command line interface.
+
 
 Version 3.16.2
 ==============
