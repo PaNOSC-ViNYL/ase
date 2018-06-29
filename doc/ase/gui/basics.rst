@@ -94,6 +94,9 @@ or, to keep changes to your atoms:
 
 >>> atoms.edit()
 
+Use :meth:`ase.gui.gui.GUI.repeat_poll` to interact programmatically
+with the GUI, for example to monitor an ongoing calculation
+and update the display on the fly.
 
 NEB calculations
 ----------------
