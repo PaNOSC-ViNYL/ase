@@ -1,11 +1,16 @@
 """Determine symmetry equivalence of two structures.
 Based on the recipe from Comput. Phys. Commun. 183, 690-697 (2012)."""
 from collections import Counter
-from itertools import combinations, product, filterfalse
+from itertools import combinations, product
 import numpy as np
 from scipy.spatial import cKDTree as KDTree
 from ase import Atom, Atoms
 from ase.build import tools as asetools
+
+try:
+    from itertools import filterfalse
+except ImportError:  # python2.7
+    from itertools import ifilterfalse as filterfalse
 
 try:
     import pystructcomp_cpp as pycpp
@@ -173,6 +178,7 @@ class SymmetryEquivalenceCheck(object):
     def _scale_volumes(self):
         """Scale the cell of s1 to have the same volume as s2."""
         cell1 = self.s1.get_cell()
+        # Get the volumes
         v1 = np.linalg.det(cell1)
         v2 = np.linalg.det(self.s2.get_cell())
 
@@ -184,7 +190,7 @@ class SymmetryEquivalenceCheck(object):
     def _has_same_volume(self):
         vol1 = self.s1.get_volume()
         vol2 = self.s2.get_volume()
-        return np.abs(vol1 - vol2) < 1E-5
+        return np.abs(vol1 - vol2) < 1e-5
 
     def compare(self, s1, s2):
         """Compare the two structures.
@@ -354,8 +360,8 @@ class SymmetryEquivalenceCheck(object):
         for i, i2face in enumerate(pos2faces):
             # Append indices for positions close to the other faces
             # and convert to boolean array signifying if the position at
-            # index i is close to the first faces (0, 1, 2) or the opposite
-            # faces (3, 4, 5)
+            # index i is close to the faces bordering origo (0, 1, 2) or
+            # the opposite faces (3, 4, 5)
             i_close2face = np.append(i2face, pos2oppofaces[i]) < tol
             # For each position i.e. row it holds that
             # 1 x True -> close to face -> 1 extra atom at opposite face
@@ -430,9 +436,6 @@ class SymmetryEquivalenceCheck(object):
         ref_vec_lengths = np.linalg.norm(ref_vec, axis=1)
 
         # Compute ref vec angles
-        # inn = np.matmul(ref_vec.T, ref_vec)
-        # all_angles = np.arccos(inn / np.outer(ref_vec_lengths,
-        #                                       ref_vec_lengths))
         # ref_angles are arranged as [angle12, angle13, angle23]
         ref_angles = np.array(self._get_angles(ref_vec))
         large_angles = ref_angles > np.pi / 2.0
