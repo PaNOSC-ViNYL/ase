@@ -258,7 +258,7 @@ class PDOSPlot:
                                         ylabel=ylabel)
 
     def plot(self, filename=None, show=None, colors=None,
-             labels=None, show_legend=True, loc=None, **plotkwargs):
+             labels=None, show_legend=True, loc='best', **plotkwargs):
 
         ax = self.ax
 
@@ -299,7 +299,7 @@ class PDOSPlot:
         import matplotlib.pyplot as plt
 
         if show_legend:
-            leg = plt.legend(loc='best')
+            leg = plt.legend(loc=loc)
             leg.get_frame().set_alpha(1)
 
         if filename:
