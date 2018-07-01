@@ -52,7 +52,7 @@ class PDOS:
                 smearing)
             raise ValueError(msg)
 
-    def smear(self, energy_grid, width=0.1):
+    def smear(self, energy_grid, width=0.1, smearing='Gauss'):
         """Add Gaussian smearing, to all weights onto an energy grid.
         Disabled for width=0.0"""
         if width == 0.0:
@@ -61,7 +61,8 @@ class PDOS:
 
         en0 = self.energy[:, np.newaxis]  # Add axis to use NumPy broadcasting
         weights_grid = np.dot(self.weights,
-                              self.delta(energy_grid, en0, width=width))
+                              self.delta(energy_grid, en0, width,
+                                         smearing=smearing))
 
         return weights_grid
 
