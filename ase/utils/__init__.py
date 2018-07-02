@@ -29,7 +29,7 @@ __all__ = ['exec_', 'basestring', 'import_module', 'seterr', 'plural',
            'devnull', 'gcd', 'convert_string_to_fd', 'Lock',
            'opencew', 'OpenLock', 'rotate', 'irotate', 'givens',
            'hsv2rgb', 'hsv', 'pickleload', 'FileNotFoundError',
-           'formula_hill', 'formula_metal', 'PurePath']
+           'formula_hill', 'formula_metal', 'PurePath', 'natural_cutoffs']
 
 
 # Python 2+3 compatibility stuff:
@@ -357,16 +357,15 @@ def hsv(array, s=.9, v=.9):
 
 
 def natural_cutoffs(atoms, mult=1, **kwargs):
-    """Generate a radial cutoff for every atom based on covalent radii
+    """Generate a radial cutoff for every atom based on covalent radii.
 
     The covalent radii are a reasonable cutoff estimation for bonds in
     many applications such as neighborlists, so function generates an
     atoms length list of radii based on this idea.
 
-    atoms: An atoms object
-    mult: A multiplier for all cutoffs, useful for coarse grained adjustment
-    kwargs: Symbol of the atom and its corresponding cutoff, used to override
-            the covalent radii
+    * atoms: An atoms object
+    * mult: A multiplier for all cutoffs, useful for coarse grained adjustment
+    * kwargs: Symbol of the atom and its corresponding cutoff, used to override the covalent radii
     """
     return [kwargs.get(atom.symbol, covalent_radii[atom.number] * mult)
             for atom in atoms]

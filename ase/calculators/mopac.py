@@ -41,7 +41,7 @@ class MOPAC(FileIOCalculator):
         Examples:
 
         Use default values to do a single SCF calculation and print
-        the forces (task='1SCF GRADIENTS')
+        the forces (task='1SCF GRADIENTS'):
 
         >>> from ase.build import molecule
         >>> from ase.calculators.mopac import MOPAC
@@ -52,12 +52,14 @@ class MOPAC(FileIOCalculator):
         >>> somos = atoms.calc.get_somo_levels()
         >>> homo, lumo = atoms.calc.get_homo_lumo_levels()
 
-        Use the internal geometry optimization of Mopac
+        Use the internal geometry optimization of Mopac:
+
         >>> atoms = molecule('H2')
         >>> atoms.calc = MOPAC(label='H2', task='GRADIENTS')
         >>> atoms.get_potential_energy()
 
-        Read in and start from output file
+        Read in and start from output file:
+
         >>> atoms = MOPAC.read_atoms('H2')
         >>> atoms.calc.get_homo_lumo_levels()
 

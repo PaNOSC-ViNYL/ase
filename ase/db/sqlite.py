@@ -190,7 +190,13 @@ class SQLite3Database(Database, object):
 
         self.initialized = True
 
+
     def _get_values(self, atoms, key_value_pairs=None, data=None, id=None):
+        if self.type == 'postgresql':
+            encode = functools.partial(_encode, pg=True)
+        else:
+            encode = _encode
+
         mtime = now()
 
         if not isinstance(atoms, AtomsRow):
@@ -825,9 +831,17 @@ def _deblob(buf, dtype=float, shape=None, pg=False):
     return array
 
 
+def _encode(obj, pg=False):
+    if pg:
+        return encode(obj).replace('NaN', '"NULL"')
+    else:
+        return encode(obj)
+
+
 def _decode(txt, pg=False):
     if pg:
         txt = encode(txt)
+        txt = txt.replace('"NULL"', 'NaN')
     return numpyfy(mydecode(txt))
 
 

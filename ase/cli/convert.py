@@ -11,20 +11,23 @@ class CLICommand:
     @staticmethod
     def add_arguments(parser):
         add = parser.add_argument
-        add('-v', '--verbose', action='store_true')
+        add('-v', '--verbose', action='store_true',
+            help='print names of converted files')
         add('input', nargs='+', metavar='input-file')
-        add('-i', '--input-format')
+        add('-i', '--input-format', metavar='FORMAT',
+            help='specify input FORMAT')
         add('output', metavar='output-file')
-        add('-o', '--output-format')
+        add('-o', '--output-format', metavar='FORMAT',
+            help='specify output FORMAT')
         add('-f', '--force', action='store_true',
-            help='Overwrite an existing file.')
+            help='Overwrite an existing file')
         add('-n', '--image-number',
             default=':', metavar='NUMBER',
-            help='Pick image(s) from trajectory.  NUMBER can be a '
+            help='Pick images from trajectory.  NUMBER can be a '
             'single number (use a negative number to count from '
             'the back) or a range: start:stop:step, where the '
             '":step" part can be left out - default values are '
-            '0:nimages:1.')
+            '0:nimages:1')
 
     @staticmethod
     def run(args, parser):
@@ -39,7 +42,7 @@ class CLICommand:
             else:
                 configs.append(atoms)
 
-        if not args.force and os.path.isfile(args.output):
+        if not args.force and os.path.exists(args.output):
             parser.error('File already exists: {}'.format(args.output))
 
         write(args.output, configs, format=args.output_format)
