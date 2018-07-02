@@ -196,6 +196,10 @@ class SQLite3Database(Database, object):
 
     def _write(self, atoms, key_value_pairs, data, id):
         Database._write(self, atoms, key_value_pairs, data)
+        if self.type == 'postgresql':
+            encode = functools.partial(_encode, pg=True)
+        else:
+            encode = _encode
 
         con = self.connection or self._connect()
         self._initialize(con)
@@ -712,9 +716,17 @@ def _deblob(buf, dtype=float, shape=None, pg=False):
     return array
 
 
+def _encode(obj, pg=False):
+    if pg:
+        return encode(obj).replace('NaN', '"NULL"')
+    else:
+        return encode(obj)
+
+
 def _decode(txt, pg=False):
     if pg:
         txt = encode(txt)
+        txt = txt.replace('"NULL"', 'NaN')
     return numpyfy(mydecode(txt))
 
 
