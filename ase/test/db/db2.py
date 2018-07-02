@@ -78,7 +78,11 @@ for name in ['testase.json', 'testase.db', 'postgresql']:
     with must_raise(ValueError):
         c.write(Atoms(), S=42)  # chemical symbol as key
 
-    id = c.write(Atoms(), b=np.bool_(True), i=np.int64(42))
+    id = c.write(Atoms(),
+                 b=np.bool_(True),
+                 i=np.int64(42),
+                 n=np.nan)
+    print(c[id].n)
     assert isinstance(c[id].b, bool)
     assert isinstance(c[id].i, int)
 
