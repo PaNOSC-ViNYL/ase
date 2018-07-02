@@ -12,7 +12,7 @@ Git master branch
 * Test suite now runs in parallel.
 
 * Socked-based interface to certain calculators through the
-  :mod:`~ase.calculators.ipi` module:
+  :mod:`~ase.calculators.socketio` module:
   Added support for
   communicating coordinates, forces and other quantities over
   sockets using the i-PI protocol.  This removes the overhead for
@@ -34,6 +34,12 @@ Git master branch
       with db:
           for id in ids:
               db.update(id, ...)
+
+* Neighbor lists can now :meth:`get connectivity matrices
+  <ase.neighborlist.NeighborList.get_connectivity_matrix>`.
+
+* New ``--show-keys`` and ``--show-values=...`` options for the
+  :ref:`ase db <cli>` command line interface.
 
 
 Version 3.16.2

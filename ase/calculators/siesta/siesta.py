@@ -292,6 +292,11 @@ class Siesta3_2(BaseSiesta):
         ('MD.AnnealOption', 0.0),
         ('MD.TauRelax', 100.0),  # fs
         ('MD.BulkModulus', 100.0),  # Ry/Bohr^{3}
+        ('Master.code', 'fsiesta'),
+        ('Master.interface', 'pipes'),
+        ('Master.address', 'localhost'),  # or IP address
+        ('Master.port', 10001),
+        ('Master.socketType', 'inet'),
         ('WriteCoorInitial', True),
         ('WriteCoorStep', False),
         ('WriteForces', False),

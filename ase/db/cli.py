@@ -1,8 +1,8 @@
 from __future__ import print_function
-import collections
 import json
 import os
 import sys
+from collections import defaultdict
 from random import randint
 
 import ase.io
@@ -100,6 +100,10 @@ class CLICommand:
             help='Give rows a new unique id when using --insert-into.')
         add('--strip-data', action='store_true',
             help='Strip data when using --insert-into.')
+        add('--show-keys', action='store_true',
+            help='Show all keys.')
+        add('--show-values', metavar='key1,key2,...',
+            help='Show values for key(s).')
 
     @staticmethod
     def run(args):
@@ -136,6 +140,43 @@ def main(args):
 
     if args.analyse:
         db.analyse()
+        return
+
+    if args.show_keys:
+        keys = defaultdict(int)
+        for row in db.select(query):
+            for key in row._keys:
+                keys[key] += 1
+
+        n = max(len(key) for key in keys) + 1
+        for key, number in keys.items():
+            print('{:{}} {}'.format(key + ':', n, number))
+        return
+
+    if args.show_values:
+        keys = args.show_values.split(',')
+        values = {key: defaultdict(int) for key in keys}
+        numbers = set()
+        for row in db.select(query):
+            kvp = row.key_value_pairs
+            for key in keys:
+                value = kvp.get(key)
+                if value is not None:
+                    values[key][value] += 1
+                    if not isinstance(value, str):
+                        numbers.add(key)
+
+        n = max(len(key) for key in keys) + 1
+        for key in keys:
+            vals = values[key]
+            if key in numbers:
+                print('{:{}} [{}..{}]'
+                      .format(key + ':', n, min(vals), max(vals)))
+            else:
+                print('{:{}} {}'
+                      .format(key + ':', n,
+                              ', '.join('{}({})'.format(v, n)
+                                        for v, n in vals.items())))
         return
 
     if args.add_from_file:
@@ -235,7 +276,7 @@ def main(args):
             tags = []
             keys = args.plot
         keys = keys.split(',')
-        plots = collections.defaultdict(list)
+        plots = defaultdict(list)
         X = {}
         labels = []
         for row in db.select(query, sort=args.sort, include_data=False):
