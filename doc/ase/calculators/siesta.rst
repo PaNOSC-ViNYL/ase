@@ -299,7 +299,7 @@ Then you need to add the pyscf directory to your PYTHONPATH
 
   export PYTHONPATH=/PATH-TO-PYSCF/pyscf:$PYTHONPATH
 
-
+.. _Siesta Raman:
 
 Raman Calculations with SIESTA and PYSCF-NAO
 ============================================

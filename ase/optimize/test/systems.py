@@ -84,7 +84,16 @@ systems.append((slab, 'C/Cu(100)'))
 def create_database():
     db = connect('systems.db', append=False)
     for atoms, description in systems:
-        db.write(atoms, description=description)
+        name = atoms.get_chemical_formula()
+        db.write(atoms, description=description, name=name)
+
+    if False:
+        for atoms, description in systems:
+            for seed in range(5):
+                a = atoms.copy()
+                a.rattle(0.1, seed=seed)
+                name = a.get_chemical_formula() + '-' + str(seed)
+                db.write(a, description=description, seed=seed, name=name)
 
 
 if __name__ == '__main__':

@@ -55,8 +55,9 @@ def graphene_nanoribbon(n, m, type='zigzag', saturated=False, C_H=1.09,
     atoms = Atoms()
 
     if type == 'zigzag':
-        edge_index0 = np.arange(m) * 2 + 1
-        edge_index1 = (n - 1) * m * 2 + np.arange(m) * 2
+        edge_index0 = np.arange(m) * 2
+        edge_index1 = (n - 1) * m * 2 + np.arange(m) * 2 + 1
+
         if magnetic:
             mms = np.zeros(m * n * 2)
             for i in edge_index0:
@@ -71,15 +72,18 @@ def graphene_nanoribbon(n, m, type='zigzag', saturated=False, C_H=1.09,
                 layer.positions[:, 2] += 2 * b
                 layer[-1].position[2] -= b * 4 * m
             atoms += layer
+
+        xmin = atoms.positions[0, 0]
+
         if magnetic:
             atoms.set_initial_magnetic_moments(mms)
         if saturated:
             H_atoms0 = Atoms(saturate_element + str(m))
             H_atoms0.positions = atoms[edge_index0].positions
-            H_atoms0.positions[:, 0] += C_H
+            H_atoms0.positions[:, 0] -= C_H
             H_atoms1 = Atoms(saturate_element + str(m))
             H_atoms1.positions = atoms[edge_index1].positions
-            H_atoms1.positions[:, 0] -= C_H
+            H_atoms1.positions[:, 0] += C_H
             atoms += H_atoms0 + H_atoms1
         atoms.cell = [n * 3 * C_C / 2, 0, m * 4 * b]
 
@@ -88,6 +92,9 @@ def graphene_nanoribbon(n, m, type='zigzag', saturated=False, C_H=1.09,
             layer = arm_unit.repeat((1, 1, m))
             layer.positions[:, 0] -= 4 * b * i
             atoms += layer
+
+        xmin = atoms.positions[-1, 0]
+
         if saturated:
             arm_right_saturation = Atoms(saturate_element + '2', pbc=(1, 0, 1),
                                          cell=[4 * b, 0, 3 * C_C])
@@ -100,13 +107,17 @@ def graphene_nanoribbon(n, m, type='zigzag', saturated=False, C_H=1.09,
                 [b * 2 + sqrt(3) / 2 * C_H, 0, C_C / 2 - C_H * 0.5],
                 [b * 2 + sqrt(3) / 2 * C_H, 0, 3 * C_C / 2.0 + C_H * 0.5]]
             arm_right_saturation.positions[:, 0] -= 4 * b * (n - 1)
+
             atoms += arm_right_saturation.repeat((1, 1, m))
             atoms += arm_left_saturation.repeat((1, 1, m))
 
         atoms.cell = [b * 4 * n, 0, 3 * C_C * m]
 
     atoms.set_pbc([sheet, False, True])
-    atoms.set_scaled_positions(atoms.get_scaled_positions() % 1.0)
+
+    # The ribbon was 'built' from x=0 towards negative x.
+    # Move the ribbon to positive x:
+    atoms.positions[:, 0] -= xmin
     if not sheet:
         atoms.cell[0] = 0.0
     if vacuum:

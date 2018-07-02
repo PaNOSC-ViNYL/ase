@@ -22,35 +22,38 @@ class CLICommand:
         add('output', nargs='?')
         add('-M', '--magnetic-moment',
             metavar='M1,M2,...',
-            help='Magnetic moment(s).  '
-            'Use "-M 1" or "-M 2.3,-2.3".')
+            help='Magnetic moments.  '
+            'Use "-M 1" or "-M 2.3,-2.3"')
         add('--modify', metavar='...',
             help='Modify atoms with Python statement.  '
-            'Example: --modify="atoms.positions[-1,2]+=0.1".')
+            'Example: --modify="atoms.positions[-1,2]+=0.1"')
         add('-V', '--vacuum', type=float,
             help='Amount of vacuum to add around isolated atoms '
-            '(in Angstrom).')
+            '(in Angstrom)')
         add('-v', '--vacuum0', type=float,
-            help='Deprecated.  Use -V or --vacuum instead.')
-        add('--unit-cell',
-            help='Unit cell.  Examples: "10.0" or "9,10,11" (in Angstrom).')
-        add('--bond-length', type=float,
-            help='Bond length of dimer in Angstrom.')
+            help='Deprecated.  Use -V or --vacuum instead')
+        add('--unit-cell', metavar='CELL',
+            help='Unit cell in Angstrom.  Examples: "10.0" or "9,10,11"')
+        add('--bond-length', type=float, metavar='LENGTH',
+            help='Bond length of dimer in Angstrom')
         add('-x', '--crystal-structure',
-            help='Crystal structure.',
+            help='Crystal structure',
             choices=['sc', 'fcc', 'bcc', 'hcp', 'diamond',
                      'zincblende', 'rocksalt', 'cesiumchloride',
                      'fluorite', 'wurtzite'])
-        add('-a', '--lattice-constant', default='',
-            help='Lattice constant(s) in Angstrom.')
+        add('-a', '--lattice-constant', default='', metavar='LENGTH',
+            help='Lattice constant or comma-separated lattice constantes in '
+            'Angstrom')
         add('--orthorhombic', action='store_true',
-            help='Use orthorhombic unit cell.')
+            help='Use orthorhombic unit cell')
         add('--cubic', action='store_true',
-            help='Use cubic unit cell.')
+            help='Use cubic unit cell')
         add('-r', '--repeat',
-            help='Repeat unit cell.  Use "-r 2" or "-r 2,3,1".')
-        add('-g', '--gui', action='store_true')
-        add('--periodic', action='store_true')
+            help='Repeat unit cell.  Use "-r 2" or "-r 2,3,1"')
+        add('-g', '--gui', action='store_true',
+            help='open ase gui')
+        add('--periodic', action='store_true',
+            help='make structure fully periodic')
 
     @staticmethod
     def run(args, parser):

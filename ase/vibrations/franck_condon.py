@@ -10,25 +10,45 @@ from ase.units import kg, C, _hbar, kB
 from ase.vibrations import Vibrations
 
 
-class FranckCondonOverlap:
-    """Evaluate squared overlaps depending on the Huang-Rhys parameter."""
-    def factorial(self, n):
+class Factorial:
+    def __init__(self):
+        self._fac = [1]
+        self._inv = [1.]
+
+    def __call__(self, n):
         try:
             return self._fac[n]
-        except AttributeError:
-            self._fac = [1]
-            return self.factorial(n)
         except IndexError:
             for i in range(len(self._fac), n + 1):
                 self._fac.append(i * self._fac[i - 1])
+                try:
+                    self._inv.append(float(1. / self._fac[-1]))
+                except OverflowError:
+                    self._inv.append(0.)
             return self._fac[n]
 
+    def inv(self, n):
+        self(n)
+        return self._inv[n]
+
+
+class FranckCondonOverlap:
+    """Evaluate squared overlaps depending on the Huang-Rhys parameter."""
+    def __init__(self):
+        self.factorial = Factorial()
+
     def directT0(self, n, S):
-        """Direct squared Franck-Condon overlap corresponding to T=0."""
-        return np.exp(-S) * S**n / self.factorial(n)
+        """|<0|n>|^2
+
+        Direct squared Franck-Condon overlap corresponding to T=0.
+        """
+        return np.exp(-S) * S**n * self.factorial.inv(n)
 
     def direct(self, n, m, S_in):
-        """Direct squared Franck-Condon overlap."""
+        """|<n|m>|^2
+
+        Direct squared Franck-Condon overlap.
+        """
         if n > m:
             # use symmetry
             return self.direct(m, n, S_in)
@@ -52,7 +72,7 @@ class FranckCondonOverlap:
         sum = S**m
         if m:
             sum -= m * S**(m - 1)
-        return np.exp(-S) * np.sqrt(S) * sum / self.factorial(m)
+        return np.exp(-S) * np.sqrt(S) * sum * self.factorial.inv(m)
 
     def direct0mm2(self, m, S):
         """<0|m><m|2>"""
@@ -61,7 +81,127 @@ class FranckCondonOverlap:
             sum -= 2 * m * S**m
         if m >= 2:
             sum += m * (m - 1) * S**(m - 1)
-        return np.exp(-S) / np.sqrt(2) * sum / self.factorial(m)
+        return np.exp(-S) / np.sqrt(2) * sum * self.factorial.inv(m)
+
+
+class FranckCondonRecursive:
+    """Recursive implementation of Franck-Condon overlaps
+
+    Notes
+    -----
+    The ovelaps are signed according to the sign of the displacements.
+
+    Reference
+    ---------
+    Julien Guthmuller
+    The Journal of Chemical Physics 144, 064106 (2016); doi: 10.1063/1.4941449
+    """
+    def __init__(self):
+        self.factorial = Factorial()
+
+    def ov0m(self, m, delta):
+        if m == 0:
+            return np.exp(-0.25 * delta**2)
+        else:
+            assert(m > 0)
+            return - delta / np.sqrt(2 * m) * self.ov0m(m - 1, delta)
+            
+    def ov1m(self, m, delta):
+        sum = delta * self.ov0m(m, delta) / np.sqrt(2.)
+        if m == 0:
+            return sum
+        else:
+            assert(m > 0)
+            return sum + np.sqrt(m) * self.ov0m(m - 1, delta)
+            
+    def ov2m(self, m, delta):
+        sum = delta * self.ov1m(m, delta) / 2
+        if m == 0:
+            return sum
+        else:
+            assert(m > 0)
+            return sum + np.sqrt(m / 2.) * self.ov1m(m - 1, delta)
+            
+    def ov3m(self, m, delta):
+        sum = delta * self.ov2m(m, delta) / np.sqrt(6.)
+        if m == 0:
+            return sum
+        else:
+            assert(m > 0)
+            return sum + np.sqrt(m / 3.) * self.ov2m(m - 1, delta)
+            
+    def ov0mm1(self, m, delta):
+        if m == 0:
+            return delta / np.sqrt(2) * self.ov0m(m, delta)**2
+        else:
+            return delta / np.sqrt(2) * (
+                self.ov0m(m, delta)**2 - self.ov0m(m - 1, delta)**2)
+            
+    def direct0mm1(self, m, delta):
+        """direct and fast <0|m><m|1>"""
+        S = delta**2 / 2.
+        sum = S**m
+        if m:
+            sum -= m * S**(m - 1)
+        return np.where(S == 0, 0,
+                        (np.exp(-S) * delta / np.sqrt(2) * sum *
+                         self.factorial.inv(m)))
+
+    def ov0mm2(self, m, delta):
+        if m == 0:
+            return delta**2 / np.sqrt(8) * self.ov0m(m, delta)**2
+        elif m == 1:
+            return delta**2 / np.sqrt(8) * (
+                self.ov0m(m, delta)**2 - 2 * self.ov0m(m - 1, delta)**2)
+        else:
+            return delta**2 / np.sqrt(8) * (
+                self.ov0m(m, delta)**2 - 2 * self.ov0m(m - 1, delta)**2 +
+                self.ov0m(m - 2, delta)**2)
+
+    def direct0mm2(self, m, delta):
+        """direct and fast <0|m><m|2>"""
+        S = delta**2 / 2.
+        sum = S**(m + 1)
+        if m >= 1:
+            sum -= 2 * m * S**m
+        if m >= 2:
+            sum += m * (m - 1) * S**(m - 1)
+        return np.exp(-S) / np.sqrt(2) * sum * self.factorial.inv(m)
+
+    def ov1mm2(self, m, delta):
+        p1 = delta**3 / 4.
+        sum = p1 * self.ov0m(m, delta)**2
+        if m == 0:
+            return sum
+        p2 = delta - 3. * delta**3 / 4
+        sum += p2 * self.ov0m(m - 1, delta)**2
+        if m == 1:
+            return sum
+        sum -= p2 * self.ov0m(m - 2, delta)**2
+        if m == 2:
+            return sum
+        return sum - p1 * self.ov0m(m - 3, delta)**2
+
+    def direct1mm2(self, m, delta):
+        S = delta**2 / 2.
+        sum = S**2
+        if m > 0:
+            sum -= 2 * m * S
+        if m > 1:
+            sum += m * (m - 1)
+        with np.errstate(divide='ignore', invalid='ignore'):
+            return np.where(S == 0, 0,
+                (np.exp(-S) * S**(m - 1) / delta * (S - m) * sum *
+                 self.factorial.inv(m)))
+
+    def direct0mm3(self, m, delta):
+        S = delta**2 / 2.
+        with np.errstate(divide='ignore', invalid='ignore'):
+            return np.where(S == 0, 0,
+                (np.exp(-S) * S**(m - 1) / delta * np.sqrt(12.) *
+                 (S**3 / 6. - m * S**2 / 2 +
+                  m * (m - 1) * S / 2. - m * (m - 1) * (m - 2) / 6) *
+                 self.factorial.inv(m)))
 
 
 class FranckCondon:
