@@ -81,7 +81,8 @@ for name in ['testase.json', 'testase.db', 'postgresql']:
     id = c.write(Atoms(),
                  b=np.bool_(True),
                  i=np.int64(42),
-                 n=np.nan)
+                 n=np.nan,
+                 x=np.inf)
     print(c[id].n)
     assert isinstance(c[id].b, bool)
     assert isinstance(c[id].i, int)
