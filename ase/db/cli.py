@@ -353,7 +353,6 @@ def main(args):
             if c and c.startswith('++'):
                 keys = set()
                 for row in db.select(query,
-                                     columns=columns,
                                      limit=args.limit, offset=args.offset,
                                      include_data=False):
                     keys.update(row._keys)
