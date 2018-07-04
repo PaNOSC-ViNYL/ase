@@ -22,14 +22,14 @@ assert abs(atoms.get_angle(1, 0, 2, mic=True) - 104) < 1e-3
 
 # Change Angle
 old = atoms.get_angle(1, 0, 2, mic=False)
-atoms.change_angle(1, 0, 2, -10, indices=[2])
+atoms.set_angle(1, 0, 2, -10, indices=[2], add=True)
 new = atoms.get_angle(1, 0, 2, mic=False)
 diff = old - new - 10
 assert abs(diff) < 10e-3
 
 #don't actually change angle using indices
 old = atoms.get_angle(1, 0, 2, mic=False)
-atoms.change_angle(1, 0, 2, -10, indices=[2, 1])
+atoms.set_angle(1, 0, 2, -10, indices=[2, 1], add=True)
 new = atoms.get_angle(1, 0, 2, mic=False)
 diff = old - new
 assert abs(diff) < 10e-3

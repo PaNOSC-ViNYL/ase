@@ -38,14 +38,14 @@ assert (a.get_all_distances(mic=False) == [[0, 2, 5],
 
 # Scale Distance
 old = a.get_distance(0, 1)
-a.change_distance(0, 1, 0.9, factor=True)
+a.set_distance(0, 1, 0.9, add=True, factor=True)
 new = a.get_distance(0, 1)
 diff = new - 0.9 * old
 assert abs(diff) < 10e-6
 
 # Change Distance
 old = a.get_distance(0, 1)
-a.change_distance(0, 1, 0.9)
+a.set_distance(0, 1, 0.9, add=True)
 new = a.get_distance(0, 1)
 diff = new - old - 0.9
 assert abs(diff) < 10e-6
