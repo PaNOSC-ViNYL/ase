@@ -1578,20 +1578,20 @@ class Atoms(object):
                 assert a2 is None and a3 is None
             angle *= 180 / pi
 
-        if add:
-            oldAngle = self.get_angle(a1, a2, a3)
-            self.set_angle(a1, a2, a3, oldAngle+angle, mask=mask, indices=indices, add=False)
-            return
-
         # If not provided, set mask to the last atom in the angle description
         if mask is None and indices is None:
             mask = np.zeros(len(self))
             mask[a3] = 1
         elif indices is not None:
             mask = [index in indices for index in range(len(self))]
-        # Compute necessary in angle change, from current value
-        current = self.get_angle(a1, a2, a3)
-        diff = (angle - current) * pi / 180
+
+        if add:
+            diff = angle
+        else:
+            # Compute necessary in angle change, from current value
+            diff = angle - self.get_angle(a1, a2, a3)
+
+        diff *= pi / 180
         # Do rotation of subgroup by copying it to temporary atoms object and
         # then rotating that
         v10 = self.positions[a1] - self.positions[a2]
