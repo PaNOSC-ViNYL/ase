@@ -28,6 +28,7 @@ import numpy as np
 
 import ase.io
 from ase.utils import devnull, basestring
+from ase.dft.pdos import PDOS
 
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.calculators.calculator import PropertyNotImplementedError
@@ -754,7 +755,7 @@ class Vasp(GenerateVaspInput, Calculator):
             'magmoms': 'magnetic_moments'
         }
         property_getter = {
-            'energy':  {'function': 'get_potential_energy', 'args': [atoms]}, 
+            'energy':  {'function': 'get_potential_energy', 'args': [atoms]},
             'forces':  {'function': 'get_forces',           'args': [atoms]},
             'dipole':  {'function': 'get_dipole_moment',    'args': [atoms]},
             'fermi':   {'function': 'get_fermi_level',      'args': []},
@@ -1011,6 +1012,7 @@ class VaspDos(object):
     def __init__(self, doscar='DOSCAR', efermi=0.0):
         """Initialize"""
         self._efermi = 0.0
+        self.path = os.path.basename(doscar)
         self.read_doscar(doscar)
         self.efermi = efermi
 
@@ -1018,14 +1020,13 @@ class VaspDos(object):
         # POSCAR.
         self.sort = []
         self.resort = []
-        if os.path.isfile('ase-sort.dat'):
-            file = open('ase-sort.dat', 'r')
-            lines = file.readlines()
-            file.close()
-            for line in lines:
-                data = line.split()
-                self.sort.append(int(data[0]))
-                self.resort.append(int(data[1]))
+        asesrt = os.path.join(self.path, 'ase-sort.dat')
+        if os.path.isfile(asesrt):
+            with open(asesrt, 'r') as lines:
+                for line in lines:
+                    data = line.split()
+                    self.sort.append(int(data[0]))
+                    self.resort.append(int(data[1]))
 
     def _set_efermi(self, efermi):
         """Set the Fermi level."""
@@ -1140,6 +1141,98 @@ class VaspDos(object):
                 cdos[nd] = np.array([float(x) for x in line])
             dos.append(cdos.T)
         self._site_dos = np.array(dos)
+
+    def get_pdos(self):
+        # Get site-dos takes care of resorting the index
+        atoms = ase.io.read(os.path.join(self.directory,
+                                         'POSCAR'))
+
+        energy = self.energy
+        orbs_all = self._get_orb_names()
+        norb = len(orbs_all)
+
+        def orb2l(orb):
+            converger = {'s': 0,
+                         'p': 1,
+                         'd': 2}
+            return converger[orb[0]]
+
+        def orb2m(orb):
+            if norb in [3, 6]:
+                # Unknown
+                return None
+            # Conversion of orb name to m
+            conv = {'s': 0,
+                    'py': -1, 'pz': 0, 'px': 1,
+                    'dxy': -2, 'dyz': -1,
+                    'dz2': 0, 'dxz': 1, 'dx2': 2}
+            for key, value in conv.items():
+                if orb.startswith(key):
+                    return value
+            return None
+
+        def orb2spin(orb):
+            if '-up' in orb:
+                return 1
+            elif '-down' in orb:
+                return -1
+            else:
+                return None
+
+        def get_qn(orb):
+            l_qn = orb2l(orb)
+            ml = orb2m(orb)
+            spin = orb2spin(orb)
+            return l_qn, ml, spin
+
+        # Initialize
+        info = []
+        weights = np.zeros((norb * len(atoms), len(energy)))
+        ii = 0
+        for atom in atoms:
+            for orb in orbs_all:
+                l, m, spin = get_qn(orb)
+                infod = {'atom': atom.index,
+                         'symbol': atom.symbol,
+                         'orbital': orb,
+                         'l': l}
+                if m is not None:
+                    infod['m'] = m
+                if spin is not None:
+                    infod['spin'] = spin
+                info.append(infod)
+
+                weights[ii] = self.site_dos(atom.index, orb)
+                ii += 1
+        return PDOS(energy, weights, info=info)
+
+    def _get_orb_names(self):
+        n = self._site_dos.shape[1]
+        if n == 4:
+            norb = ['s', 'p', 'd']
+        elif n == 7:
+            norb = ['s-up', 's-down',
+                    'p-up', 'p-down',
+                    'd-up', 'd-down']
+        elif n == 10:
+            norb = ['s', 'py', 'pz', 'px',
+                    'dxy', 'dyz', 'dz2', 'dxz',
+                    'dx2']
+        elif n == 19:
+            norb = ['s-up', 's-down',
+                    'py-up', 'py-down',
+                    'pz-up', 'pz-down',
+                    'px-up', 'px-down',
+                    'dxy-up', 'dxy-down',
+                    'dyz-up', 'dyz-down',
+                    'dz2-up', 'dz2-down',
+                    'dxz-up', 'dxz-down',
+                    'dx2-up', 'dx2-down']
+        else:
+            msg = ('Number of columns should be '
+                   ' 4, 7, 10 or 19. Got {}'.format(n))
+            raise ValueError(msg)
+        return norb
 
 
 class xdat2traj:
