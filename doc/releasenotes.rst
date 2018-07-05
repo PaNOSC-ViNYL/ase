@@ -41,6 +41,8 @@ Git master branch
 * New ``--show-keys`` and ``--show-values=...`` options for the
   :ref:`ase db <cli>` command line interface.
 
+* Added callback method :meth:`ase.gui.gui.GUI.repeat_poll` to the GUI.
+  Useful for programmatically updating the GUI.
 
 Version 3.16.2
 ==============

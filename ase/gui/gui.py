@@ -539,6 +539,49 @@ class GUI(View, Status):
                                      'ase/ase/gui/gui.html')),
               M(_('Webpage ...'), webpage)])]
 
+    def repeat_poll(self, callback, ms, ensure_update=True):
+        """Invoke callback(gui=self) every ms milliseconds.
+
+        This is useful for polling a resource for updates to load them
+        into the GUI.  The GUI display will be hence be updated after
+        each call; pass ensure_update=False to circumvent this.
+
+        Polling stops if the callback function raises StopIteration.
+
+        Example to run a movie manually, then quit::
+
+            from ase.collections import g2
+            from ase.gui.gui import GUI
+
+            names = iter(g2.names)
+
+            def main(gui):
+                try:
+                    name = next(names)
+                except StopIteration:
+                    gui.window.win.quit()
+                else:
+                    atoms = g2[name]
+                    gui.images.initialize([atoms])
+
+            gui = GUI()
+            gui.repeat_poll(main, 30)
+            gui.run()"""
+
+        def callbackwrapper():
+            try:
+                callback(gui=self)
+            except StopIteration:
+                pass
+            finally:
+                # Reinsert self so we get called again:
+                self.window.win.after(ms, callbackwrapper)
+
+            if ensure_update:
+                self.set_frame()
+                self.draw()
+
+        self.window.win.after(ms, callbackwrapper)
 
 def webpage():
     import webbrowser
