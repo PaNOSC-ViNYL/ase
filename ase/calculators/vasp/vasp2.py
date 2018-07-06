@@ -34,7 +34,6 @@ from ase.io import read
 from ase.utils import basestring
 
 from ase.calculators.vasp import VaspDos
-from ase.dft.pdos import PDOS
 
 from ase.calculators.calculator import (FileIOCalculator, ReadError,
                                         all_changes)
