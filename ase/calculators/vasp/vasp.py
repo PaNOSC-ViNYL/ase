@@ -1142,10 +1142,12 @@ class VaspDos(object):
             dos.append(cdos.T)
         self._site_dos = np.array(dos)
 
-    def get_pdos(self):
-        # Get site-dos takes care of resorting the index
-        atoms = ase.io.read(os.path.join(self.directory,
-                                         'POSCAR'))
+    def get_pdos(self, atoms=None):
+        if atoms is None:
+            atoms = ase.io.read(os.path.join(self.directory,
+                                             'POSCAR'))
+            if self.sort:
+                atoms = atoms[self.sort]
 
         energy = self.energy
         orbs_all = self._get_orb_names()
