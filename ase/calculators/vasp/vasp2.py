@@ -33,6 +33,9 @@ import ase
 from ase.io import read
 from ase.utils import basestring
 
+from ase.calculators.vasp import VaspDos
+from ase.dft.pdos import PDOS
+
 from ase.calculators.calculator import (FileIOCalculator, ReadError,
                                         all_changes)
 
@@ -1029,3 +1032,29 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
             xc = np.append(xc, l_)
         assert len(xc) == 32
         return xc
+
+    def get_pdos(self):
+        # XX - what sort of keywords do we want?
+
+        # Check if we have the correct parameters for writing PDOS
+        p = self.int_params
+        q = self.list_float_params
+        if ((p['lorbit'] is not None and p['lorbit'] < 10) or
+            (p['lorbit'] is None and not q['rwigs'])):
+            msg = ('LORBIT keyword must be >=10 or rwigs must be specified, '
+                   'for PDOS decomposition.\nFound '
+                   'LORBIT={} and RWIGS={}'.format(p['lorbit'], q['rwigs']))
+            raise ValueError(msg)
+
+        # Check if we have stored pdos
+        if 'pdos' not in self.results:
+            Vdos = VaspDos(os.path.join(self.directory,
+                                        'DOSCAR'),
+                           efermi=self.get_fermi_level())
+            self.results['pdos'] = Vdos
+        else:
+            Vdos = self.results['pdos']
+
+        pdos = Vdos.get_pdos()
+
+        return pdos
