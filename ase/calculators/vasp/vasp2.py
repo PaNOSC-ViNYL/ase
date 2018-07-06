@@ -1054,6 +1054,6 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
         else:
             Vdos = self.results['pdos']
 
-        pdos = Vdos.get_pdos()
+        pdos = Vdos.get_pdos(atoms=self.atoms)
 
         return pdos
