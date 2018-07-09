@@ -51,7 +51,7 @@ def read_atom_line(line_full):
         try:
             occupancy = float(line[54:60])
         except ValueError:
-            occupancy = None  # Rather than arbitrary zero or one
+            occupancy = 0.0 # None  # Rather than arbitrary zero or one
 
         if occupancy is not None and occupancy < 0:
             warnings.warn("Negative occupancy in one or more atoms")
