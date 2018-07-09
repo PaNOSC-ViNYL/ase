@@ -718,14 +718,14 @@ def _deblob(buf, dtype=float, shape=None, pg=False):
 
 def _encode(obj, pg=False):
     if pg:
-        return encode(obj).replace('NaN', 'null').replace('Infinity', '"Infinity"')
+        return encode(obj).replace('NaN', '"NaN"').replace('Infinity', '"Infinity"')
     else:
         return encode(obj)
 
 
 def _decode(txt, pg=False):
     if pg:
-        txt = encode(txt).replace('"Infinity"', 'Infinity')
+        txt = encode(txt).replace('"NaN"', 'NaN').replace('"Infinity"', 'Infinity')
     return numpyfy(mydecode(txt))
 
 
