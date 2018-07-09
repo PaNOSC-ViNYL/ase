@@ -13,7 +13,7 @@ import warnings
 
 import numpy as np
 
-from ase.atoms import Atom, Atoms
+from ase.atoms import Atoms
 from ase.parallel import paropen
 from ase.geometry import cellpar_to_cell
 from ase.utils import basestring
@@ -34,10 +34,10 @@ def read_atom_line(line_full):
 
         altloc = line[16]
         resname = line[17:20]
-        chainid = line[21]
+        # chainid = line[21]        # Not used 
 
         resseq = int(line[22:26].split()[0])  # sequence identifier
-        icode = line[26]  # insertion code
+        # icode = line[26]          # insertion code, not used
 
         # atomic coordinates
         try:
@@ -61,7 +61,7 @@ def read_atom_line(line_full):
         except ValueError:
             bfactor = 0.0  # The PDB use a default of zero if the data is missing
 
-        segid = line[72:76]
+        # segid = line[72:76] # not used
         symbol = line[76:78].strip().upper()
 
     else:
