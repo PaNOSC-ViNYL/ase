@@ -1,10 +1,13 @@
+# encoding: utf-8
 # VelocityDistributions.py -- set up a velocity distribution
 
-"""Module for setting up e.g. Maxwell-Boltzmann velocity distributions.
+"""Module for setting up velocity distributions such as Maxwell–Boltzmann.
 
-Currently, only one function is defined, MaxwellBoltzmannDistribution,
-which sets the momenta of a list of atoms according to a
-Maxwell-Boltzmann distribution at a given temperature.
+Currently, only a few functions are defined, such as
+MaxwellBoltzmannDistribution, which sets the momenta of a list of
+atoms according to a Maxwell-Boltzmann distribution at a given
+temperature.
+
 """
 
 import numpy as np
@@ -71,9 +74,9 @@ def PhononHarmonics(atoms, temp, force_constants, rng=np.random):
     """Excite phonon modes to specified temperature.
 
     This excites all phonon modes randomly so that each contributes,
-    on average, equally the given temperature.  Both potential energy
-    and kinetic energy will be consistent the phononic vibrations
-    characteristic of the specified temperature.
+    on average, equally to the given temperature.  Both potential
+    energy and kinetic energy will be consistent with the phononic
+    vibrations characteristic of the specified temperature.
 
     In other words the system will be equilibrated for an MD run at
     that temperature.
