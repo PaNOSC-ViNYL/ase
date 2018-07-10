@@ -81,10 +81,13 @@ for name in ['testase.json', 'testase.db', 'postgresql']:
     id = c.write(Atoms(),
                  b=np.bool_(True),
                  i=np.int64(42),
-                 n=np.nan)
-    print(c[id].n)
-    assert isinstance(c[id].b, bool)
-    assert isinstance(c[id].i, int)
+                 n=np.nan,
+                 x=np.inf)
+    row = c[id]
+    assert isinstance(row.b, bool)
+    assert isinstance(row.i, int)
+    assert np.isnan(row.n)
+    assert np.isinf(row.x)
 
     # Make sure deleting a single key works:
     id = c.write(Atoms(), key=7)
