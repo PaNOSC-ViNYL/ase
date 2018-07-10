@@ -618,7 +618,7 @@ class SQLite3Database(Database, object):
                 for row in self._select(keys + ['-' + sort], cmps,
                                         limit=limit, offset=offset,
                                         include_data=include_data,
-                                        columns=['id', 'key_value_pairs']):
+                                        columns=columns):
                     yield row
 
     @parallel_function
