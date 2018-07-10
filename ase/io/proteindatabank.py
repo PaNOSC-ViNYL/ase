@@ -81,7 +81,7 @@ def read_proteindatabank(fileobj, index=-1, read_arrays=True):
     occ = []
     bfactor = []
     residuenames = []
-    residuenumber = []
+    residuenumbers = []
     atomtypes = []
 
     symbols = []
@@ -101,7 +101,7 @@ def read_proteindatabank(fileobj, index=-1, read_arrays=True):
                 'bfactor': bfactor,
                 'residuenames': residuenames,
                 'atomtypes': atomtypes,
-                'residuenumber': residuenumber}
+                'residuenumbers': residuenumbers}
         for name, array in info.items():
             if len(array) == 0:
                 pass
@@ -152,7 +152,7 @@ def read_proteindatabank(fileobj, index=-1, read_arrays=True):
             if line_info[5] is not None:
                 occ.append(line_info[5])
             bfactor.append(line_info[6])
-            residuenumber.append(line_info[7])
+            residuenumbers.append(line_info[7])
 
             symbols.append(symbol)
             positions.append(position)

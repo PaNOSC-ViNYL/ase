@@ -32,6 +32,7 @@ def read_gromacs(filename):
     positions = []
     gromacs_velocities = []
     symbols = []
+    gromacs_residuenumbers = []
     gromacs_residuenames = []
     gromacs_atomtypes = []
     for line in (lines[2:-1]):
@@ -51,7 +52,8 @@ def read_gromacs(filename):
             floatvect = 0.0, 0.0, 0.0
         gromacs_velocities.append(floatvect)
         symbols.append(inp[1][0:2])
-        gromacs_residuenames.append(inp[0])
+        gromacs_residuenumbers.append(int(line[0:5]))
+        gromacs_residuenames.append(line[5:11].strip())
         gromacs_atomtypes.append(inp[1])
     line = lines[-1]
     symbols_ok = []
@@ -65,6 +67,9 @@ def read_gromacs(filename):
     atoms = Atoms(symbols_ok, positions)
     atoms.set_velocities(gromacs_velocities)
 
+    if not atoms.has('residuenumbers'):
+        atoms.new_array('residuenumbers', gromacs_residuenumbers, int)
+        atoms.set_array('residuenumbers',gromacs_residuenumbers, int)
     if not atoms.has('residuenames'):
         atoms.new_array('residuenames', gromacs_residuenames, str)
         atoms.set_array('residuenames', gromacs_residuenames, str)
@@ -141,9 +146,9 @@ def write_gromacs(fileobj, images):
     except:
         gromacs_atomtypes = images[-1].get_chemical_symbols()
     try:
-        residuenumber = images[-1].get_array('residuenumber')
+        residuenumbers = images[-1].get_array('residuenumbers')
     except (KeyError):
-        residuenumber = np.ones(natoms, int)
+        residuenumbers = np.ones(natoms, int)
 
     pos = images[-1].get_positions()
     pos = pos / 10.0
@@ -161,11 +166,11 @@ def write_gromacs(fileobj, images):
     # gromac line see http://manual.gromacs.org/documentation/current/user-guide/file-formats.html#gro
     #    1WATER  OW1    1   0.126   1.624   1.679  0.1227 -0.0580  0.0434
     for resnb, resname, atomtype, xyz, vxyz in zip\
-            (residuenumber, gromacs_residuenames, gromacs_atomtypes, pos, vel):
+            (residuenumbers, gromacs_residuenames, gromacs_atomtypes, pos, vel):
 
         line = ("{0:5d}{1:5s}{2:5s}{3:5d}{4:8.3f}{5:8.3f}{6:8.3f}{7:8.4f}"
                 "{8:8.4f}{9:8.4f}\n"
-                .format(resnb, resname, atomtype, count,
+                .format(resnb, resname.rjust(5), atomtype.rjust(5), count,
                         xyz[0], xyz[1], xyz[2], vxyz[0], vxyz[1], vxyz[2]))
         fileobj.write(line)
         count += 1
