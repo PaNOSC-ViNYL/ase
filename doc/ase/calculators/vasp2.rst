@@ -174,8 +174,3 @@ Vasp2 also allows for quick access to the Density of States (DOS), through the A
 Quick access to this function, however, can be found by using the ``get_dos()`` function:
 
 >>> energies, dos = calc.get_dos()
-
-.. note::
-   A function to get the PDOS is currently work-in-progress.
-
-
