@@ -170,8 +170,55 @@ Transition (v -> c):
 Projected Density of State
 --------------------------
 .. _VASP LORBIT: https://cms.mpi.univie.ac.at/vasp/vasp/LORBIT.html
+.. _CO in a box: https://cms.mpi.univie.ac.at/wiki/index.php/CO_partial_DOS
 
 This calculator takes advantage of the new ASE module :class:`~ase.dft.pdos.PDOS` and :class:`~ase.calculators.vasp.vasp.VaspDos`,
 and creates a PDOS object.
 
 Each orbital in the PDOS object are separated into the maximum degree, by which it is given in the DOSCAR file, which is specified by the ``LORBIT`` tag, see the `VASP LORBIT`_ documentation.
+
+We can reconstruct the example of `CO in a box`_ as follows.
+
+First we perform a simple calculation of the CO molecule:
+
+.. code-block:: python
+
+	from ase.build import molecule
+	from ase.calculators.vasp import Vasp2
+
+	atoms = molecule('CO', vacuum=8)
+
+	calc = Vasp2(kpts=1,
+		     ismear=0,          # Gaussian smearing
+		     lorbit=11)         # lm decomposed PDOS
+
+	atoms.set_calculator(calc)
+	atoms.get_potential_energy()    # Run calculation
+
+Then we get the PDOS from the calculation:
+
+.. code-block:: python
+
+    from ase.calculators.vasp import Vasp2
+
+	calc = Vasp2(restart=True)
+
+	pdos = calc.get_pdos()
+
+	# Get the total PDOS
+	pdos_tot = pdos.sum()
+
+	# Pick out the px orbitals (no spin in the calculation)
+	# Alternatively we could do pdos.pick(orbital='px')
+	pdos_px = pdos.pick(l=1, m=1).sum()
+
+	pdos_resample = pdos.resample_uniform([pdos_tot, pdos_px])
+	labels = ['Total', 'px']  #  Customize labels
+	pdos_resample.plot(labels=labels,
+	                   xlabel='$E - E_f$ (eV)',
+			   ylabel='DOS')
+
+Which produces the following:
+			   
+.. image:: vasp_co_pdos.png
+
