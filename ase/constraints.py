@@ -1796,3 +1796,31 @@ class ExpCellFilter(UnitCellFilter):
 
     def __len__(self):
         return (len(self.atoms) + 3)
+
+
+
+class ConstrainedRelaxationFilter(Filter):
+    def __init__(self, atoms, A):
+        self.A = A
+        Filter.__init__(self, atoms, mask=np.ones(len(atoms), bool))
+
+    def get_positions(self):
+        # TODO zero padding
+        A = self.A
+        left_inverse = np.linalg.inv(A.T.dot(A)).dot(A.T)
+        reduced_cell = left_inverse.dot(atoms.cell.ravel())
+        return reduced_cell.reshape(1, 3)
+
+    def set_positions(self, P):
+        cell_cv = self.A.dot(P.ravel()).reshape(3, 3)
+        # TODO also work with positions
+        self.atoms.set_cell(cell_cv, scale_atoms=True)
+
+    def get_forces(self, apply_constraint=False):
+        atoms = self.atoms
+        stress_cv = atoms.get_stress(voigt=False)
+        cell = self.atoms.get_cell()
+        v = self.atoms.get_volume()
+        icell = np.linalg.pinv(cell)
+        virial_cv = -v * icell.dot(stress_cv)
+        return self.A.T.dot(virial_cv.ravel()).reshape(1, 3)
