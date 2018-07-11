@@ -165,3 +165,13 @@ Transition (v -> c):
    in the future.
 
 .. _VASP HSE band structure wiki: https://cms.mpi.univie.ac.at/wiki/index.php/Si_HSE_bandstructure#Procedure_2:_0-weight_.28Fake.29_SC_procedure_.28works_DFT_.26_hybrid_functionals.29
+
+
+Projected Density of State
+--------------------------
+.. _VASP LORBIT: https://cms.mpi.univie.ac.at/vasp/vasp/LORBIT.html
+
+This calculator takes advantage of the new ASE module :class:`~ase.dft.pdos.PDOS` and :class:`~ase.calculators.vasp.vasp.VaspDos`,
+and creates a PDOS object.
+
+Each orbital in the PDOS object are separated into the maximum degree, by which it is given in the DOSCAR file, which is specified by the ``LORBIT`` tag, see the `VASP LORBIT`_ documentation.
