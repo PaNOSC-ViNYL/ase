@@ -1153,11 +1153,13 @@ class VaspDos(object):
         orbs_all = self._get_orb_names()
         norb = len(orbs_all)
 
+        # Set of helper functions to break down
+        # the orb name into quantum numbers
         def orb2l(orb):
-            converger = {'s': 0,
-                         'p': 1,
-                         'd': 2}
-            return converger[orb[0]]
+            conv = {'s': 0,
+                    'p': 1,
+                    'd': 2}
+            return conv[orb[0]]
 
         def orb2m(orb):
             if norb in [3, 6]:
@@ -1168,6 +1170,7 @@ class VaspDos(object):
                     'py': -1, 'pz': 0, 'px': 1,
                     'dxy': -2, 'dyz': -1,
                     'dz2': 0, 'dxz': 1, 'dx2': 2}
+
             for key, value in conv.items():
                 if orb.startswith(key):
                     return value

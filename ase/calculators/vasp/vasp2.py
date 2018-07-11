@@ -91,7 +91,7 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
     env_commands = ['ASE_VASP_COMMAND', 'VASP_COMMAND', 'VASP_SCRIPT']
 
     implemented_properties = ['energy', 'free_energy', 'forces', 'dipole',
-                              'fermi', 'stress', 'magmom', 'magmoms']
+                              'fermi', 'stress', 'magmom', 'magmoms', 'pdos']
 
     default_parameters = {}     # Can be used later to set some ASE defaults
 
@@ -1007,6 +1007,7 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
 
         # Check if we have stored pdos
         if 'pdos' not in self.results:
+            # We might want to trigger a calculation here
             Vdos = VaspDos(os.path.join(self.directory,
                                         'DOSCAR'),
                            efermi=self.get_fermi_level())
