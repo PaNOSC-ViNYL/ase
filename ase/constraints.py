@@ -1798,7 +1798,6 @@ class ExpCellFilter(UnitCellFilter):
         return (len(self.atoms) + 3)
 
 
-
 class ConstrainedRelaxationFilter(Filter):
     def __init__(self, atoms, A):
         self.A = A
@@ -1808,6 +1807,10 @@ class ConstrainedRelaxationFilter(Filter):
         # TODO zero padding
         A = self.A
         left_inverse = np.linalg.inv(A.T.dot(A)).dot(A.T)
+        #reduced_positions = np.empty(ndofs)
+        #reduced_positions[:ncelldofs] = left_inverse.dot(atoms.cell.ravel())
+        #reduced_positions[ncelldofs:] = left_inverse.dot(atoms.positions.ravel())
+        #return reduced_positions.reshape(1, 3)
         reduced_cell = left_inverse.dot(atoms.cell.ravel())
         return reduced_cell.reshape(1, 3)
 
