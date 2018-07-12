@@ -31,15 +31,17 @@ class Settings:
         self.scale = ui.SpinBox(self.gui.images.atom_scale,
                                 0.2, 2.0, 0.1, self.scale_radii)
         win.add([_('Scale atomic radii:'), self.scale])
-        self.force_vector_scale = ui.Entry(
-            value=self.gui.force_vector_scale,
-            width=6,
+        self.force_vector_scale = ui.SpinBox(
+            self.gui.force_vector_scale,
+            0.0, 1e32, 0.1,
+            rounding=2,
             callback=self.scale_force_vectors
         )
         win.add([_('Scale force vectors:'), self.force_vector_scale])
-        self.velocity_vector_scale = ui.Entry(
-            value=self.gui.velocity_vector_scale,
-            width=6,
+        self.velocity_vector_scale = ui.SpinBox(
+            self.gui.velocity_vector_scale,
+            0.0, 1e32, 0.1,
+            rounding=2,
             callback=self.scale_velocity_vectors
         )
         win.add([_('Scale velocity vectors:'), self.velocity_vector_scale])
