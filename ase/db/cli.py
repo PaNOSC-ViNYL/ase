@@ -11,7 +11,6 @@ from ase.db.core import convert_str_to_int_float_or_str
 from ase.db.summary import Summary
 from ase.db.table import Table, all_columns
 from ase.db.web import process_metadata
-from ase.calculators.calculator import get_calculator
 from ase.utils import plural, basestring
 
 try:

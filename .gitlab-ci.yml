@@ -20,7 +20,8 @@ python_3_tests:
   image: python:3
   script:
     # manually install extra deps
-    - pip install netCDF4 pyflakes
+    #- pip install netCDF4 pyflakes
+    - pip install pyflakes
     # 'pip install' pulls in all required packages
     - pip install .
     # Run tests
