@@ -37,7 +37,11 @@ def read_gromacs(filename):
     gromacs_atomtypes = []
     for line in (lines[2:-1]):
         #print line[0:5]+':'+line[5:11]+':'+line[11:15]+':'+line[15:20]
-        inp = line.split()
+        # it is not a good idea to use the split method with gromacs input
+        # since the fields are defined by a fixed column number. Therefore,
+        # they may not be space between the fields
+        #inp = line.split()
+
         floatvect = float(line[20:28]) * 10.0, \
             float(line[28:36]) * 10.0, \
             float(line[36:44]) * 10.0
@@ -51,10 +55,12 @@ def read_gromacs(filename):
         except:
             floatvect = 0.0, 0.0, 0.0
         gromacs_velocities.append(floatvect)
-        symbols.append(inp[1][0:2])
         gromacs_residuenumbers.append(int(line[0:5]))
         gromacs_residuenames.append(line[5:11].strip())
-        gromacs_atomtypes.append(inp[1])
+
+        symbols.append(line[11:16].strip()[0:2])
+        gromacs_atomtypes.append(line[11:16].strip())
+
     line = lines[-1]
     symbols_ok = []
     for isymbol in symbols:
