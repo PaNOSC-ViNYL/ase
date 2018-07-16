@@ -41,6 +41,8 @@ Git master branch
 * New ``--show-keys`` and ``--show-values=...`` options for the
   :ref:`ase db <cli>` command line interface.
 
+* Added callback method :meth:`ase.gui.gui.GUI.repeat_poll` to the GUI.
+  Useful for programmatically updating the GUI.
 
 Version 3.16.2
 ==============
@@ -333,7 +335,6 @@ Version 3.12.0
 * New :ref:`defects` tutorial and new super-cell functions:
   :func:`~ase.build.get_deviation_from_optimal_cell_shape`,
   :func:`~ase.build.find_optimal_cell_shape`,
-  :func:`~ase.build.find_optimal_cell_shape_pure_python`,
   :func:`~ase.build.make_supercell`.
 
 * New :class:`~ase.dft.band_structure.BandStructure` object.  Can identify

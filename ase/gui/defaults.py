@@ -13,6 +13,8 @@ gui_default_settings = {
     'gui_background_color': '#ffffff',
     'covalent_radii': None,
     'radii_scale': 0.89,
+    'force_vector_scale': 1.0,
+    'velocity_vector_scale': 1.0,
     'show_unit_cell': True,
     'show_axes': True,
     'show_bonds': False,
