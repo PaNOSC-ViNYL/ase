@@ -17,7 +17,6 @@ from ase.build.tools import (cut, stack, sort, minimize_tilt, niggli_reduce,
 from ase.build.supercells import (
     get_deviation_from_optimal_cell_shape,
     find_optimal_cell_shape,
-    find_optimal_cell_shape_pure_python,
     make_supercell)
 
 __all__ = ['minimize_rotation_and_translation',

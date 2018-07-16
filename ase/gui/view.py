@@ -96,7 +96,11 @@ class View:
         for i, rgb in enumerate(jmol_colors):
             self.colors[i] = ('#{0:02X}{1:02X}{2:02X}'
                               .format(*(int(x * 255) for x in rgb)))
-        
+
+        # scaling factors for vectors
+        self.force_vector_scale = self.config['force_vector_scale']
+        self.velocity_vector_scale = self.config['velocity_vector_scale']
+
         # buttons
         self.b1 = 1 # left
         self.b3 = 3 # right
@@ -392,11 +396,11 @@ class View:
             # Scale ugly?
             v = self.atoms.get_velocities()
             if v is not None:
-                vector_arrays.append(v * 10.0)
+                vector_arrays.append(v * 10.0 * self.velocity_vector_scale)
         if self.window['toggle-show-forces']:
             f = self.get_forces()
             if f is not None:
-                vector_arrays.append(f)
+                vector_arrays.append(f * self.force_vector_scale)
 
         for array in vector_arrays:
             array[:] = np.dot(array, axes) + X[:n]

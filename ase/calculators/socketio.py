@@ -198,7 +198,7 @@ class SocketServer:
     default_port = 31415
 
     def __init__(self, client_command=None, port=None,
-                 unixsocket=None, timeout=None, log=None):
+                 unixsocket=None, timeout=None, cwd=None, log=None):
         """Create server and listen for connections.
 
         Parameters:
@@ -262,13 +262,15 @@ class SocketServer:
         self.protocol = None
         self.clientsocket = None
         self.address = None
+        self.cwd = cwd
 
         if client_command is not None:
             client_command = client_command.format(port=port,
                                                    unixsocket=unixsocket)
             if log:
                 print('Launch subprocess: {}'.format(client_command), file=log)
-            self.proc = Popen(client_command, shell=True)
+            self.proc = Popen(client_command, shell=True,
+                              cwd=self.cwd)
             # self._accept(process_args)
 
     def _accept(self, client_command=None):
@@ -601,7 +603,9 @@ class SocketIOCalculator(Calculator):
     def launch_server(self, cmd=None):
         self.server = SocketServer(client_command=cmd, port=self._port,
                                    unixsocket=self._unixsocket,
-                                   timeout=self.timeout, log=self.log)
+                                   timeout=self.timeout, log=self.log,
+                                   cwd=(None if self.calc is None
+                                        else self.calc.directory))
 
     def calculate(self, atoms=None, properties=['energy'],
                   system_changes=all_changes):
