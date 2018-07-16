@@ -71,4 +71,9 @@ def save_dialog(gui, filename=None):
         for i, atoms in enumerate(images):
             write(filename.format(i), atoms, **extra)
     else:
-        write(filename, images, **extra)
+        try:
+            write(filename, images, **extra)
+        except Exception as err:
+            from ase.gui.ui import showerror
+            showerror(_('Error'), err)
+            raise

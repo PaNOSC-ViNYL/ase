@@ -11,7 +11,6 @@ from ase.db.core import convert_str_to_int_float_or_str
 from ase.db.summary import Summary
 from ase.db.table import Table, all_columns
 from ase.db.web import process_metadata
-from ase.calculators.calculator import get_calculator
 from ase.utils import plural, basestring
 
 try:
@@ -47,7 +46,10 @@ class CLICommand:
         add('-i', '--insert-into', metavar='db-name',
             help='Insert selected rows into another database.')
         add('-a', '--add-from-file', metavar='filename',
-            help='Add results from file.')
+            help='Add configuration(s) from file.  '
+            'If the file contains more than one configuration then you can '
+            'use the syntax filename@: to add all of them.  Default is to '
+            'only add the last.')
         add('-k', '--add-key-value-pairs', metavar='key1=val1,key2=val2,...',
             help='Add key-value pairs to selected rows.  Values must '
             'be numbers or strings and keys must follow the same rules as '
@@ -181,14 +183,12 @@ def main(args):
 
     if args.add_from_file:
         filename = args.add_from_file
-        if ':' in filename:
-            calculator_name, filename = filename.split(':')
-            atoms = get_calculator(calculator_name)(filename).get_atoms()
-        else:
-            atoms = ase.io.read(filename)
-        db.write(atoms, key_value_pairs=add_key_value_pairs)
-        out('Added {0} from {1}'.format(atoms.get_chemical_formula(),
-                                        filename))
+        configs = ase.io.read(filename)
+        if not isinstance(configs, list):
+            configs = [configs]
+        for atoms in configs:
+            db.write(atoms, key_value_pairs=add_key_value_pairs)
+        out('Added ' + plural(len(configs), 'row'))
         return
 
     if args.count:

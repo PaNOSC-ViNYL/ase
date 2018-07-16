@@ -1418,12 +1418,18 @@ class Atoms(object):
     def set_dihedral(self, a1, a2=None, a3=None, a4=None, angle=None,
                      mask=None, indices=None):
         """Set the dihedral angle (degrees) between vectors a1->a2 and
-        a3->a4 by changing the atom indexed by a4
-        if mask is not None, all the atoms described in mask
-        (read: the entire subgroup) are moved. Alternatively to the mask,
-        the indices of the atoms to be rotated can be supplied.
+        a3->a4 by changing the atom indexed by a4.
 
-        example: the following defines a very crude
+        If mask is not None, all the atoms described in mask
+        (read: the entire subgroup) are moved. Alternatively to the mask,
+        the indices of the atoms to be rotated can be supplied. If both
+        *mask* and *indices* are given, *indices* overwrites *mask*.
+
+        **Important**: If *mask* or *indices* is given and does not contain
+        *a4*, *a4* will NOT be moved. In most cases you therefore want
+        to include *a4* in *mask*/*indices*.
+
+        Example: the following defines a very crude
         ethane-like molecule and twists one half of it by 30 degrees.
 
         >>> from math import pi
@@ -1454,7 +1460,7 @@ class Atoms(object):
         if mask is None and indices is None:
             mask = np.zeros(len(self))
             mask[a4] = 1
-        elif indices:
+        elif indices is not None:
             mask = [index in indices for index in range(len(self))]
 
         # compute necessary in dihedral change, from current value
@@ -1465,16 +1471,15 @@ class Atoms(object):
         self._masked_rotate(center, axis, diff, mask)
 
     def rotate_dihedral(self, a1, a2=None, a3=None, a4=None,
-                        angle=None, mask=None):
+                        angle=None, mask=None, indices=None):
         """Rotate dihedral angle.
 
-        Complementing the two routines above: rotate a group by a
-        predefined dihedral angle, starting from its current
-        configuration
+        Same usage as in :meth:`ase.Atoms.set_dihedral`: Rotate a group by a
+        predefined dihedral angle, starting from its current configuration.
         """
         if isinstance(a1, int):
             start = self.get_dihedral(a1, a2, a3, a4)
-            self.set_dihedral(a1, a2, a3, a4, angle + start, mask)
+            self.set_dihedral(a1, a2, a3, a4, angle + start, mask, indices)
         else:
             warnings.warn(
                 'Please use new API: '
@@ -1482,12 +1487,12 @@ class Atoms(object):
                 'where angle is given in degrees')
             if angle is None:
                 angle = a2
-                if mask is None:
+                if mask is None and indices is None:
                     mask = a3
             else:
                 assert a2 is None and a3 is None and a4 is None
             start = self.get_dihedral(a1)
-            self.set_dihedral(a1, angle + start, mask)
+            self.set_dihedral(a1, angle + start, mask, indices)
 
     def get_angle(self, a1, a2, a3, mic=False):
         """Get angle formed by three atoms.
@@ -1547,12 +1552,16 @@ class Atoms(object):
         return get_angles(v12, v32, cell=cell, pbc=pbc)
 
 
-    def set_angle(self, a1, a2=None, a3=None, angle=None, mask=None):
+    def set_angle(self, a1, a2=None, a3=None, angle=None, mask=None, indices=None, add=False):
         """Set angle (in degrees) formed by three atoms.
 
-        Sets the angle between vectors a2->a1 and a2->a3.
+        Sets the angle between vectors *a2*->*a1* and *a2*->*a3*.
 
-        Same usage as in set_dihedral()."""
+        If *add* is `True`, the angle will be changed by the value given.
+
+        Same usage as in :meth:`ase.Atoms.set_dihedral`. If *mask* and *indices*
+        are given, *indices* overwrites *mask*. If *mask* and *indices* are not set,
+        only *a3* is moved."""
 
         if not isinstance(a1, int):
             # old API (uses radians)
@@ -1570,12 +1579,19 @@ class Atoms(object):
             angle *= 180 / pi
 
         # If not provided, set mask to the last atom in the angle description
-        if mask is None:
+        if mask is None and indices is None:
             mask = np.zeros(len(self))
             mask[a3] = 1
-        # Compute necessary in angle change, from current value
-        current = self.get_angle(a1, a2, a3)
-        diff = (angle - current) * pi / 180
+        elif indices is not None:
+            mask = [index in indices for index in range(len(self))]
+
+        if add:
+            diff = angle
+        else:
+            # Compute necessary in angle change, from current value
+            diff = angle - self.get_angle(a1, a2, a3)
+
+        diff *= pi / 180
         # Do rotation of subgroup by copying it to temporary atoms object and
         # then rotating that
         v10 = self.positions[a1] - self.positions[a2]
@@ -1585,6 +1601,7 @@ class Atoms(object):
         axis = np.cross(v10, v12)
         center = self.positions[a2]
         self._masked_rotate(center, axis, diff, mask)
+
 
     def rattle(self, stdev=0.001, seed=42):
         """Randomly displace atoms.
@@ -1677,13 +1694,31 @@ class Atoms(object):
             return D_len
 
 
-    def set_distance(self, a0, a1, distance, fix=0.5, mic=False):
+    def set_distance(self, a0, a1, distance, fix=0.5, mic=False, mask=None, indices=None, add=False, factor=False):
         """Set the distance between two atoms.
 
         Set the distance between atoms *a0* and *a1* to *distance*.
         By default, the center of the two atoms will be fixed.  Use
         *fix=0* to fix the first atom, *fix=1* to fix the second
-        atom and *fix=0.5* (default) to fix the center of the bond."""
+        atom and *fix=0.5* (default) to fix the center of the bond.
+
+        If *mask* or *indices* are set (*mask* overwrites *indices*),
+        only the atoms defined there are moved (see :meth:`ase.Atoms.set_dihedral`).
+
+        When *add* is true, the distance is changed by the value given. In combination
+        with *factor* True, the value given is a factor scaling the distance.
+
+        It is assumed that the atoms in *mask*/*indices* move together
+        with *a1*. If *fix=1*, only *a0* will therefore be moved."""
+
+        if add:
+            oldDist = self.get_distance(a0, a1, mic=mic)
+            if factor:
+                newDist = oldDist * distance
+            else:
+                newDist = oldDist + distance
+            self.set_distance(a0, a1, newDist, fix=fix, mic=mic, mask=mask, indices=indices, add=False, factor=False)
+            return
 
         R = self.arrays['positions']
         D = np.array([R[a1] - R[a0]])
@@ -1693,8 +1728,18 @@ class Atoms(object):
         else:
             D_len = np.array([np.sqrt((D**2).sum())])
         x = 1.0 - distance / D_len[0]
-        R[a0] += (x * fix) * D[0]
-        R[a1] -= (x * (1.0 - fix)) * D[0]
+
+        if mask is None and indices is None:
+            indices = [ a0, a1 ]
+        elif mask:
+            indices = [ i for i in range(len(self)) if mask[i] ]
+
+        for i in indices:
+            if i == a0:
+                R[a0] += (x * fix) * D[0]
+            else:
+                R[i] -= (x * (1.0 - fix)) * D[0]
+
 
     def get_scaled_positions(self, wrap=True):
         """Get positions relative to unit cell.
