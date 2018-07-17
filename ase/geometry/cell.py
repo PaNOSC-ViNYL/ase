@@ -9,15 +9,27 @@ from numpy.linalg import norm
 
 class Cell:
     def __init__(self, cell):
-        if np.shape(cell) == (3,):
-            cell = np.diag(cell)
         self.cell = cell
 
     def cellpar(self, radians=False):
         return cell_to_cellpar(self.cell, radians)
 
     @classmethod
-    def fromcellpar(cellpar, ab_normal=(0, 0, 1), a_direction=None):
+    def new(cls, cell):
+        cell = np.array(cell, float)
+
+        if cell.shape == (3,):
+            cell = np.diag(cell)
+        elif cell.shape == (6,):
+            cell = cellpar_to_cell(cell)
+        elif cell.shape != (3, 3):
+            raise ValueError('Cell must be length 3 sequence, length 6 '
+                             'sequence or 3x3 matrix!')
+
+        return cls(cell)
+
+    @classmethod
+    def fromcellpar(cls, cellpar, ab_normal=(0, 0, 1), a_direction=None):
         cell = cellpar_to_cell(cellpar, ab_normal, a_direction)
         return Cell(cell)
 
@@ -38,9 +50,13 @@ class Cell:
     def is_orthorhombic(self):
         return is_orthorhombic(self.cell)
 
-    @property
-    def diag(self):
+    def box(self):
         return orthorhombic(self.cell)
+
+    def __bool__(self):
+        return bool(self.cell.any())  # .any() returns a numpy.bool_
+
+    nonzero = __bool__
 
     @property
     def volume(self):
@@ -48,21 +64,14 @@ class Cell:
         # I think normally it is more convenient just to get zero
         return np.abs(np.linalg.det(self.cell))
 
-    #def reciprocal(self):
-    #    things like 2 pi?
-    #    return Cell(np.linalg.pinv(self.get_cell()).transpose())
+    def scaled_positions(self, positions):
+        return np.linalg.solve(self.complete().cell.T, positions.T).T
 
-    #def scaled_positions(self, positions):
-    #    pass
+    def cartesian_positions(self, scaled_positions):
+        return np.dot(scaled_positions, self.complete().cell)
 
-    #def absolute_positions(self, scaled_positions):
-    #    pass
-
-    #def lengths(self):
-    #    return np.sqrt((self.cell**2).sum(axis=1))
-
-
-    # set cell / scale atoms
+    def reciprocal(self):
+        return np.linalg.pinv(self.cell).transpose()
 
     def __repr__(self):
         if self.is_orthorhombic:
@@ -70,6 +79,11 @@ class Cell:
         else:
             numbers = self.cell.tolist()
         return 'Cell({})'.format(numbers)
+
+    def niggli_reduce(self):
+        cell, _ = niggli_reduce_cell(self.cell)
+        return Cell(cell)
+
 
 def unit_vector(x):
     """Return a unit vector in the same direction as x."""
