@@ -19,6 +19,7 @@ from ase.atom import Atom
 from ase.constraints import FixConstraint, FixBondLengths
 from ase.data import atomic_numbers, chemical_symbols, atomic_masses
 from ase.utils import basestring, formula_hill, formula_metal
+from ase.geometry.cell import Cell
 from ase.geometry import (wrap_positions, find_mic, cellpar_to_cell,
                           cell_to_cellpar, complete_cell, is_orthorhombic,
                           get_angles, get_distances)
@@ -215,7 +216,7 @@ class Atoms(object):
                 positions = np.zeros((len(self.arrays['numbers']), 3))
             else:
                 assert self.number_of_lattice_vectors == 3
-                positions = np.dot(scaled_positions, self._cell)
+                positions = np.dot(scaled_positions, self.cell)
         else:
             if scaled_positions is not None:
                 raise RuntimeError('Both scaled and cartesian positions set!')
@@ -258,7 +259,7 @@ class Atoms(object):
     @property
     def number_of_lattice_vectors(self):
         """Number of (non-zero) lattice vectors."""
-        return self._cell.any(1).sum()
+        return self.cell.any(1).sum()
 
     def set_constraint(self, constraint=None):
         """Apply one or more constrains.
@@ -338,7 +339,7 @@ class Atoms(object):
             M = np.linalg.solve(self.get_cell(complete=True),
                                 complete_cell(cell))
             self.positions[:] = np.dot(self.positions, M)
-        self._cell = cell
+        self._cellobj = Cell(cell)
 
     def set_celldisp(self, celldisp):
         """Set the unit cell displacement vectors."""
@@ -352,9 +353,9 @@ class Atoms(object):
     def get_cell(self, complete=False):
         """Get the three unit cell vectors as a 3x3 ndarray."""
         if complete:
-            return complete_cell(self._cell)
+            return complete_cell(self.cell)
         else:
-            return self._cell.copy()
+            return self.cell.copy()
 
     def get_cell_lengths_and_angles(self):
         """Get unit cell parameters. Sequence of 6 numbers.
@@ -366,7 +367,7 @@ class Atoms(object):
 
         in degrees.
         """
-        return cell_to_cellpar(self._cell)
+        return cell_to_cellpar(self.cell)
 
     def get_reciprocal_cell(self):
         """Get the three reciprocal lattice vectors as a 3x3 ndarray.
@@ -669,7 +670,7 @@ class Atoms(object):
         """
         if wrap:
             scaled = self.get_scaled_positions()
-            return np.dot(scaled, self._cell)
+            return np.dot(scaled, self.cell)
         else:
             return self.arrays['positions'].copy()
 
@@ -807,7 +808,7 @@ class Atoms(object):
 
     def copy(self):
         """Return a copy."""
-        atoms = self.__class__(cell=self._cell, pbc=self._pbc, info=self.info)
+        atoms = self.__class__(cell=self.cell, pbc=self._pbc, info=self.info)
 
         atoms.arrays = {}
         for name, a in self.arrays.items():
@@ -848,11 +849,11 @@ class Atoms(object):
         else:
             tokens.append('pbc={0}'.format(self._pbc[0]))
 
-        if self._cell.any():
-            if is_orthorhombic(self._cell):
-                cell = self._cell.diagonal().tolist()
+        if self.cell.any():
+            if is_orthorhombic(self.cell):
+                cell = self.cell.diagonal().tolist()
             else:
-                cell = self._cell.tolist()
+                cell = self.cell.tolist()
             tokens.append('cell={0}'.format(cell))
 
         for name in sorted(self.arrays):
@@ -954,7 +955,7 @@ class Atoms(object):
                 except IndexError:
                     pass
 
-        atoms = self.__class__(cell=self._cell, pbc=self._pbc, info=self.info,
+        atoms = self.__class__(cell=self.cell, pbc=self._pbc, info=self.info,
                                # should be communicated to the slice as well
                                celldisp=self._celldisp)
         # TODO: Do we need to shuffle indices in adsorbate_info too?
@@ -1007,7 +1008,7 @@ class Atoms(object):
         if isinstance(m, int):
             m = (m, m, m)
 
-        for x, vec in zip(m, self._cell):
+        for x, vec in zip(m, self.cell):
             if x != 1 and not vec.any():
                 raise ValueError('Cannot repeat along undefined lattice '
                                  'vector')
@@ -1024,13 +1025,13 @@ class Atoms(object):
             for m1 in range(m[1]):
                 for m2 in range(m[2]):
                     i1 = i0 + n
-                    positions[i0:i1] += np.dot((m0, m1, m2), self._cell)
+                    positions[i0:i1] += np.dot((m0, m1, m2), self.cell)
                     i0 = i1
 
         if self.constraints is not None:
             self.constraints = [c.repeat(m, n) for c in self.constraints]
 
-        self._cell = np.array([m[c] * self._cell[c] for c in range(3)])
+        self.cell = np.array([m[c] * self.cell[c] for c in range(3)])
 
         return self
 
@@ -1114,8 +1115,8 @@ class Atoms(object):
         translation = np.zeros(3)
         for i in axes:
             nowlen = np.sqrt(np.dot(cell[i], cell[i]))
-            if vacuum is not None or self._cell[i].any():
-                self._cell[i] = cell[i] * (1 + longer[i] / nowlen)
+            if vacuum is not None or self.cell[i].any():
+                self.cell[i] = cell[i] * (1 + longer[i] / nowlen)
                 translation += shift[i] * cell[i] / nowlen
         self.arrays['positions'] += translation
 
@@ -1133,7 +1134,7 @@ class Atoms(object):
         m = self.get_masses()
         com = np.dot(m, self.arrays['positions']) / m.sum()
         if scaled:
-            return np.linalg.solve(self._cell.T, com)
+            return np.linalg.solve(self.cell.T, com)
         else:
             return com
 
@@ -1379,7 +1380,7 @@ class Atoms(object):
         b = self.positions[a3] - self.positions[a2]
         c = self.positions[a4] - self.positions[a3]
         if mic:
-            a, b, c = find_mic([a, b, c], self._cell, self._pbc)[0]
+            a, b, c = find_mic([a, b, c], self.cell, self._pbc)[0]
         bxa = np.cross(b, a)
         bxa /= np.linalg.norm(bxa)
         cxb = np.cross(c, b)
@@ -1517,7 +1518,7 @@ class Atoms(object):
         pbc = None
 
         if mic:
-            cell = self._cell
+            cell = self.cell
             pbc = self._pbc
 
         return get_angles(v12, v32, cell=cell, pbc=pbc)[0]
@@ -1546,7 +1547,7 @@ class Atoms(object):
         pbc = None
 
         if mic:
-            cell = self._cell
+            cell = self.cell
             pbc = self._pbc
 
         return get_angles(v12, v32, cell=cell, pbc=pbc)
@@ -1633,7 +1634,7 @@ class Atoms(object):
         pbc = None
 
         if mic:
-            cell = self._cell
+            cell = self.cell
             pbc = self._pbc
 
         D, D_len = get_distances(p1, p2, cell=cell, pbc=pbc)
@@ -1659,7 +1660,7 @@ class Atoms(object):
         pbc = None
 
         if mic:
-            cell = self._cell
+            cell = self.cell
             pbc = self._pbc
 
         D, D_len = get_distances(p1, p2, cell=cell, pbc=pbc)
@@ -1683,7 +1684,7 @@ class Atoms(object):
         pbc = None
 
         if mic:
-            cell = self._cell
+            cell = self.cell
             pbc = self._pbc
 
         D, D_len = get_distances(R, cell=cell, pbc=pbc)
@@ -1724,7 +1725,7 @@ class Atoms(object):
         D = np.array([R[a1] - R[a0]])
 
         if mic:
-            D, D_len = find_mic(D, self._cell, self._pbc)
+            D, D_len = find_mic(D, self.cell, self._pbc)
         else:
             D_len = np.array([np.sqrt((D**2).sum())])
         x = 1.0 - distance / D_len[0]
@@ -1818,7 +1819,7 @@ class Atoms(object):
         return (len(self) == len(other) and
                 (a['positions'] == b['positions']).all() and
                 (a['numbers'] == b['numbers']).all() and
-                (self._cell == other.cell).all() and
+                (self.cell == other.cell).all() and
                 (self._pbc == other.pbc).all())
 
     def __ne__(self, other):
@@ -1841,7 +1842,7 @@ class Atoms(object):
             raise ValueError(
                 'You have {0} lattice vectors: volume not defined'
                 .format(self.number_of_lattice_vectors))
-        return abs(np.linalg.det(self._cell))
+        return abs(np.linalg.det(self.cell))
 
     def _get_positions(self):
         """Return reference to positions-array for in-place manipulations."""
@@ -1885,7 +1886,7 @@ class Atoms(object):
 
     def _get_cell(self):
         """Return reference to unit cell for in-place manipulations."""
-        return self._cell
+        return self._cellobj.cell
 
     cell = property(_get_cell, set_cell, doc='Attribute for direct ' +
                     'manipulation of the unit cell.')

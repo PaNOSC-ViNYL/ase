@@ -7,6 +7,70 @@ from numpy import pi, sin, cos, arccos, sqrt, dot
 from numpy.linalg import norm
 
 
+class Cell:
+    def __init__(self, cell):
+        if np.shape(cell) == (3,):
+            cell = np.diag(cell)
+        self.cell = cell
+
+    def cellpar(self, radians=False):
+        return cell_to_cellpar(self.cell, radians)
+
+    @classmethod
+    def fromcellpar(cellpar, ab_normal=(0, 0, 1), a_direction=None):
+        cell = cellpar_to_cell(cellpar, ab_normal, a_direction)
+        return Cell(cell)
+
+    def crystal_structure(self, eps=2e-4, niggli_reduce=True):
+        return crystal_structure_from_cell(self.cell, eps, niggli_reduce)
+
+    def complete(self):
+        return Cell(complete_cell(self.cell))
+
+    def copy(self):
+        return Cell(self.cell.copy())
+
+    @property
+    def ndim(self):
+        return self.cell.any(1).sum()
+
+    @property
+    def is_orthorhombic(self):
+        return is_orthorhombic(self.cell)
+
+    @property
+    def diag(self):
+        return orthorhombic(self.cell)
+
+    @property
+    def volume(self):
+        # Fail or 0 for <3D cells?
+        # I think normally it is more convenient just to get zero
+        return np.abs(np.linalg.det(self.cell))
+
+    #def reciprocal(self):
+    #    things like 2 pi?
+    #    return Cell(np.linalg.pinv(self.get_cell()).transpose())
+
+    #def scaled_positions(self, positions):
+    #    pass
+
+    #def absolute_positions(self, scaled_positions):
+    #    pass
+
+    #def lengths(self):
+    #    return np.sqrt((self.cell**2).sum(axis=1))
+
+
+    # set cell / scale atoms
+
+    def __repr__(self):
+        if self.is_orthorhombic:
+            numbers = np.diag(self.cell).tolist()
+        else:
+            numbers = self.cell.tolist()
+        return 'Cell({})'.format(numbers)
+
 def unit_vector(x):
     """Return a unit vector in the same direction as x."""
     y = np.array(x, dtype='float')
