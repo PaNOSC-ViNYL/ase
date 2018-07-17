@@ -46,14 +46,23 @@ def read_gromacs(filename):
             float(line[28:36]) * 10.0, \
             float(line[36:44]) * 10.0
         positions.append(floatvect)
-        try:
-            #velocities from nm/ps to ase units
-            floatvect = \
-                float(line[44:52]) * units.nm / (1000.0 * units.fs), \
-                float(line[52:60]) * units.nm / (1000.0 * units.fs), \
-                float(line[60:68]) * units.nm / (1000.0 * units.fs)
-        except:
-            floatvect = 0.0, 0.0, 0.0
+
+        # read velocities
+        velocities = np.array([0.0, 0.0, 0.0])
+        vx = line[44:52].strip()
+        vy = line[52:60].strip()
+        vz = line[60:68].strip()
+
+        for iv, vxyz in enumerate([vx, vy, vz]):
+            if len(vxyz) > 0:
+                try:
+                    velocities[iv] = float(vxyz)
+                except ValueError:
+                    raise ValueError("can not convert velocity to float")
+
+        # velocities from nm/ps to ase units
+        velocities *= units.nm / (1000.0 * units.fs)
+
         gromacs_velocities.append(floatvect)
         gromacs_residuenumbers.append(int(line[0:5]))
         gromacs_residuenames.append(line[5:11].strip())
