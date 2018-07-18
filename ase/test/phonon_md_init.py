@@ -1,7 +1,6 @@
 import numpy as np
 from numpy.random import RandomState
 import ase.units as u
-from ase.md.verlet import VelocityVerlet
 from ase.phonons import Phonons
 from ase.data import atomic_numbers
 from ase.optimize import FIRE
@@ -9,6 +8,9 @@ from ase.optimize import FIRE
 from ase.calculators.emt import EMT
 from ase.build import bulk
 from ase.md.velocitydistribution import PhononHarmonics
+
+# Tests the phonon-based perturbation and velocity distribution
+# for thermal equilibration in MD.
 
 rng = RandomState(17)
 
