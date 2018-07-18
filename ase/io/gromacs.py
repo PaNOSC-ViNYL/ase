@@ -59,11 +59,14 @@ def read_gromacs(filename):
                     velocities[iv] = float(vxyz)
                 except ValueError:
                     raise ValueError("can not convert velocity to float")
+            else:
+                velocities = None
 
-        # velocities from nm/ps to ase units
-        velocities *= units.nm / (1000.0 * units.fs)
+        if velocities is not None:
+            # velocities from nm/ps to ase units
+            velocities *= units.nm / (1000.0 * units.fs)
+            gromacs_velocities.append(floatvect)
 
-        gromacs_velocities.append(floatvect)
         gromacs_residuenumbers.append(int(line[0:5]))
         gromacs_residuenames.append(line[5:11].strip())
 
@@ -80,7 +83,11 @@ def read_gromacs(filename):
             #not ok atom name
             symbols_ok.append(isymbol[0])
     atoms = Atoms(symbols_ok, positions)
-    atoms.set_velocities(gromacs_velocities)
+
+    if len(gromacs_velocities) == len(atoms):
+        atoms.set_velocities(gromacs_velocities)
+    elif len(gromacs_velocities) != 0:
+        warnings.warn("some atoms velocities were not specified. Velocities are dropped!")
 
     if not atoms.has('residuenumbers'):
         atoms.new_array('residuenumbers', gromacs_residuenumbers, int)
@@ -91,6 +98,8 @@ def read_gromacs(filename):
     if not atoms.has('atomtypes'):
         atoms.new_array('atomtypes', gromacs_atomtypes, str)
         atoms.set_array('atomtypes', gromacs_atomtypes, str)
+
+
     try:
         line = lines[-1]
         inp = line.split()
