@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: ase\n"
 "Report-Msgid-Bugs-To: ase-users@listserv.fysik.dtu.dk\n"
 "POT-Creation-Date: 2018-07-11 18:04+0200\n"
-"PO-Revision-Date: 2018-07-12 19:30+0200\n"
+"PO-Revision-Date: 2018-07-18 14:29+0200\n"
 "Last-Translator: Yann Pouillon <yann.pouillon@materialsevolution.es>\n"
 "Language-Team: French\n"
 "Language: fr\n"
@@ -71,11 +71,9 @@ msgstr "Positions incorrectes"
 
 #: ../add.py:136
 msgid ""
-"Atom would be less than 0.5 Ã… from an existing atom.  To override, uncheck the "
+"Atom would be less than 0.5 Å from an existing atom.  To override, uncheck the "
 "check positions option."
-msgstr ""
-"Cet atome se trouverait à 0,5 Å d’un atome existant. Pour le permettre, "
-"désélectionnez l’option \"vérifier les positions\"."
+msgstr "Cet atome se trouverait à 0,5 Å d’un atome existant. Pour le permettre, désélectionnez l’option \"vérifier les positions\"."
 
 #. TRANSLATORS: This is a title of a window.
 #: ../celleditor.py:48
@@ -139,9 +137,9 @@ msgid "Apply Angles"
 msgstr "Appliquer les Angles"
 
 #: ../celleditor.py:64
-msgid "Pressing ã€ˆEnterã€‰ as you enter values will automatically apply correctly"
+msgid "Pressing 〈Enter〉 as you enter values will automatically apply correctly"
 msgstr ""
-"Presser ã€ˆEntréeã€‰ lorsque vous entrez des valeurs les appliquera correctementde "
+"Presser 〈Entrée〉 lorsque vous entrez des valeurs les appliquera correctementde "
 "manière automatique"
 
 #. TRANSLATORS: verb
@@ -282,7 +280,7 @@ msgstr ""
 #: ../graphene.py:30
 #, python-format
 msgid " %(natoms)i atoms: %(symbols)s, Volume: %(volume).3f A<sup>3</sup>"
-msgstr " %(natoms)i atomes: %(symbols)s, Volume: %(volume).3f Å<sup>3</sup>"
+msgstr " %(natoms)i atomes: %(symbols)s, Volume: %(volume).3f Å<sup>3</sup>"
 
 #: ../graphene.py:38 ../gui.py:527
 msgid "Graphene"
@@ -323,8 +321,8 @@ msgid "  Bond length: "
 msgstr " Distance interatomique :"
 
 #: ../graphene.py:72 ../graphene.py:83 ../graphene.py:107 ../nanotube.py:45
-msgid "Ã…"
-msgstr "Å..."
+msgid "Å"
+msgstr "Å"
 
 #. Choose the saturation element and bond length
 #: ../graphene.py:77
@@ -466,7 +464,7 @@ msgstr "_Inverser la sélection"
 
 #: ../gui.py:439
 msgid "Select _constrained atoms"
-msgstr "Sélectionner les atomes avec contrainte"
+msgstr "Sélectionner les atomes avec _contrainte"
 
 #: ../gui.py:440
 msgid "Select _immobile atoms"
@@ -490,7 +488,7 @@ msgstr "_Ajouter des atomes"
 
 #: ../gui.py:450
 msgid "_Delete selected atoms"
-msgstr "Effacer les atomes sélectionnés"
+msgstr "_Effacer les atomes sélectionnés"
 
 #: ../gui.py:452
 msgid "Edit _cell"
@@ -498,19 +496,19 @@ msgstr "Éditer la _cellule"
 
 #: ../gui.py:454
 msgid "_First image"
-msgstr "Première image"
+msgstr "_Première image"
 
 #: ../gui.py:455
 msgid "_Previous image"
-msgstr "Image précédente"
+msgstr "Image _précédente"
 
 #: ../gui.py:456
 msgid "_Next image"
-msgstr "Image suivante"
+msgstr "Image _suivante"
 
 #: ../gui.py:457
 msgid "_Last image"
-msgstr "Dernière image"
+msgstr "_Dernière image"
 
 #: ../gui.py:459
 msgid "_View"
@@ -518,7 +516,7 @@ msgstr "_Voir"
 
 #: ../gui.py:460
 msgid "Show _unit cell"
-msgstr "Afficher la cellule unité"
+msgstr "Afficher la cellule _unité"
 
 #: ../gui.py:462
 msgid "Show _axes"
@@ -526,7 +524,7 @@ msgstr "Afficher les _axes"
 
 #: ../gui.py:464
 msgid "Show _bonds"
-msgstr "Afficher les liaisons"
+msgstr "Afficher les _liaisons"
 
 #: ../gui.py:466
 msgid "Show _velocities"
@@ -538,7 +536,7 @@ msgstr "Afficher les _forces"
 
 #: ../gui.py:470
 msgid "Show _Labels"
-msgstr "Afficher les étiquettes"
+msgstr "Afficher les éti_quettes"
 
 #: ../gui.py:471
 msgid "_None"
@@ -713,19 +711,19 @@ msgstr "Espace réciproque ..."
 #. TRANSLATORS: Set up (i.e. build) surfaces, nanoparticles, ...
 #: ../gui.py:521
 msgid "_Setup"
-msgstr "Ajuster"
+msgstr "_Ajuster"
 
 #: ../gui.py:522
 msgid "_Bulk Crystal"
-msgstr "Cristal"
+msgstr "_Cristal"
 
 #: ../gui.py:523
 msgid "_Surface slab"
-msgstr "Surface"
+msgstr "_Surface"
 
 #: ../gui.py:524
 msgid "_Nanoparticle"
-msgstr "Nanoparticule"
+msgstr "_Nanoparticule"
 
 #: ../gui.py:526
 msgid "Nano_tube"
@@ -741,7 +739,7 @@ msgstr "Ajuster le _Calculateur"
 
 #: ../gui.py:531
 msgid "_Energy and Forces"
-msgstr "Énergie et Forces"
+msgstr "_Énergie et Forces"
 
 #: ../gui.py:532
 msgid "Energy Minimization"
@@ -749,7 +747,7 @@ msgstr "Minimisation de l'Énergie"
 
 #: ../gui.py:535
 msgid "_Help"
-msgstr "Aide"
+msgstr "Aid_e"
 
 #: ../gui.py:536
 msgid "_About"
@@ -1038,8 +1036,8 @@ msgid "atoms"
 msgstr "atomes"
 
 #: ../nanoparticle.py:287
-msgid "Ã…Â³"
-msgstr "Å...Å³"
+msgid "Å³"
+msgstr "Å³"
 
 #: ../nanoparticle.py:289
 msgid "Rounding: If exact size is not possible, choose the size:"
@@ -1087,10 +1085,10 @@ msgstr ""
 #: ../nanotube.py:26
 #, python-brace-format
 msgid ""
-"{natoms} atoms, diameter: {diameter:.3f} Ã…, total length: {total_length:.3f} Ã…"
+"{natoms} atoms, diameter: {diameter:.3f} Å, total length: {total_length:.3f} Å"
 msgstr ""
-"{natoms} atomes, diamètre : {diameter:.3f} Å, longueur totale : {total_length:.3f} "
-"Å"
+"{natoms} atomes, diamètre : {diameter:.3f} Å, longueur totale : {total_length:.3f} "
+"Å"
 
 #: ../nanotube.py:40
 msgid "Nanotube"
@@ -1125,8 +1123,8 @@ msgid "Number of atoms: {}"
 msgstr "Nombre d'atomes : {}"
 
 #: ../quickinfo.py:47
-msgid "Unit cell [Ã…]:"
-msgstr "Cellule unité [Å…] :"
+msgid "Unit cell [Å]:"
+msgstr "Cellule unité [Å] :"
 
 #: ../quickinfo.py:49
 msgid "no"
@@ -1150,7 +1148,7 @@ msgid "Unit cell varies."
 msgstr "La cellule unité varie."
 
 #: ../quickinfo.py:60
-msgid "Volume: {:.3f} Ã…Â³"
+msgid "Volume: {:.3f} Å³"
 msgstr "Volume: {:.3f} Å³"
 
 #: ../quickinfo.py:88
@@ -1166,12 +1164,12 @@ msgid "Energy: {:.3f} eV"
 msgstr "Énergie : {:.3f} eV"
 
 #: ../quickinfo.py:102
-msgid "Max force: {:.3f} eV/Ã…"
-msgstr "Force max. : {:.3f} eV/Å"
+msgid "Max force: {:.3f} eV/Å"
+msgstr "Force max. : {:.3f} eV/Å"
 
 #: ../quickinfo.py:106
-msgid "Magmom: {:.3f} Âµ"
-msgstr "Mt mag. {:.3f} Åµ"
+msgid "Magmom: {:.3f} µ"
+msgstr "Mt mag. {:.3f} µ"
 
 #: ../render.py:20 ../render.py:190
 msgid "Render current view in povray ... "
@@ -1191,7 +1189,7 @@ msgid "Line width"
 msgstr "Épaisseur de trait"
 
 #: ../render.py:32
-msgid "Ã…ngstrÃ¶m"
+msgid "Ångström"
 msgstr "Angström"
 
 #: ../render.py:34 ../render.py:201
@@ -1638,11 +1636,11 @@ msgid "Please enter a value divisible by 3 for orthogonal cell"
 msgstr "Veuillez entrer une valeur divisible par 3 pour une cellule orthogonale"
 
 #: ../surfaceslab.py:197
-msgid " Vacuum: {} Ã…."
-msgstr "Vide : {} Å."
+msgid " Vacuum: {} Å."
+msgstr "Vide : {} Å."
 
 #. TRANSLATORS: e.g. "Au fcc100 surface with 2 atoms."
-#. or "Au fcc100 surface with 2 atoms. Vacuum: 5 Ã…."
+#. or "Au fcc100 surface with 2 atoms. Vacuum: 5 Å."
 #: ../surfaceslab.py:205
 #, python-brace-format
 msgid "{symbol} {surf} surface with one atom.{vacuum}"
