@@ -335,7 +335,6 @@ Version 3.12.0
 * New :ref:`defects` tutorial and new super-cell functions:
   :func:`~ase.build.get_deviation_from_optimal_cell_shape`,
   :func:`~ase.build.find_optimal_cell_shape`,
-  :func:`~ase.build.find_optimal_cell_shape_pure_python`,
   :func:`~ase.build.make_supercell`.
 
 * New :class:`~ase.dft.band_structure.BandStructure` object.  Can identify

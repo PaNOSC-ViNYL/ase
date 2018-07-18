@@ -39,7 +39,6 @@ Quick links:
   :func:`~ase.build.minimize_rotation_and_translation`,
   :func:`~ase.build.get_deviation_from_optimal_cell_shape`,
   :func:`~ase.build.find_optimal_cell_shape`,
-  :func:`~ase.build.find_optimal_cell_shape_pure_python`,
   :func:`~ase.build.make_supercell`
 
 
