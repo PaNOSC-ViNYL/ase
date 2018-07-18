@@ -215,9 +215,14 @@ def runtests_parallel(nprocs, tests):
 
         # Collect results:
         for i in range(len(tests)):
-            result = result_queue.get()  # blocking call
-            if result.status == 'please run on master':
-                result = run_single_test(result.name)
+            if nprocs == 0:
+                # No external workers so we do everything.
+                task = task_queue.get()
+                result = run_single_test(task)
+            else:
+                result = result_queue.get()  # blocking call
+                if result.status == 'please run on master':
+                    result = run_single_test(result.name)
             print_test_result(result)
             yield result
 
@@ -275,7 +280,7 @@ def test(calculators=[], jobs=0,
               file=sys.stderr)
         sys.exit(1)
 
-    if jobs == 0:
+    if jobs == -1:  # -1 == auto
         jobs = min(cpu_count(), len(tests))
 
     print_info()
@@ -286,7 +291,8 @@ def test(calculators=[], jobs=0,
 
     # Note: :25 corresponds to ase.cli indentation
     print('{:25}{}'.format('test directory', testdir))
-    print('{:25}{}'.format('number of processes', jobs))
+    print('{:25}{}'.format('number of processes',
+                           jobs or '1 (multiprocessing disabled)'))
     print('{:25}{}'.format('time', time.strftime('%c')))
     print()
 
@@ -369,10 +375,11 @@ class CLICommand:
                             help='print all tests and exit')
         parser.add_argument('--list-calculators', action='store_true',
                             help='print all calculator names and exit')
-        parser.add_argument('-j', '--jobs', type=int, default=0,
+        parser.add_argument('-j', '--jobs', type=int, default=-1,
                             metavar='N',
-                            help='number of parallel jobs '
-                            '[default: number of available processors]')
+                            help='number of worker processes '
+                            '[default: number of available processors].  '
+                            'Use 0 to disable multiprocessing.')
         parser.add_argument('tests', nargs='*',
                             help='Specify particular test files.  '
                             'Glob patterns are accepted.')
