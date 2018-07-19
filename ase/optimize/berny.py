@@ -4,12 +4,12 @@ from __future__ import division, print_function
 from ase.optimize.optimize import Optimizer
 from ase.units import Ha, Bohr
 
-from berny import Berny as _Berny, Molecule, Logger
+from berny import Berny as _Berny, Geometry, Logger
 
 
 class Berny(Optimizer):
     def __init__(self, atoms, restart=None, logfile='-', trajectory=None,
-                 master=None, verbosity=-2):
+                 master=None, verbosity=-2, dihedral=True):
         """Berny optimizer.
 
         Parameters:
@@ -36,10 +36,13 @@ class Berny(Optimizer):
         verbosity: int
             Controls amount of output, defaults to -2 which does not output
             anything, -1 outputs only energy, 0 outputs all information
+
+        dihedral: boolean
+            Defaults to True, which means that dihedral angles will be used.
         """
         self._restart_data = None  # Optimizer.__init__() may overwrite
         Optimizer.__init__(self, atoms, restart, logfile, trajectory, master)
-        geom = Molecule(atoms.get_chemical_symbols(), atoms.positions)
+        geom = Geometry(atoms.get_chemical_symbols(), atoms.positions)
         self._berny = _Berny(
             geom,
             log=Logger(out=self.logfile, verbosity=verbosity),
@@ -50,6 +53,7 @@ class Berny(Optimizer):
             gradientrms=0.,
             stepmax=0.,
             steprms=0.,
+            dihedral=dihedral,
         )
         next(self._berny)
         # Berny yields the initial geometry the first time because it is
