@@ -186,7 +186,7 @@ def parse_cif(fileobj):
 
 
 def tags2atoms(tags, store_tags=False, primitive_cell=False,
-               subtrans_included=True):
+               subtrans_included=True, fractional_occupancies=False):
     """Returns an Atoms object from a cif tags dictionary.  See read_cif()
     for a description of the arguments."""
     if primitive_cell and subtrans_included:
@@ -261,10 +261,10 @@ def tags2atoms(tags, store_tags=False, primitive_cell=False,
     else:
         spacegroup = 1
 
+
+    kwargs = {}
     if store_tags:
-        kwargs = {'info': tags.copy()}
-    else:
-        kwargs = {}
+        kwargs['info'].update(tags.copy())
 
     if 'D' in symbols:
         deuterium = [symbol == 'D' for symbol in symbols]
@@ -297,12 +297,27 @@ def tags2atoms(tags, store_tags=False, primitive_cell=False,
                 'This may result in wrong setting!' % (
                     setting_name, spacegroup))
 
+    occupancies = None
+    if fractional_occupancies:
+        try:
+            occupancies = tags['_atom_site_occupancy']
+        except KeyError:
+            warnings.warn('Requested mixed occupancy mode but there are no mixed occupancies')
+    else:
+        try:
+            if not np.allclose(tags['_atom_site_occupancy'], 1.):
+                warnings.warn('Cif file containes mixed/fractional occupancies. Consider using `fractional_occupancies=True`')
+        except KeyError:
+            pass
+
     atoms = crystal(symbols, basis=scaled_positions,
                     cellpar=[a, b, c, alpha, beta, gamma],
                     spacegroup=spacegroup,
+                    occupancies=occupancies,
                     setting=setting,
                     primitive_cell=primitive_cell,
                     **kwargs)
+
     if deuterium:
         masses = atoms.get_masses()
         masses[atoms.numbers == 1] = 1.00783
@@ -313,7 +328,7 @@ def tags2atoms(tags, store_tags=False, primitive_cell=False,
 
 
 def read_cif(fileobj, index, store_tags=False, primitive_cell=False,
-             subtrans_included=True):
+             subtrans_included=True, fractional_occupancies=False):
     """Read Atoms object from CIF file. *index* specifies the data
     block number or name (if string) to return.
 
@@ -335,6 +350,12 @@ def read_cif(fileobj, index, store_tags=False, primitive_cell=False,
     1 of the extracted space group.  A result of setting this flag to
     true, is that it will not be possible to determine the primitive
     cell.
+
+    If *fractional_occupancies* is true, the resulting atoms object will be tagged
+    equipped with an array `occupancy`. If the cif file contains miced occupancies,
+    atoms of differentnt species will be put on identical sites. Make sure that
+    you know what your are doing with them. The `write_cif` utility respects
+    this.
     """
     blocks = parse_cif(fileobj)
     # Find all CIF blocks with valid crystal data
@@ -342,7 +363,8 @@ def read_cif(fileobj, index, store_tags=False, primitive_cell=False,
     for name, tags in blocks:
         try:
             atoms = tags2atoms(tags, store_tags, primitive_cell,
-                               subtrans_included)
+                               subtrans_included,
+                               fractional_occupancies=fractional_occupancies)
             images.append(atoms)
         except KeyError:
             pass
@@ -409,7 +431,7 @@ def write_cif(fileobj, images, format='default'):
         if format == 'mp':
             fileobj.write('  _atom_site_type_symbol\n')
             fileobj.write('  _atom_site_label\n')
-            fileobj.write('   _atom_site_symmetry_multiplicity\n')
+            fileobj.write('  _atom_site_symmetry_multiplicity\n')
             fileobj.write('  _atom_site_fract_x\n')
             fileobj.write('  _atom_site_fract_y\n')
             fileobj.write('  _atom_site_fract_z\n')
@@ -426,6 +448,12 @@ def write_cif(fileobj, images, format='default'):
 
         scaled = atoms.get_scaled_positions()
         no = {}
+
+        try:
+            occupancies = atoms.get_array('occupancies')
+        except KeyError:
+            occupancies = np.ones(len(atoms), dtype=float)
+
         for i, atom in enumerate(atoms):
             symbol = atom.symbol
             if symbol in no:
@@ -436,12 +464,12 @@ def write_cif(fileobj, images, format='default'):
                 fileobj.write(
                     '  %-2s  %4s  %4s  %7.5f  %7.5f  %7.5f  %6.1f\n' %
                     (symbol, symbol + str(no[symbol]), 1,
-                     scaled[i][0], scaled[i][1], scaled[i][2], 1.0))
+                     scaled[i][0], scaled[i][1], scaled[i][2], occupancies[i]))
             else:
                 fileobj.write(
                     '  %-8s %6.4f %7.5f  %7.5f  %7.5f  %4s  %6.3f  %s\n' %
                     ('%s%d' % (symbol, no[symbol]),
-                     1.0,
+                     occupancies[i],
                      scaled[i][0],
                      scaled[i][1],
                      scaled[i][2],
