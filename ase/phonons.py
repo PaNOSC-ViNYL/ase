@@ -529,6 +529,17 @@ class Phonons(Displacement):
 
         return self.C_N
 
+    def get_band_structure(self, path, modes=False, born=False, verbose=True):
+        omega_kl = self.band_structure(path, modes, born, verbose)
+        if modes:
+            assert 0
+            omega_kl, modes = omega_kl
+
+        from ase.dft.band_structure import BandStructure
+        bs = BandStructure(cell=self.atoms.cell, kpts=path,
+                           energies=omega_kl[None])
+        return bs
+
     def band_structure(self, path_kc, modes=False, born=False, verbose=True):
         """Calculate phonon dispersion along a path in the Brillouin zone.
 
@@ -642,6 +653,14 @@ class Phonons(Displacement):
             return omega_kl, np.asarray(u_kl)
 
         return omega_kl
+
+    def get_dos(self, kpts=(10, 10, 10), npts=1000, delta=1e-3, indices=None):
+        #dos = self.dos(kpts, npts, delta, indices)
+        kpts_kc = monkhorst_pack(kpts)
+        omega_w = self.band_structure(kpts_kc).ravel()
+        from ase.dft.pdos import PDOS
+        dos = PDOS(omega_w, np.ones_like(omega_w)[None])
+        return dos
 
     def dos(self, kpts=(10, 10, 10), npts=1000, delta=1e-3, indices=None):
         """Calculate phonon dos as a function of energy.
