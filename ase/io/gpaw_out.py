@@ -93,7 +93,6 @@ def read_gpaw_out(fileobj, index):
         else:
             atoms = Atoms(cell=cell, pbc=pbc)
         lines = lines[i + 5:]
-        print('hallo', lines[:5])
         try:
             ii = index_pattern(lines, '\d+ k-point')
             word = lines[ii].split()
