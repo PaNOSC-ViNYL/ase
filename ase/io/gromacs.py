@@ -87,7 +87,7 @@ def read_gromacs(filename):
     if len(gromacs_velocities) == len(atoms):
         atoms.set_velocities(gromacs_velocities)
     elif len(gromacs_velocities) != 0:
-        warnings.warn("some atoms velocities were not specified. Velocities are dropped!")
+        raise ValueError("Some atoms velocities were not specified!")
 
     if not atoms.has('residuenumbers'):
         atoms.new_array('residuenumbers', gromacs_residuenumbers, int)
