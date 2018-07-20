@@ -8,7 +8,19 @@ from numpy.linalg import norm
 
 
 class Cell:
+    """Parallel epipedal unit cell of up to three dimensions.
+
+    This wraps a 3x3 array whose [i, j]-th element is the jth
+    Cartesian coordinate of the ith unit vector.
+
+    Cells of less than three dimensions are represented by placeholder
+    unit vectors that are zero."""
     def __init__(self, cell):
+        assert cell.shape == (3, 3)
+        # We could have lazy attributes for structure (bcc, fcc, ...)
+        # and other things.  However this requires making the cell
+        # array readonly, else people will modify it and things will
+        # be out of synch.
         self.cell = cell
 
     def cellpar(self, radians=False):
@@ -37,6 +49,7 @@ class Cell:
         return crystal_structure_from_cell(self.cell, eps, niggli_reduce)
 
     def complete(self):
+        """Convert missing cell vectors into orthogonal unit vectors."""
         return Cell(complete_cell(self.cell))
 
     def copy(self):
@@ -53,14 +66,10 @@ class Cell:
     def box(self):
         return orthorhombic(self.cell)
 
-    def __bool__(self):
-        return bool(self.cell.any())  # .any() returns a numpy.bool_
-
-    nonzero = __bool__
-
     @property
     def volume(self):
         # Fail or 0 for <3D cells?
+        # Definitely 0 since this is currently a property.
         # I think normally it is more convenient just to get zero
         return np.abs(np.linalg.det(self.cell))
 
@@ -81,8 +90,25 @@ class Cell:
         return 'Cell({})'.format(numbers)
 
     def niggli_reduce(self):
+        from ase.build.tools import niggli_reduce_cell
         cell, _ = niggli_reduce_cell(self.cell)
         return Cell(cell)
+
+    def bandpath(self, path, npoints=50):
+        from ase.dft.kpoints import bandpath, BandPath
+        objs = bandpath(path, self.cell, npoints=npoints)
+        return BandPath(*objs, names=path)
+
+    def special_points(self, eps=2e-4):
+        from ase.dft.kpoints import get_special_points
+        get_special_points(self.cell, eps=eps)
+
+    def special_paths(self, eps=2e-4):
+        from ase.dft.kpoints import special_paths
+        structure = self.crystal_structure(eps=eps, niggli_reduce=False)
+        pathstring = special_paths[structure]
+        paths = pathstring.split(',')
+        return paths
 
 
 def unit_vector(x):

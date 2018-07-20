@@ -1875,6 +1875,11 @@ class Atoms(object):
                        doc='Attribute for direct ' +
                        'manipulation of the atomic numbers.')
 
+    # We need a better name for this.
+    @property
+    def ucell(self):
+        return self._cellobj
+
     def _get_cell(self):
         """Return reference to unit cell for in-place manipulations."""
         return self._cellobj.cell

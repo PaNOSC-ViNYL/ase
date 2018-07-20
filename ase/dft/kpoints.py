@@ -97,6 +97,18 @@ def parse_path_string(s):
     return paths
 
 
+class BandPath:
+    def __init__(self, kpt_kc, xcoords, xspecial, names=None):
+        self.kpt_kc = kpt_kc
+        self.xcoords = xcoords
+        self.xspecial = xspecial
+        self.names = names
+
+    @property
+    def kpts(self):
+        return self.kpt_kc
+
+
 def bandpath(path, cell, npoints=50):
     """Make a list of kpoints defining the path between the given points.
 
