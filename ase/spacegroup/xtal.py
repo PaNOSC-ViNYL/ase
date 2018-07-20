@@ -19,7 +19,7 @@ from ase.utils import basestring
 __all__ = ['crystal']
 
 
-def crystal(symbols=None, basis=None, spacegroup=1, setting=1,
+def crystal(symbols=None, basis=None, occupancies=None, spacegroup=1, setting=1,
             cell=None, cellpar=None,
             ab_normal=(0, 0, 1), a_direction=None, size=(1, 1, 1),
             onduplicates='warn', symprec=0.001,
@@ -39,6 +39,12 @@ def crystal(symbols=None, basis=None, spacegroup=1, setting=1,
         either as scaled positions or through an atoms instance.  Not
         needed if *symbols* is a sequence of Atom objects or an Atoms
         object.
+    occupancies : list of site occupancies
+        Occupancies of the unique sites. Defaults to 1.0 and thus no mixed
+        occupancies are considered if not explicitly assked for. If mixed
+        occupancies are given, this will result in atoms of different species
+        at identical positions -- be aware! Not needed, if *symbols* is an
+        atoms object with an `occupancy` array.
     spacegroup : int | string | Spacegroup instance
         Space group given either as its number in International Tables
         or as its Hermann-Mauguin symbol.
@@ -105,6 +111,10 @@ def crystal(symbols=None, basis=None, spacegroup=1, setting=1,
         isinstance(symbols[0], ase.Atom)):
         symbols = ase.Atoms(symbols)
     if isinstance(symbols, ase.Atoms):
+        try:
+            occupancies = symbols.get_array('occupancy')
+        except KeyError:
+            pass
         basis = symbols
         symbols = basis.get_chemical_symbols()
     if isinstance(basis, ase.Atoms):
@@ -115,9 +125,11 @@ def crystal(symbols=None, basis=None, spacegroup=1, setting=1,
             symbols = basis.get_chemical_symbols()
     else:
         basis_coords = np.array(basis, dtype=float, copy=False, ndmin=2)
-    sites, kinds = sg.equivalent_sites(basis_coords,
-                                       onduplicates=onduplicates,
-                                       symprec=symprec)
+
+    sites, kinds, occs = sg.equivalent_sites(basis_coords,
+                                             onduplicates=onduplicates,
+                                             symprec=symprec,
+                                             occupancies=occupancies)
     symbols = parse_symbols(symbols)
     symbols = [symbols[i] for i in kinds]
     if cell is None:
@@ -129,13 +141,17 @@ def crystal(symbols=None, basis=None, spacegroup=1, setting=1,
     else:
         info['unit_cell'] = 'conventional'
 
+
     if 'info' in kwargs:
         info.update(kwargs['info'])
+
     kwargs['info'] = info
 
     atoms = ase.Atoms(symbols,
                       scaled_positions=sites,
                       cell=cell,
+                      # use tags to identify sites; is this ok?
+                      tags=kinds,
                       pbc=pbc,
                       **kwargs)
 
@@ -145,6 +161,10 @@ def crystal(symbols=None, basis=None, spacegroup=1, setting=1,
                 array = basis.get_array(name)
                 atoms.new_array(name, [array[i] for i in kinds],
                                 dtype=array.dtype, shape=array.shape[1:])
+
+    # behave as before...
+    if occupancies is not None:
+        atoms.set_array('occupancies', occs)
 
     if primitive_cell:
         from ase.build import cut
