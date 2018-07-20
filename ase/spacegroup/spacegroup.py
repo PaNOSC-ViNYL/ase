@@ -402,11 +402,14 @@ class Spacegroup(object):
             A list of integer indices specifying which input site is
             equivalent to the corresponding returned site.
 
+        occs : array
+            A NumPy array with the occupancies corresponding to the sites.
+
         Example:
 
         >>> from ase.spacegroup import Spacegroup
         >>> sg = Spacegroup(225)  # fcc
-        >>> sites, kinds = sg.equivalent_sites([[0, 0, 0], [0.5, 0.0, 0.0]])
+        >>> sites, kinds, occs = sg.equivalent_sites([[0, 0, 0], [0.5, 0.0, 0.0]])
         >>> sites
         array([[ 0. ,  0. ,  0. ],
                [ 0. ,  0.5,  0.5],
@@ -418,6 +421,8 @@ class Spacegroup(object):
                [ 0.5,  0.5,  0.5]])
         >>> kinds
         [0, 0, 0, 0, 1, 1, 1, 1]
+        >>> occs
+        array([1., 1., 1., 1., 1., 1., 1., 1.])
         """
         kinds = []
         sites = []
