@@ -9,6 +9,7 @@ from glob import glob
 from distutils.version import LooseVersion
 import time
 import traceback
+import warnings
 
 import numpy as np
 
@@ -93,7 +94,15 @@ def run_single_test(filename):
 
     sys.stdout = devnull
     try:
-        runtest_almost_no_magic(filename)
+        with warnings.catch_warnings():
+            # We want all warnings to be errors.  Except those who are
+            # normally entirely ignored by Python, namely
+            # PendingDeprecation and ImportWarning.
+            warnings.filterwarnings('error')
+            warnings.filterwarnings('ignore',
+                                    category=PendingDeprecationWarning)
+            warnings.filterwarnings('ignore', category=ImportWarning)
+            runtest_almost_no_magic(filename)
     except KeyboardInterrupt:
         raise
     except unittest.SkipTest as ex:
