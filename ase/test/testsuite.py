@@ -21,6 +21,10 @@ NotAvailable = unittest.SkipTest
 
 test_calculator_names = []
 
+if sys.version_info[0] == 2:
+    class ResourceWarning(UserWarning):
+        pass  # Placeholder - this warning does not exist in Py2 at all.
+
 
 def require(calcname):
     if calcname not in test_calculator_names:
@@ -101,7 +105,7 @@ def run_single_test(filename):
             warnings.filterwarnings('error')
             for warntype in [PendingDeprecationWarning, ImportWarning,
                              ResourceWarning]:
-                warnings.filterwarnings('ignore', category=ImportWarning)
+                warnings.filterwarnings('ignore', category=warntype)
             runtest_almost_no_magic(filename)
     except KeyboardInterrupt:
         raise
