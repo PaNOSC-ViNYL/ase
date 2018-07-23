@@ -106,6 +106,13 @@ def run_single_test(filename):
             for warntype in [PendingDeprecationWarning, ImportWarning,
                              ResourceWarning]:
                 warnings.filterwarnings('ignore', category=warntype)
+
+            # This happens from matplotlib sometimes.
+            # How can we allow matplotlib to import badly and yet keep
+            # a higher standard for modules within our own codebase?
+            warnings.filterwarnings('ignore',
+                                    'Using or importing the ABCs from',
+                                    DeprecationWarning)
             runtest_almost_no_magic(filename)
     except KeyboardInterrupt:
         raise
