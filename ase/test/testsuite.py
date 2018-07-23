@@ -95,13 +95,13 @@ def run_single_test(filename):
     sys.stdout = devnull
     try:
         with warnings.catch_warnings():
-            # We want all warnings to be errors.  Except those who are
-            # normally entirely ignored by Python, namely
-            # PendingDeprecation and ImportWarning.
+            # We want all warnings to be errors.  Except some that are
+            # normally entirely ignored by Python, and which we don't want
+            # to bother about.
             warnings.filterwarnings('error')
-            warnings.filterwarnings('ignore',
-                                    category=PendingDeprecationWarning)
-            warnings.filterwarnings('ignore', category=ImportWarning)
+            for warntype in [PendingDeprecationWarning, ImportWarning,
+                             ResourceWarning]:
+                warnings.filterwarnings('ignore', category=ImportWarning)
             runtest_almost_no_magic(filename)
     except KeyboardInterrupt:
         raise
