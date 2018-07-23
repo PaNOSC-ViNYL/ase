@@ -144,6 +144,6 @@ def test(format):
 
 for format in sorted(all_formats):
     with warnings.catch_warnings():
-        if format == 'proteindatabank':
+        if format in ['proteindatabank', 'netcdftrajectory']:
             warnings.simplefilter('ignore', UserWarning)
         test(format)
