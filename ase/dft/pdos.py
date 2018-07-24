@@ -81,8 +81,8 @@ class PDOS:
                         info=self.info, sampling=sampling)
         return pdos_new
 
-    def resample_uniform(self, spacing=None, npts=None, width=0.1,
-                         window=None, smearing='Gauss'):
+    def resample_grid(self, spacing=None, npts=None, width=0.1,
+                      window=None, smearing='Gauss'):
         """Resample onto uniform grid"""
 
         if window is None:
@@ -132,8 +132,8 @@ class PDOS:
                     sampling=sampling)
 
     @staticmethod
-    def sample_uniform(doslist, window=None, spacing=None,
-                       npts=None, width=0.1, smearing='Gauss'):
+    def sample_grid(doslist, window=None, spacing=None,
+                    npts=None, width=0.1, smearing='Gauss'):
         """Sample list of PDOS objects onto uniform grid.
         Takes the lowest and highest energies as grid range, if
         no window is specified"""
@@ -156,7 +156,6 @@ class PDOS:
 
         return PDOS.sample(doslist, grid_uniform, width=width,
                            smearing=smearing, gridtype='uniform')
-    togrid = sample_uniform     # Add extra name?
 
     @staticmethod
     def _make_uniform_grid(emin, emax, spacing=None, npts=None, width=0.1):
