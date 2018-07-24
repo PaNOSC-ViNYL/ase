@@ -66,8 +66,8 @@ class PDOS:
 
         return weights_grid
 
-    def sample(self, grid, width=0.1, smearing='Gauss', gridtype='general'):
-        """Sample weights onto new specified grid"""
+    def resample(self, grid, width=0.1, smearing='Gauss', gridtype='general'):
+        """Resample weights onto new specified grid"""
 
         npts = len(grid)
         sampling = {'width': width,
@@ -81,9 +81,9 @@ class PDOS:
                         info=self.info, sampling=sampling)
         return pdos_new
 
-    def sample_uniform(self, spacing=None, npts=None, width=0.1,
-                       window=None, smearing='Gauss'):
-        """Sample onto uniform grid"""
+    def resample_uniform(self, spacing=None, npts=None, width=0.1,
+                         window=None, smearing='Gauss'):
+        """Resample onto uniform grid"""
 
         if window is None:
             emin, emax = None, None
@@ -100,12 +100,12 @@ class PDOS:
         grid_uniform = PDOS._make_uniform_grid(emin, emax, spacing=spacing,
                                                npts=npts, width=width)
 
-        return self.sample(grid_uniform, width=width,
-                           smearing=smearing, gridtype='uniform')
+        return self.resample(grid_uniform, width=width,
+                             smearing=smearing, gridtype='uniform')
 
     @staticmethod
-    def resample(doslist, grid, width=0.1, smearing='Gauss',
-                 gridtype='general'):
+    def sample(doslist, grid, width=0.1, smearing='Gauss',
+               gridtype='general'):
         """Take list of PDOS objects, and combine into 1, with same grid"""
 
         # Count the total number of weights
@@ -118,8 +118,8 @@ class PDOS:
         # Do sampling
         ii = 0
         for dos in doslist:
-            pdos_sample = dos.sample(grid, width=width,
-                                     smearing=smearing)
+            pdos_sample = dos.resample(grid, width=width,
+                                       smearing=smearing)
             info_new.extend(pdos_sample.info)
             for w_i in pdos_sample.weights:
                 weight_grid[ii] = w_i
@@ -132,9 +132,9 @@ class PDOS:
                     sampling=sampling)
 
     @staticmethod
-    def resample_uniform(doslist, window=None, spacing=None,
-                         npts=None, width=0.1, smearing='Gauss'):
-        """Resample list of PDOS objects onto uniform grid.
+    def sample_uniform(doslist, window=None, spacing=None,
+                       npts=None, width=0.1, smearing='Gauss'):
+        """Sample list of PDOS objects onto uniform grid.
         Takes the lowest and highest energies as grid range, if
         no window is specified"""
         dosen = [dos.energy for dos in doslist]
@@ -154,8 +154,9 @@ class PDOS:
         grid_uniform = PDOS._make_uniform_grid(emin, emax, spacing=spacing,
                                                npts=npts, width=width)
 
-        return PDOS.resample(doslist, grid_uniform, width=width,
-                             smearing=smearing, gridtype='uniform')
+        return PDOS.sample(doslist, grid_uniform, width=width,
+                           smearing=smearing, gridtype='uniform')
+    togrid = sample_uniform     # Add extra name?
 
     @staticmethod
     def _make_uniform_grid(emin, emax, spacing=None, npts=None, width=0.1):
@@ -211,8 +212,8 @@ class PDOS:
                     info=info_new, sampling=self.sampling)
 
     def pick(self, **kwargs):
-        # Pick key/value pairs using logical AND
-        # i.e., all conditions from kwargs must be met
+        """Pick key/value pairs using logical AND
+        i.e., all conditions from kwargs must be met"""
         idx = [i for i, d in enumerate(self.info)
                if all(d.get(key) == value
                       for key, value in kwargs.items())]
@@ -220,7 +221,7 @@ class PDOS:
         return self[idx]
 
     def split(self, key):
-        # Find all unique instances of key in info
+        """Find all unique instances of key in info"""
         unique = np.unique([info.get(key) for info in self.info
                             if info.get(key, None) is not None])
 
