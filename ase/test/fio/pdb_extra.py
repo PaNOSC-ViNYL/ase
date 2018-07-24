@@ -6,6 +6,7 @@ compliant with the specification.
 """
 
 import os
+import warnings
 
 import numpy as np
 
@@ -71,6 +72,7 @@ def test_pdb_read_with_arrays():
 
 
 if __name__ in ('__main__', '__builtin__'):
-    test_pdb_read()
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore', 'Length of occupancy', UserWarning)
+        test_pdb_read()
     test_pdb_read_with_arrays()
-

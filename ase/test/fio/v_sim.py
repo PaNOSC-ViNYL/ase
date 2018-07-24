@@ -11,6 +11,9 @@ from socket import error as SocketError
 from ase.test import NotAvailable
 from ase.io import read
 
+raise NotAvailable('The web site which this test depends upon.  '
+                   'TODO: Let us not depend on external websites.')
+
 dest = 'demo.ascii'
 src = 'http://inac.cea.fr/L_Sim/V_Sim/files/' + dest
 copy = 'demo2.ascii'
