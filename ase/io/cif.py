@@ -301,6 +301,8 @@ def tags2atoms(tags, store_tags=False, primitive_cell=False,
     if fractional_occupancies:
         try:
             occupancies = tags['_atom_site_occupancy']
+            # no warnings in this case
+            kwargs['onduplicates'] = 'keep'
         except KeyError:
             warnings.warn('Requested mixed occupancy mode but there are no mixed occupancies')
     else:
@@ -446,16 +448,26 @@ def write_cif(fileobj, images, format='default'):
             fileobj.write('  _atom_site_B_iso_or_equiv\n')
             fileobj.write('  _atom_site_type_symbol\n')
 
-        scaled = atoms.get_scaled_positions()
+        scaled = atoms.get_scaled_positions().tolist()
+        symbols = atoms.get_chemical_symbols()
+        occupancies = [1 for i in range(len(symbols))]
+
+        # try to fetch occupancies // rely on the tag - occupancy mapping
+        try:
+            occ_info = atoms.info['occupancy']
+            for i, tag in enumerate(atoms.get_tags()):
+                occupancies[i] = occ_info[tag][0][1]
+                # extend the positions array in case of mixed occupancy
+                for j in occ_info[tag][1::]:
+                    symbols.append(j[0])
+                    scaled.append(scaled[i])
+                    occupancies.append(j[1])
+        except KeyError:
+            pass
+
         no = {}
 
-        try:
-            occupancies = atoms.get_array('occupancies')
-        except KeyError:
-            occupancies = np.ones(len(atoms), dtype=float)
-
-        for i, atom in enumerate(atoms):
-            symbol = atom.symbol
+        for symbol, pos, occ in zip(symbols, scaled, occupancies):
             if symbol in no:
                 no[symbol] += 1
             else:
@@ -464,15 +476,15 @@ def write_cif(fileobj, images, format='default'):
                 fileobj.write(
                     '  %-2s  %4s  %4s  %7.5f  %7.5f  %7.5f  %6.1f\n' %
                     (symbol, symbol + str(no[symbol]), 1,
-                     scaled[i][0], scaled[i][1], scaled[i][2], occupancies[i]))
+                     pos[0], pos[1], pos[2], occ))
             else:
                 fileobj.write(
                     '  %-8s %6.4f %7.5f  %7.5f  %7.5f  %4s  %6.3f  %s\n' %
                     ('%s%d' % (symbol, no[symbol]),
-                     occupancies[i],
-                     scaled[i][0],
-                     scaled[i][1],
-                     scaled[i][2],
+                     occ,
+                     pos[0],
+                     pos[1],
+                     pos[2],
                      'Biso',
                      1.0,
                      symbol))

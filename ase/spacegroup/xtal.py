@@ -111,10 +111,6 @@ def crystal(symbols=None, basis=None, occupancies=None, spacegroup=1, setting=1,
         isinstance(symbols[0], ase.Atom)):
         symbols = ase.Atoms(symbols)
     if isinstance(symbols, ase.Atoms):
-        try:
-            occupancies = symbols.get_array('occupancy')
-        except KeyError:
-            pass
         basis = symbols
         symbols = basis.get_chemical_symbols()
     if isinstance(basis, ase.Atoms):
@@ -126,10 +122,29 @@ def crystal(symbols=None, basis=None, occupancies=None, spacegroup=1, setting=1,
     else:
         basis_coords = np.array(basis, dtype=float, copy=False, ndmin=2)
 
-    sites, kinds, occs = sg.equivalent_sites(basis_coords,
-                                             onduplicates=onduplicates,
-                                             symprec=symprec,
-                                             occupancies=occupancies)
+    if occupancies is not None:
+        # find the identical sites (doubt this will ever become performance
+        # critical -- and if so, maybe use the neighborlist module)
+        ident_sites = np.linalg.norm(basis_coords[:, None]-basis_coords[None,:], axis=-1) < symprec
+
+        # for convenience, only look at the upper triangle (i.e. set the remainder to False)
+        np.fill_diagonal(ident_sites, False)
+
+        # this is already the reduced form...
+        unique = [i for i in range(len(basis_coords))]
+        occupancies_dict = {}
+        for i, mask in enumerate(ident_sites):
+            if i not in unique:
+                continue
+            occ = [(symbols[i], occupancies[i])]
+            for close in np.nonzero(mask):
+                for j in close:
+                    occ.append((symbols[j], occupancies[j]))
+
+            occupancies_dict[i] = sorted(occ, key=lambda x: x[1])
+    sites, kinds = sg.equivalent_sites(basis_coords,
+                                       onduplicates=onduplicates,
+                                       symprec=symprec)
     symbols = parse_symbols(symbols)
     symbols = [symbols[i] for i in kinds]
     if cell is None:
@@ -145,12 +160,15 @@ def crystal(symbols=None, basis=None, occupancies=None, spacegroup=1, setting=1,
     if 'info' in kwargs:
         info.update(kwargs['info'])
 
+    if occupancies is not None:
+        info['occupancy'] = occupancies_dict
+
     kwargs['info'] = info
 
     atoms = ase.Atoms(symbols,
                       scaled_positions=sites,
                       cell=cell,
-                      # use tags to identify sites; is this ok?
+                      # use tags to identify sites, and in particular the occupancy
                       tags=kinds,
                       pbc=pbc,
                       **kwargs)
@@ -161,10 +179,6 @@ def crystal(symbols=None, basis=None, occupancies=None, spacegroup=1, setting=1,
                 array = basis.get_array(name)
                 atoms.new_array(name, [array[i] for i in kinds],
                                 dtype=array.dtype, shape=array.shape[1:])
-
-    # behave as before...
-    if occupancies is not None:
-        atoms.set_array('occupancies', occs)
 
     if primitive_cell:
         from ase.build import cut

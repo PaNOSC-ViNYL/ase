@@ -387,9 +387,6 @@ class Spacegroup(object):
             'error'
                 raises a SpacegroupValueError
 
-            For fractional occupancies, several atoms at these positions may be
-            added.
-
         symprec: float
             Minimum "distance" betweed two sites in scaled coordinates
             before they are counted as the same site.
@@ -402,14 +399,11 @@ class Spacegroup(object):
             A list of integer indices specifying which input site is
             equivalent to the corresponding returned site.
 
-        occs : array
-            A NumPy array with the occupancies corresponding to the sites.
-
         Example:
 
         >>> from ase.spacegroup import Spacegroup
         >>> sg = Spacegroup(225)  # fcc
-        >>> sites, kinds, occs = sg.equivalent_sites([[0, 0, 0], [0.5, 0.0, 0.0]])
+        >>> sites, kinds = sg.equivalent_sites([[0, 0, 0], [0.5, 0.0, 0.0]])
         >>> sites
         array([[ 0. ,  0. ,  0. ],
                [ 0. ,  0.5,  0.5],
@@ -421,77 +415,48 @@ class Spacegroup(object):
                [ 0.5,  0.5,  0.5]])
         >>> kinds
         [0, 0, 0, 0, 1, 1, 1, 1]
-        >>> occs
-        array([1., 1., 1., 1., 1., 1., 1., 1.])
         """
         kinds = []
         sites = []
-        occs = []
 
         scaled = np.array(scaled_positions, ndmin=2)
 
-        if occupancies is None:
-            occupancies = np.ones(len(scaled))
-        else:
-            assert len(occupancies) == len(scaled)
-
         for kind, pos in enumerate(scaled):
-            occ = occupancies[kind]
             for rot, trans in self.get_symop():
                 site = np.mod(np.dot(rot, pos) + trans, 1.)
                 if not sites:
                     sites.append(site)
                     kinds.append(kind)
-                    occs.append(occ)
                     continue
                 t = site - sites
                 mask = np.all((abs(t) < symprec) |
                               (abs(abs(t) - 1.0) < symprec), axis=1)
                 if np.any(mask):
                     inds = np.argwhere(mask).flatten()
-                    # we need this one for the fractional occupancies
-                    # all different sites that sit here...
-                    close_kinds = set([kinds[i] for i in inds])
-
-                    # additional loop for mixed occupancy. But this is at most
-                    # `n` iterations each, if `n` species share a mixed
-                    # occupancy
                     for ind in inds:
                         # then we would just add the same thing again -> skip
                         if kinds[ind] == kind:
                             pass
-                        elif occs[ind] == 1.0:
-                            if onduplicates == 'keep':
-                                pass
-                            elif onduplicates == 'replace':
-                                kinds[ind] = kind
-                            elif onduplicates == 'warn':
-                                warnings.warn('scaled_positions %d and %d '
-                                              'are equivalent' % (kinds[ind], kind))
-                            elif onduplicates == 'error':
-                                raise SpacegroupValueError(
-                                    'scaled_positions %d and %d are equivalent' % (
-                                        kinds[ind], kind))
-                            else:
-                                raise SpacegroupValueError(
-                                    'Argument "onduplicates" must be one of: '
-                                    '"keep", "replace", "warn" or "error".')
-                        elif occs[ind] < 1.0:
-                            msg = 'scaled_positions %d and %d are equivalent'
-                            msg += ' - adding new species (mixed occupancy mode)'
-                            warnings.warn(msg%(kinds[ind], kind))
-                            # check if the new kind is as well already sitting here
-                            # only append if not
-                            if not kind in close_kinds:
-                                sites.append(site)
-                                kinds.append(kind)
-                                occs.append(occ)
+                        elif onduplicates == 'keep':
+                            pass
+                        elif onduplicates == 'replace':
+                            kinds[ind] = kind
+                        elif onduplicates == 'warn':
+                            warnings.warn('scaled_positions %d and %d '
+                                          'are equivalent' % (kinds[ind], kind))
+                        elif onduplicates == 'error':
+                            raise SpacegroupValueError(
+                                'scaled_positions %d and %d are equivalent' % (
+                                    kinds[ind], kind))
+                        else:
+                            raise SpacegroupValueError(
+                                'Argument "onduplicates" must be one of: '
+                                '"keep", "replace", "warn" or "error".')
                 else:
                     sites.append(site)
                     kinds.append(kind)
-                    occs.append(occ)
 
-        return np.array(sites), kinds, np.array(occs)
+        return np.array(sites), kinds
 
     def symmetry_normalised_sites(self, scaled_positions,
                                   map_to_unitcell=True):
