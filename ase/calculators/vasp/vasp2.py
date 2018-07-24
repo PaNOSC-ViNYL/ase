@@ -526,9 +526,8 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
         """Return a file iterator"""
 
         filename = os.path.join(self.directory, filename)
-        the_file = open(filename, 'r')
-        yield the_file
-        the_file.close()
+        with open(filename, 'r') as f:
+            yield f
 
     def read_outcar(self, lines=None):
         """Read results from the OUTCAR file.
