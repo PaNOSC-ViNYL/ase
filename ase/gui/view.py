@@ -450,7 +450,7 @@ class View:
                     else:
                         # first an empty circle if a site is not fully occupied
                         if (np.sum([occ[1] for occ in occs[tags[a]]])) < 1.0:
-                            fill = ''
+                            fill = '#ffffff'
                             circle(fill, selected[a],
                                     A[a, 0], A[a, 1], A[a, 0] + ra, A[a, 1] + ra)
                         start = 0

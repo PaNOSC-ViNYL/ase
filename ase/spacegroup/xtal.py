@@ -15,6 +15,7 @@ from ase.atoms import string2symbols
 from ase.spacegroup import Spacegroup
 from ase.geometry import cellpar_to_cell
 from ase.utils import basestring
+from ase.data import atomic_numbers
 
 __all__ = ['crystal']
 
@@ -146,7 +147,6 @@ def crystal(symbols=None, basis=None, occupancies=None, spacegroup=1, setting=1,
     sites, kinds = sg.equivalent_sites(basis_coords,
                                        onduplicates=onduplicates,
                                        symprec=symprec)
-
 
     symbols = parse_symbols(symbols)
     symbols = [symbols[i] for i in kinds]
