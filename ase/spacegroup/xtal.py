@@ -141,10 +141,13 @@ def crystal(symbols=None, basis=None, occupancies=None, spacegroup=1, setting=1,
                 for j in close:
                     occ.append((symbols[j], occupancies[j]))
 
-            occupancies_dict[i] = sorted(occ, key=lambda x: x[1])
+            occupancies_dict[i] = sorted(occ, key=lambda x: x[1], reverse=True)
+
     sites, kinds = sg.equivalent_sites(basis_coords,
                                        onduplicates=onduplicates,
                                        symprec=symprec)
+
+
     symbols = parse_symbols(symbols)
     symbols = [symbols[i] for i in kinds]
     if cell is None:
