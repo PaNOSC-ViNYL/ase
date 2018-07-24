@@ -4,6 +4,7 @@ from os.path import basename
 
 import numpy as np
 
+from ase.data import atomic_numbers
 from ase.data.colors import jmol_colors
 from ase.geometry import complete_cell
 from ase.gui.repeat import Repeat
@@ -12,7 +13,6 @@ from ase.gui.render import Render
 from ase.gui.colors import ColorWindow
 from ase.gui.utils import get_magmoms
 from ase.utils import rotate
-
 
 GREEN = '#74DF00'
 PURPLE = '#AC58FA'
@@ -378,6 +378,14 @@ class View:
         offset[:2] -= 0.5 * self.window.size
         X = np.dot(self.X, axes) - offset
         n = len(self.atoms)
+
+        # extension for partial occupancies
+        try:
+            tags = self.atoms.get_tags()
+            occs = self.atoms.info['occupancy']
+        except AttributeError:
+            occs = None
+
         # The indices enumerate drawable objects in z order:
         self.indices = X[:, 2].argsort()
         r = self.get_covalent_radii() * self.scale
@@ -407,6 +415,7 @@ class View:
 
         colors = self.get_colors()
         circle = self.window.circle
+        arc = self.window.arc
         line = self.window.line
         constrained = ~self.images.get_dynamic(self.atoms)
 
@@ -426,15 +435,38 @@ class View:
             if a < n:
                 ra = d[a]
                 if visible[a]:
-                    # Draw the atoms
-                    if (self.moving and a < len(self.move_atoms_mask)
-                        and self.move_atoms_mask[a]):
-                        circle(movecolor, False,
-                               A[a, 0] - 4, A[a, 1] - 4,
-                               A[a, 0] + ra + 4, A[a, 1] + ra + 4)
+                    # legacy behavior
+                    if occs is None:
+                        # Draw the atoms
+                        if (self.moving and a < len(self.move_atoms_mask)
+                            and self.move_atoms_mask[a]):
+                            circle(movecolor, False,
+                                   A[a, 0] - 4, A[a, 1] - 4,
+                                   A[a, 0] + ra + 4, A[a, 1] + ra + 4)
 
-                    circle(colors[a], selected[a],
-                           A[a, 0], A[a, 1], A[a, 0] + ra, A[a, 1] + ra)
+                        circle(colors[a], selected[a],
+                            A[a, 0], A[a, 1], A[a, 0] + ra, A[a, 1] + ra)
+
+                    else:
+                        # first an empty circle if a site is not fully occupied
+                        if (np.sum([occ[1] for occ in occs[tags[a]]])) < 1.0:
+                            fill = ''
+                            circle(fill, selected[a],
+                                    A[a, 0], A[a, 1], A[a, 0] + ra, A[a, 1] + ra)
+                        start = 0
+                        for occ in occs[tags[a]]:
+                            # occs is sorted by occupancy!
+                            if occ[1] == 1.0:
+                                circle(colors[a], selected[a],
+                                       A[a, 0], A[a, 1], A[a, 0] + ra, A[a, 1] + ra)
+                                break
+                            else:
+                                # jmol colors for the moment
+                                extent = 360. * occ[1]
+                                arc(self.colors[atomic_numbers[occ[0]]], selected[a],
+                                    start, extent,
+                                    A[a, 0], A[a, 1], A[a, 0] + ra, A[a, 1] + ra)
+                                start += extent
 
                     # Draw labels on the atoms
                     if self.labels is not None:
