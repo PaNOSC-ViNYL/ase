@@ -380,10 +380,10 @@ class View:
         n = len(self.atoms)
 
         # extension for partial occupancies
+        tags = self.atoms.get_tags()
         try:
-            tags = self.atoms.get_tags()
             occs = self.atoms.info['occupancy']
-        except AttributeError:
+        except KeyError:
             occs = None
 
         # The indices enumerate drawable objects in z order:
@@ -456,10 +456,9 @@ class View:
                         start = 0
                         for occ in occs[tags[a]]:
                             # occs is sorted by occupancy!
-                            if occ[1] == 1.0:
+                            if np.round(occ[1], decimals=4) == 1.0:
                                 circle(colors[a], selected[a],
                                        A[a, 0], A[a, 1], A[a, 0] + ra, A[a, 1] + ra)
-                                break
                             else:
                                 # jmol colors for the moment
                                 extent = 360. * occ[1]
