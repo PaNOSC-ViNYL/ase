@@ -166,7 +166,7 @@ class DOS:
         eneq = all(np.allclose(doslist[0].energy, dos.energy, atol=atol)
                    for dos in doslist)
         if not eneq:
-            msg = 'Energies must the the same in all ´DOS objects.'
+            msg = 'Energies must the the same in all DOS objects.'
             raise ValueError(msg)
 
         energy = doslist[0].energy     # Just use the first energy
