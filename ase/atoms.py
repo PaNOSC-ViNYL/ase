@@ -1877,7 +1877,7 @@ class Atoms(object):
 
     # We need a better name for this.
     @property
-    def ucell(self):
+    def unitcell(self):
         return self._cellobj
 
     def _get_cell(self):

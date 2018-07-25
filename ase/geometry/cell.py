@@ -101,11 +101,11 @@ class Cell:
 
     def special_points(self, eps=2e-4):
         from ase.dft.kpoints import get_special_points
-        get_special_points(self.cell, eps=eps)
+        return get_special_points(self.cell, eps=eps)
 
     def special_paths(self, eps=2e-4):
         from ase.dft.kpoints import special_paths
-        structure = self.crystal_structure(eps=eps, niggli_reduce=False)
+        structure = self.crystal_structure(eps=eps)
         pathstring = special_paths[structure]
         paths = pathstring.split(',')
         return paths
