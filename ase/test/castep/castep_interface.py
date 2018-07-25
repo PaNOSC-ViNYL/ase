@@ -156,7 +156,7 @@ atoms.set_calculator(c)
 c.prepare_input_files()
 
 with open(os.path.join(tmp_dir, 'test.cell'), 'r') as f:
-    assert re.search('Cu Cu_01\.recpot', ''.join(f.readlines())) is not None
+    assert re.search(r'Cu Cu_01\.recpot', ''.join(f.readlines())) is not None
 
 
 os.chdir(cwd)
