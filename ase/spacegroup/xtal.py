@@ -15,7 +15,6 @@ from ase.atoms import string2symbols
 from ase.spacegroup import Spacegroup
 from ase.geometry import cellpar_to_cell
 from ase.utils import basestring
-from ase.data import atomic_numbers
 
 __all__ = ['crystal']
 

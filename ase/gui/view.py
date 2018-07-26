@@ -381,10 +381,6 @@ class View:
 
         # extension for partial occupancies
         tags = self.atoms.get_tags()
-        try:
-            occs = self.atoms.info['occupancy']
-        except KeyError:
-            occs = None
 
         # The indices enumerate drawable objects in z order:
         self.indices = X[:, 2].argsort()
@@ -445,7 +441,6 @@ class View:
                         start = 0
                         # start with the dominant species
                         for sym, occ in sorted(site_occ.items(), key=lambda x: x[1], reverse=True):
-                            # occs is sorted by occupancy!
                             if np.round(occ, decimals=4) == 1.0:
                                 circle(colors[a], selected[a],
                                        A[a, 0], A[a, 1], A[a, 0] + ra, A[a, 1] + ra)
