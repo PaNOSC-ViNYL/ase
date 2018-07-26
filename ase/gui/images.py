@@ -173,7 +173,6 @@ class Images:
                 step = index.step or 1
             else:
                 start = index
-                assert len(imgs) == 1
                 step = 1
             for i, img in enumerate(imgs):
                 if isinstance(start, int):

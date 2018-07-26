@@ -1,11 +1,14 @@
 from __future__ import print_function
 
+import warnings
 from unittest.case import SkipTest
 
 from ase import Atoms
 
 try:
-    from IPython.display import HTML
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore', DeprecationWarning)
+        from IPython.display import HTML
     from ase.visualize import x3d
 except ImportError:
     raise SkipTest('cannot import HTML from IPython.displacy')

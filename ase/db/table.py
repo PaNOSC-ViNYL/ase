@@ -21,6 +21,17 @@ def get_sql_columns(columns):
         sql_columns[sql_columns.index('user')] = 'username'
     if 'formula' in columns:
         sql_columns[sql_columns.index('formula')] = 'numbers'
+    if 'fmax' in columns:
+        sql_columns[sql_columns.index('fmax')] = 'forces'
+    if 'max' in columns:
+        sql_columns[sql_columns.index('smax')] = 'stress'
+    if 'volume' in columns:
+        sql_columns[sql_columns.index('volume')] = 'cell'
+    if 'mass' in columns:
+        sql_columns[sql_columns.index('mass')] = 'masses'
+    if 'charge' in columns:
+        sql_columns[sql_columns.index('charge')] = 'charges'
+
     sql_columns.append('key_value_pairs')
     if 'id' not in sql_columns:
         sql_columns.append('id')

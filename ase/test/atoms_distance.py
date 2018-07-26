@@ -35,3 +35,17 @@ assert (a.get_all_distances(mic=True) == [[0, 2, 4],
 assert (a.get_all_distances(mic=False) == [[0, 2, 5],
                                            [2, 0, 3],
                                            [5, 3, 0]]).all()
+
+# Scale Distance
+old = a.get_distance(0, 1)
+a.set_distance(0, 1, 0.9, add=True, factor=True)
+new = a.get_distance(0, 1)
+diff = new - 0.9 * old
+assert abs(diff) < 10e-6
+
+# Change Distance
+old = a.get_distance(0, 1)
+a.set_distance(0, 1, 0.9, add=True)
+new = a.get_distance(0, 1)
+diff = new - old - 0.9
+assert abs(diff) < 10e-6
