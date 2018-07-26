@@ -451,6 +451,10 @@ class Database:
             Sort rows after key.  Prepend with minus sign for a decending sort.
         include_data: bool
             Use include_data=False to skip reading data from rows.
+        columns: 'all' or list of str
+            Specify which columns from the SQL table to include.
+            For example, if only the row id and the energy is needed,
+            queries can be speeded up by setting columns=['id', 'energy'].
         """
 
         if sort:
