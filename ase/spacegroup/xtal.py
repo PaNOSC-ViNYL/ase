@@ -148,8 +148,15 @@ def crystal(symbols=None, basis=None, occupancies=None, spacegroup=1, setting=1,
                                        onduplicates=onduplicates,
                                        symprec=symprec)
 
+
     symbols = parse_symbols(symbols)
-    symbols = [symbols[i] for i in kinds]
+
+    if occupancies is None:
+        symbols = [symbols[i] for i in kinds]
+    else:
+        # make sure that we put the dominant species there
+        symbols = [sorted(occupancies_dict[i].items(), key=lambda x : x[1])[-1][0] for i in kinds]
+
     if cell is None:
         cell = cellpar_to_cell(cellpar, ab_normal, a_direction)
 
