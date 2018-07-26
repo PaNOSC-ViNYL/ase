@@ -106,7 +106,7 @@ def writeint(fd, n, pos=None):
 
 
 def readints(fd, n):
-    a = np.fromstring(string=fd.read(int(n * 8)), dtype=np.int64, count=n)
+    a = np.frombuffer(fd.read(int(n * 8)), dtype=np.int64, count=n)
     if not np.little_endian:
         a.byteswap(True)
     return a
@@ -547,7 +547,7 @@ class NDArrayReader:
             a = np.fromfile(self.fd, self.dtype, count)
         else:
             # Not as fast, but works for reading from tar-files:
-            a = np.fromstring(self.fd.read(int(count * self.itemsize)),
+            a = np.frombuffer(self.fd.read(int(count * self.itemsize)),
                               self.dtype)
         a.shape = (stop - start,) + self.shape[1:]
         if step != 1:
