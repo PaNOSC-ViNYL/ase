@@ -456,12 +456,13 @@ def write_cif(fileobj, images, format='default'):
         try:
             occ_info = atoms.info['occupancy']
             for i, tag in enumerate(atoms.get_tags()):
-                occupancies[i] = occ_info[tag][0][1]
+                occupancies[i] = occ_info[tag][symbols[i]]
                 # extend the positions array in case of mixed occupancy
-                for j in occ_info[tag][1::]:
-                    symbols.append(j[0])
-                    scaled.append(scaled[i])
-                    occupancies.append(j[1])
+                for sym, occ in occ_info[tag].items():
+                    if sym != symbols[i]:
+                        symbols.append(sym)
+                        scaled.append(scaled[i])
+                        occupancies.append(occ)
         except KeyError:
             pass
 

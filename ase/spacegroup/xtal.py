@@ -137,12 +137,12 @@ def crystal(symbols=None, basis=None, occupancies=None, spacegroup=1, setting=1,
         for i, mask in enumerate(ident_sites):
             if i not in unique:
                 continue
-            occ = [(symbols[i], occupancies[i])]
+            occ = {symbols[i] : occupancies[i]}
             for close in np.nonzero(mask):
                 for j in close:
-                    occ.append((symbols[j], occupancies[j]))
+                    occ.update({symbols[j] : occupancies[j]})
 
-            occupancies_dict[i] = sorted(occ, key=lambda x: x[1], reverse=True)
+            occupancies_dict[i] = occ.copy()
 
     sites, kinds = sg.equivalent_sites(basis_coords,
                                        onduplicates=onduplicates,

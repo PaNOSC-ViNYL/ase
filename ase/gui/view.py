@@ -435,8 +435,29 @@ class View:
             if a < n:
                 ra = d[a]
                 if visible[a]:
-                    # legacy behavior
-                    if occs is None:
+                    try:
+                        site_occ = self.atoms.info['occupancy'][tags[a]]
+                        # first an empty circle if a site is not fully occupied
+                        if (np.sum(site_occ.values())) < 1.0:
+                            fill = '#ffffff'
+                            circle(fill, selected[a],
+                                    A[a, 0], A[a, 1], A[a, 0] + ra, A[a, 1] + ra)
+                        start = 0
+                        # start with the dominant species
+                        for sym, occ in sorted(site_occ.items(), key=lambda x: x[1], reverse=True):
+                            # occs is sorted by occupancy!
+                            if np.round(occ, decimals=4) == 1.0:
+                                circle(colors[a], selected[a],
+                                       A[a, 0], A[a, 1], A[a, 0] + ra, A[a, 1] + ra)
+                            else:
+                                # jmol colors for the moment
+                                extent = 360. * occ
+                                arc(self.colors[atomic_numbers[sym]], selected[a],
+                                    start, extent,
+                                    A[a, 0], A[a, 1], A[a, 0] + ra, A[a, 1] + ra)
+                                start += extent
+                    except KeyError:
+                        # legacy behavior
                         # Draw the atoms
                         if (self.moving and a < len(self.move_atoms_mask)
                             and self.move_atoms_mask[a]):
@@ -446,26 +467,6 @@ class View:
 
                         circle(colors[a], selected[a],
                             A[a, 0], A[a, 1], A[a, 0] + ra, A[a, 1] + ra)
-
-                    else:
-                        # first an empty circle if a site is not fully occupied
-                        if (np.sum([occ[1] for occ in occs[tags[a]]])) < 1.0:
-                            fill = '#ffffff'
-                            circle(fill, selected[a],
-                                    A[a, 0], A[a, 1], A[a, 0] + ra, A[a, 1] + ra)
-                        start = 0
-                        for occ in occs[tags[a]]:
-                            # occs is sorted by occupancy!
-                            if np.round(occ[1], decimals=4) == 1.0:
-                                circle(colors[a], selected[a],
-                                       A[a, 0], A[a, 1], A[a, 0] + ra, A[a, 1] + ra)
-                            else:
-                                # jmol colors for the moment
-                                extent = 360. * occ[1]
-                                arc(self.colors[atomic_numbers[occ[0]]], selected[a],
-                                    start, extent,
-                                    A[a, 0], A[a, 1], A[a, 0] + ra, A[a, 1] + ra)
-                                start += extent
 
                     # Draw labels on the atoms
                     if self.labels is not None:
