@@ -112,7 +112,6 @@ if has_castep:
 
 c.prepare_input_files(lattice)
 
-
 # detecting pseudopotentials tests
 
 # typical filenames
