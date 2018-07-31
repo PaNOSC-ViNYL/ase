@@ -79,9 +79,15 @@ def read_gromacs(filename):
         if isymbol in chemical_symbols:
             #ok atom name
             symbols_ok.append(isymbol)
+        elif isymbol[0] in chemical_symbols:
+            symbols_ok.append(isymbol[0])
+        elif isymbol[-1] in chemical_symbols:
+            symbols_ok.append(isymbol[-1])
         else:
             #not ok atom name
-            symbols_ok.append(isymbol[0])
+            # if we can not determine the symbol, we use
+            # the dummy symbol X
+            symbols_ok.append("X")
     atoms = Atoms(symbols_ok, positions)
 
     if len(gromacs_velocities) == len(atoms):
