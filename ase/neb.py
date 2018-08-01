@@ -186,7 +186,7 @@ class NEB:
             try:
                 energies[i] = images[i].get_potential_energy()
                 forces[i - 1] = images[i].get_forces()
-            except:
+            except Exception:
                 # Make sure other images also fail:
                 error = self.world.sum(1.0)
                 raise
@@ -626,6 +626,7 @@ def interpolate(images, mic=False):
     d /= (len(images) - 1.0)
     for i in range(1, len(images) - 1):
         images[i].set_positions(pos1 + i * d)
+
 
 if __name__ == '__main__':
     # This stuff is used by ASE's GUI
