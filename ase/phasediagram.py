@@ -409,12 +409,13 @@ class PhaseDiagram:
 
         # Find the simplex with positive coordinates that sum to
         # less than one:
+        eps = 1e-15
         for i, Y in enumerate(X):
             try:
                 x = np.linalg.solve((Y[1:] - Y[:1]).T, -Y[0])
             except np.linalg.linalg.LinAlgError:
                 continue
-            if (x >= 0).all() and x.sum() <= 1:
+            if (x > -eps).all() and x.sum() < 1 + eps:
                 break
         else:
             assert False, X
