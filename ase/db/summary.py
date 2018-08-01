@@ -223,9 +223,3 @@ class Summary:
 
         if self.data:
             print('Data:', self.data, '\n')
-
-
-def read_csv_table(name):
-    with open(name) as f:
-        title = f.readline()[1:].strip()
-        return (title, [line.rsplit(',', 2) for line in f])
