@@ -368,7 +368,7 @@ def read_castep_cell(fd, index=None, units=units_CODATA2002):
     def get_tokens(lines, l, maxsplit=0, has_species=False):
         """Tokenizes one line of a *cell file."""
         comment_chars = '#!;'
-        separator_re = '[\s=:]+'
+        separator_re = '[\\s=:]+'
         while l < len(lines):
             line = lines[l].strip()
             if len(line) == 0 or line[0] in comment_chars:

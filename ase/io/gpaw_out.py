@@ -94,7 +94,7 @@ def read_gpaw_out(fileobj, index):
             atoms = Atoms(cell=cell, pbc=pbc)
         lines = lines[i + 5:]
         try:
-            ii = index_pattern(lines, '\d+ k-point')
+            ii = index_pattern(lines, '\\d+ k-point')
             word = lines[ii].split()
             kx = int(word[2])
             ky = int(word[4])
