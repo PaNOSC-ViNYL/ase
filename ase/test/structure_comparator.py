@@ -5,6 +5,7 @@ from ase import Atoms
 from ase.spacegroup import spacegroup, crystal
 from random import randint
 import numpy as np
+import os
 
 heavy_test = False
 
@@ -60,9 +61,9 @@ def test_translations(comparator):
                 displacement = np.array([dx * i, dx * j, dx * k])
                 new_pos = pos_ref + displacement
                 s2.set_positions(new_pos)
-                if (comparator.compare(s1, s2)):
+                if (comparator.compare(s1, s2, trans_mat_file="transmat.pkl")):
                     number_of_correctly_identified += 1
-
+    os.remove("transmat.pkl")
     assert number_of_correctly_identified == N**3
 
 
@@ -280,8 +281,5 @@ def run_all_tests(comparator):
 
 
 comparator = SymmetryEquivalenceCheck()
-if comparator.use_cpp_version:
-    run_all_tests(comparator)
-    comparator.use_cpp_version = False
-
+comparator.use_cpp_version = False
 run_all_tests(comparator)

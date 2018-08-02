@@ -192,14 +192,19 @@ class SymmetryEquivalenceCheck(object):
         vol2 = self.s2.get_volume()
         return np.abs(vol1 - vol2) < 1e-5
 
-    def compare(self, s1, s2):
+    def compare(self, s1, s2, trans_mat_file=None):
         """Compare the two structures.
 
         Return *True* if the two structures are equivalent, *False* otherwise.
 
         Arguments:
         =========
-        s1, s2: Atoms objects
+        s1, s2: Atoms objects. Transformation matrices are calculated based
+                on s1.
+
+        trans_mat_file: If given the candidate translation will be stored.
+                        On the next call it will try to read the matrices
+                        from this file instead of computing them
         """
         self.s1 = s1.copy()
         self.s2 = s2.copy()
@@ -227,10 +232,27 @@ class SymmetryEquivalenceCheck(object):
         if not self._has_same_volume():
             return False
 
-        self._set_reference_struct()
         if self.use_cpp_version:
             return self._compare_cpp()
-        matrices, translations = self._get_rotation_reflection_matrices()
+
+        if trans_mat_file is not None:
+            import pickle
+            try:
+                with open(trans_mat_file, 'rb') as infile:
+                    matrices, translations = pickle.load(infile)
+            except IOError:
+                # File does not exist.
+                matrices, translations = \
+                    self._get_rotation_reflection_matrices()
+                with open(trans_mat_file, 'wb') as outfile:
+                    pickle.dump((matrices, translations), outfile)
+        else:
+            matrices, translations = \
+                self._get_rotation_reflection_matrices()
+
+        # After the candidate translation based on s1 has been computed
+        # we need potentially to swap s1 and s2 for robust comparison
+        self._set_reference_struct()
         return self._positions_match(matrices, translations)
 
     def _compare_cpp(self):
@@ -313,6 +335,17 @@ class SymmetryEquivalenceCheck(object):
             s1_temp = self.s1.copy()
             self.s1 = self.s2
             self.s2 = s1_temp
+
+    def _get_expanded(self):
+        """Return the expanded atoms object.
+
+        For robust comparison we always return the one with the
+        largest number of atoms."""
+        exp1 = self._expand(self.s1)
+        exp2 = self._expand(self.s2)
+        if len(exp1) > len(exp2):
+            return exp1
+        return exp2
 
     def _positions_match(self, rotation_reflection_matrices, translations):
         """Check if the position and elements match.
