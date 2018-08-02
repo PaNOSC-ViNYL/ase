@@ -264,6 +264,7 @@ def test_symmetrical_one_element_out(comparator):
     assert not comparator.compare(s1, s2)
     assert not comparator.compare(s2, s1)
 
+
 def run_all_tests(comparator):
     test_compare(comparator)
     test_fcc_bcc(comparator)
