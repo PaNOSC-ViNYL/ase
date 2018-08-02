@@ -223,7 +223,6 @@ def test_reduce_to_primitive(comparator):
 
 
 def test_order_of_candidates(prim_comp):
-    #prim_comp = SymmetryEquivalenceCheck()
     s1 = bulk("Al", crystalstructure='fcc', a=3.2)
     s1 = s1 * (2, 2, 2)
     s2 = s1.copy()
