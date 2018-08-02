@@ -51,20 +51,18 @@ def test_translations(comparator):
     s2 = s1.copy()
 
     xmax = 2.0 * np.max(s1.get_cell().T)
-    N = 1
+    N = 3
     dx = xmax / N
     pos_ref = s2.get_positions()
-    number_of_correctly_identified = 0
+    structures = []
     for i in range(N):
         for j in range(N):
             for k in range(N):
                 displacement = np.array([dx * i, dx * j, dx * k])
                 new_pos = pos_ref + displacement
                 s2.set_positions(new_pos)
-                if (comparator.compare(s1, s2, trans_mat_file="transmat.pkl")):
-                    number_of_correctly_identified += 1
-    os.remove("transmat.pkl")
-    assert number_of_correctly_identified == N**3
+                structures.append(s2)
+    assert comparator.compare(s1, structures)
 
 
 def test_rot_60_deg(comparator):
@@ -252,7 +250,6 @@ def test_original_paper_structures():
     # this evaluates to True, and is still significantly smaller than
     # the smallest interatomic distance
     org_comparator = SymmetryEquivalenceCheck(stol=0.3)
-    org_comparator.use_cpp_version = False
     assert org_comparator.compare(s1, s2)
 
 
@@ -286,5 +283,4 @@ def run_all_tests(comparator):
 
 
 comparator = SymmetryEquivalenceCheck()
-comparator.use_cpp_version = False
 run_all_tests(comparator)

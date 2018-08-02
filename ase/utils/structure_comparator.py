@@ -12,14 +12,6 @@ try:
 except ImportError:  # python2.7
     from itertools import ifilterfalse as filterfalse
 
-try:
-    import pystructcomp_cpp as pycpp
-    # The C++ version is available at:
-    # https://github.com/davidkleiven/StructureCompare
-    has_cpp_version = True
-except BaseException:
-    has_cpp_version = False
-
 
 class SpgLibNotFoundError(Exception):
     """Raised if SPG lib is not found when needed"""
@@ -67,7 +59,6 @@ class SymmetryEquivalenceCheck(object):
         self.ltol = ltol
         self.vol_tol = vol_tol
         self.position_tolerance = 0.0
-        self.use_cpp_version = has_cpp_version
         self.to_primitive = to_primitive
 
     def _niggli_reduce(self):
@@ -197,7 +188,7 @@ class SymmetryEquivalenceCheck(object):
         vol2 = self.s2.get_volume()
         return np.abs(vol1 - vol2) < self.vol_tol
 
-    def compare(self, s1, s2, trans_mat_file=None):
+    def compare(self, s1, s2):
         """Compare the two structures.
 
         Return *True* if the two structures are equivalent, *False* otherwise.
@@ -212,89 +203,52 @@ class SymmetryEquivalenceCheck(object):
                         from this file instead of computing them
         """
         self.s1 = s1.copy()
-        self.s2 = s2.copy()
 
-        if self.to_primitive:
-            self.s1 = self._reduce_to_primitive(self.s1)
-            self.s2 = self._reduce_to_primitive(self.s2)
+        if not isinstance(s2, list):
+            # Just make it a list of length 1
+            s2 = [s2]
 
-        vol = self.s1.get_volume()
-        self.position_tolerance = self.stol * (vol / len(self.s2))**(1.0 / 3.0)
+        matrices = None
+        translations = None
+        for struct in s2:
+            self.s2 = struct.copy()
 
-        if len(self.s1) != len(self.s2):
-            return False
+            if self.to_primitive:
+                self.s1 = self._reduce_to_primitive(self.s1)
+                self.s2 = self._reduce_to_primitive(self.s2)
 
-        if not self._has_same_elements():
-            return False
+            vol = self.s1.get_volume()
+            self.position_tolerance = \
+                self.stol * (vol / len(self.s2))**(1.0 / 3.0)
 
-        self._niggli_reduce()
-        if not self._has_same_angles():
-            return False
+            if len(self.s1) != len(self.s2):
+                return False
 
-        if self.scale_volume:
-            self._scale_volumes()
+            if not self._has_same_elements():
+                return False
 
-        if not self._has_same_volume():
-            return False
+            self._niggli_reduce()
+            if not self._has_same_angles():
+                return False
 
-        if self.use_cpp_version:
-            return self._compare_cpp()
+            if self.scale_volume:
+                self._scale_volumes()
 
-        if trans_mat_file is not None:
-            import pickle
-            try:
-                with open(trans_mat_file, 'rb') as infile:
-                    matrices, translations = pickle.load(infile)
-            except IOError:
-                # File does not exist.
+            if not self._has_same_volume():
+                return False
+
+            if matrices is None:
                 matrices, translations = \
                     self._get_rotation_reflection_matrices()
-                with open(trans_mat_file, 'wb') as outfile:
-                    pickle.dump((matrices, translations), outfile)
-        else:
-            matrices, translations = \
-                self._get_rotation_reflection_matrices()
 
-        # After the candidate translation based on s1 has been computed
-        # we need potentially to swap s1 and s2 for robust comparison
-        self._set_reference_struct()
-        return self._positions_match(matrices, translations)
-
-    def _compare_cpp(self):
-        """Compare the two structures using the C++ version."""
-        atoms1_ref, atoms2_ref = \
-            self._extract_positions_of_least_frequent_element()
-        cell = self.s1.get_cell().T
-
-        # Additional vector that is added to make sure that
-        # there always is an atom at the origin
-        delta_vec = 1E-6 * (cell[:, 0] + cell[:, 1] + cell[:, 2])
-
-        # Put on of the least frequent elements of structure 2 at the origin
-        translation = atoms2_ref.get_positions()[0, :] - delta_vec
-        atoms2_ref.set_positions(atoms2_ref.get_positions() - translation)
-        atoms2_ref.wrap(pbc=[1, 1, 1])
-        self.s2.set_positions(self.s2.get_positions() - translation)
-        self.s2.wrap(pbc=[1, 1, 1])
-        translation = atoms1_ref.get_positions()[0, :] - delta_vec
-
-        sc_atom_search = atoms1_ref * (3, 3, 3)
-        sc_pos = atoms1_ref.get_positions()
-        # Translate by one cell diagonal
-        sc_pos += cell[:, 0] + cell[:, 1] + cell[:, 2]
-
-        sc_pos_search = sc_atom_search.get_positions()
-
-        translation = sc_pos[0, :] - delta_vec
-
-        new_sc_pos = sc_pos_search - translation
-        sc_atom_search.set_positions(new_sc_pos)
-        sc_atom_search.wrap()
-        exp2 = self._expand(self.s2)
-        symb1 = [atom.symbol for atom in self.s1]
-        symb_exp = [atom.symbol for atom in exp2]
-        return pycpp.compare(self, self.s1, exp2, atoms1_ref, sc_atom_search,
-                             symb1, symb_exp)
+            # After the candidate translation based on s1 has been computed
+            # we need potentially to swap s1 and s2 for robust comparison
+            self._set_reference_struct()
+            if self._positions_match(matrices, translations):
+                return True
+            # Set the reference structure back to its original
+            self.s1 = s1.copy()
+        return False
 
     def _get_least_frequent_element(self):
         """Return the symbol of the least frequent element."""
