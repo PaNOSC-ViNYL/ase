@@ -5,7 +5,6 @@ from ase import Atoms
 from ase.spacegroup import spacegroup, crystal
 from random import randint
 import numpy as np
-import os
 
 heavy_test = False
 
