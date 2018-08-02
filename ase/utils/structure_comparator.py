@@ -45,6 +45,10 @@ class SymmetryEquivalenceCheck(object):
         position tolerance for the site comparison in units of
         (V/N)^(1/3) (average length between atoms)
 
+    vol_tol: float
+        volume tolerance in angstrom cubed to compare the volumes of
+        the two structures
+
     scale_volume: bool
         if True the volumes of the two structures are scaled to be equal
 
@@ -53,7 +57,7 @@ class SymmetryEquivalenceCheck(object):
         note that this feature requires spglib to installed
     """
 
-    def __init__(self, angle_tol=1.0, ltol=0.05, stol=0.05,
+    def __init__(self, angle_tol=1.0, ltol=0.05, stol=0.05, vol_tol=0.1,
                  scale_volume=False, to_primitive=False):
         self.s1 = None
         self.s2 = None
@@ -61,6 +65,7 @@ class SymmetryEquivalenceCheck(object):
         self.scale_volume = scale_volume
         self.stol = stol
         self.ltol = ltol
+        self.vol_tol = vol_tol
         self.position_tolerance = 0.0
         self.use_cpp_version = has_cpp_version
         self.to_primitive = to_primitive
@@ -190,7 +195,7 @@ class SymmetryEquivalenceCheck(object):
     def _has_same_volume(self):
         vol1 = self.s1.get_volume()
         vol2 = self.s2.get_volume()
-        return np.abs(vol1 - vol2) < 1e-5
+        return np.abs(vol1 - vol2) < self.vol_tol
 
     def compare(self, s1, s2, trans_mat_file=None):
         """Compare the two structures.
@@ -336,17 +341,6 @@ class SymmetryEquivalenceCheck(object):
             self.s1 = self.s2
             self.s2 = s1_temp
 
-    def _get_expanded(self):
-        """Return the expanded atoms object.
-
-        For robust comparison we always return the one with the
-        largest number of atoms."""
-        exp1 = self._expand(self.s1)
-        exp2 = self._expand(self.s2)
-        if len(exp1) > len(exp2):
-            return exp1
-        return exp2
-
     def _positions_match(self, rotation_reflection_matrices, translations):
         """Check if the position and elements match.
 
@@ -359,7 +353,6 @@ class SymmetryEquivalenceCheck(object):
 
         # Expand the reference object
         exp2 = self._expand(self.s2)
-
         # Build a KD tree to enable fast look-up of nearest neighbours
         tree = KDTree(exp2.get_positions())
         for i in range(translations.shape[0]):
