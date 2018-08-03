@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 
 from ase.io import read, write
@@ -33,6 +34,14 @@ class CLICommand:
     def run(args, parser):
         if args.verbose:
             print(', '.join(args.input), '->', args.output)
+        if args.arrays:
+            args.arrays = [k.strip() for k in args.arrays.split(',')]
+            if args.verbose:
+                print('Filtering to include arrays: ', ', '.join(args.arrays))
+        if args.info:
+            args.info = [k.strip() for k in args.info.split(',')]
+            if args.verbose:
+                print('Filtering to include info: ', ', '.join(args.info))
 
         configs = []
         for filename in args.input:
@@ -45,4 +54,8 @@ class CLICommand:
         if not args.force and os.path.exists(args.output):
             parser.error('File already exists: {}'.format(args.output))
 
-        write(args.output, configs, format=args.output_format)
+        if args.split_output:
+            for i, atoms in enumerate(configs):
+                write(args.output.format(i), atoms, format=args.output_format)
+        else:
+            write(args.output, configs, format=args.output_format)
