@@ -10,8 +10,6 @@ for N in [1, 3]:
     a0 = bulk('Cu', cubic=True)
     a0 *= (N, N, N)
 
-    print len(a0)
-
     # perturb the atoms
     s = a0.get_scaled_positions()
     s[:, 0] *= 0.995
