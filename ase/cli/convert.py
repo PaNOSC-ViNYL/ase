@@ -79,7 +79,7 @@ class CLICommand:
                 # avoid exec() for Py 2+3 compat.
                 eval(compile(args.exec_code, '<string>', 'exec'))
             if args.exec_file:
-                execfile(args.exec_file)
+                eval(compile(open(args.exec_file).read(), args.exec_file, 'exec'))
             if  "_output" not in atoms.info or atoms.info["_output"]:
                 new_configs.append(atoms)
         configs = new_configs
