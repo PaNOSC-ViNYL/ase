@@ -240,6 +240,82 @@ def metric_from_cell(cell):
     return np.dot(cell, cell.T)
 
 
+def cub(a):
+    return a * np.eye(3)
+
+def fcc(a):
+    return 0.5 * np.array([[0., a, a], [a, 0, a], [a, a, 0]])
+
+def bcc(a):
+    return 0.5 * np.array([[-a, a, a], [a, -a, a], [a, a, -a]])
+
+def tet(a, c, axis=2):
+    d = np.array([a, a, a])
+    d[axis] = c
+    return np.diag(d)
+
+def bct(a, c, axis=2):
+    cell = 0.5 * np.array([[-a, a, c], [a, -a, c], [a, a, -c]])
+    permutation = ((2 - axis) + np.arange(3)) % 3
+    # permutation correct??
+    return cell[permutation]
+
+def orc(a, b, c):
+    return np.diag([a, b, c]).astype(float)
+
+def orcf(a, b, c):
+    # permutation?
+    return 0.5 * np.array([[0, b, c], [a, 0, c], [a, b, 0]])
+
+def orci(a, b, c):
+    # permutation?
+    return 0.5 * np.array([[-a, b, c], [a, -b, c], [a, b, -c]])
+
+def orcc(a, b, c):
+    # XXX axis
+    return np.array([[0.5 * a, -0.5 * b, 0], [0.5 * a, 0.5 * b, 0], [0, 0, c]])
+
+def hex(a, c):
+    # XXX axis
+    x = 0.5 * np.sqrt(3)
+    return np.array([[0.5 * a, -x * a, 0], [0.5 * a, x * a, 0], [0., 0., c]])
+
+def rhl(a, alpha):
+    # XXX axis
+    alpha *= np.pi / 180
+    acosa = a * np.cos(alpha)
+    acosa2 = a * np.cos(0.5 * alpha)
+    asina2 = a * np.sin(0.5 * alpha)
+    acosfrac = acosa / acosa2
+    return np.array([[acosa2, -asina2, 0], [acosa2, asina2, 0],
+                     [a * acosfrac, 0, a * np.sqrt(1 - acosfrac**2)]])
+
+def mcl(a, b, c, alpha):
+    # XXX axis
+    alpha *= np.pi / 180
+    return np.array([[a, 0, 0], [0, b, 0],
+                     [0, c * np.cos(alpha), c * np.sin(alpha)]])
+
+def mclc(a, b, c, alpha):
+    # XXXX axis
+    alpha *= np.pi / 180
+    return np.array([[0.5 * a, 0.5 * b, 0], [-0.5 * a, 0.5 * b, 0],
+                     [0, c * np.cos(alpha), c * np.sin(alpha)]])
+
+def tri(a, b, c, alpha, beta, gamma):
+    alpha, beta, gamma = np.array([alpha, beta, gamma]) * (np.pi / 180)
+    singamma = np.sin(gamma)
+    cosgamma = np.cos(gamma)
+    cosbeta = np.cos(beta)
+    cosalpha = np.cos(alpha)
+    a3x = c * cosbeta
+    a3y = c / singamma * (cosalpha - cosbeta * cosgamma)
+    a3z = c / singamma * np.sqrt(singamma**2 - cosalpha**2 - cosbeta**2
+                                 + 2 * cosalpha * cosbeta * cosgamma)
+    return np.array([[a, 0, 0], [b * cosgamma, b * singamma, 0],
+                     [a3x, a3y, a3z]])
+
+
 def crystal_structure_from_cell(cell, eps=2e-4, niggli_reduce=True):
     """Return the crystal structure as a string calculated from the cell.
 
