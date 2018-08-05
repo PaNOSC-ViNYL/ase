@@ -30,22 +30,22 @@ class CLICommand:
             '":step" part can be left out - default values are '
             '0:nimages:1.')
         add('-e', '--exec-code',
-            help='Python code to execute on each atoms before '+
-            'writing it to output file. The Atoms object is '+
-            'available as `atoms`. Set `atoms.info["_output"] = False` '+
+            help='Python code to execute on each atoms before '
+            'writing it to output file. The Atoms object is '
+            'available as `atoms`. Set `atoms.info["_output"] = False` '
             'to suppress output of this frame.')
         add('-E', '--exec-file',
-            help='Python source code file to exectue on each '+
+            help='Python source code file to execute on each '
             'frame, usage is as for -e/--exec-code.')
         add('-a', '--arrays',
-            help='Comma-separated list of atoms.arrays entries to include '+
+            help='Comma-separated list of atoms.arrays entries to include '
             'in output file. Default is all entries.')
         add('-I', '--info',
-            help='Comma-separated list of atoms.info entries to include '+
+            help='Comma-separated list of atoms.info entries to include '
             'in output file. Default is all entries.')
         add('-s', '--split-output', action='store_true',
-            help='Write output frames to individual files. '+
-            'output file name should be a format string with '+
+            help='Write output frames to individual files. '
+            'Output file name should be a format string with '
             'a single integer field, e.g. out-{:0>5}.xyz')
 
     @staticmethod
