@@ -32,9 +32,12 @@ def read_gromacs(filename):
     positions = []
     gromacs_velocities = []
     symbols = []
+    tags = []
     gromacs_residuenumbers = []
     gromacs_residuenames = []
     gromacs_atomtypes = []
+    sym2tag = {}
+    tag = 0
     for line in (lines[2:-1]):
         #print line[0:5]+':'+line[5:11]+':'+line[11:15]+':'+line[15:20]
         # it is not a good idea to use the split method with gromacs input
@@ -70,25 +73,28 @@ def read_gromacs(filename):
         gromacs_residuenumbers.append(int(line[0:5]))
         gromacs_residuenames.append(line[5:11].strip())
 
-        symbols.append(line[11:16].strip()[0:2])
+        symbol_read = line[11:16].strip()[0:2]
+        if symbol_read not in sym2tag.keys():
+            sym2tag[symbol_read] = tag
+            tag += 1
+
+        tags.append(sym2tag[symbol_read])
+        if symbol_read in chemical_symbols:
+            symbols.append(symbol_read)
+        elif symbol_read[0] in chemical_symbols:
+            symbols.append(symbol_read[0])
+        elif symbol_read[-1] in chemical_symbols:
+            symbols.append(symbol_read[-1])
+        else:
+            # not an atomic symbol
+            # if we can not determine the symbol, we use
+            # the dummy symbol X
+            symbols.append("X")
+
         gromacs_atomtypes.append(line[11:16].strip())
 
     line = lines[-1]
-    symbols_ok = []
-    for isymbol in symbols:
-        if isymbol in chemical_symbols:
-            #ok atom name
-            symbols_ok.append(isymbol)
-        elif isymbol[0] in chemical_symbols:
-            symbols_ok.append(isymbol[0])
-        elif isymbol[-1] in chemical_symbols:
-            symbols_ok.append(isymbol[-1])
-        else:
-            #not ok atom name
-            # if we can not determine the symbol, we use
-            # the dummy symbol X
-            symbols_ok.append("X")
-    atoms = Atoms(symbols_ok, positions)
+    atoms = Atoms(symbols, positions, tags=tags)
 
     if len(gromacs_velocities) == len(atoms):
         atoms.set_velocities(gromacs_velocities)
