@@ -143,11 +143,13 @@ def read_gromacs(filename):
 
 
 def write_gromacs(fileobj, images):
-    """Write gromacs geometry files (\*.gro).
+    """Write gromacs geometry files (.gro).
+
     Writes:
-    atom positions,
-    velocities (if present, otherwise 0)
-    and simulation cell (if present)
+
+    * atom positions,
+    * velocities (if present, otherwise 0)
+    * simulation cell (if present)
     """
 
     from ase import units

@@ -372,8 +372,7 @@ class Precon(object):
         raise NotImplementedError('Must be overridden by subclasses')
 
     def estimate_mu(self, atoms, H=None):
-        """
-        Estimate optimal preconditioner coefficient \mu
+        r"""Estimate optimal preconditioner coefficient \mu
 
         \mu is estimated from a numerical solution of
 

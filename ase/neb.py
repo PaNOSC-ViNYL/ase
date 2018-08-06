@@ -583,13 +583,13 @@ class NEBTools:
         for x, y in lines:
             ax.plot(x, y, '-g')
         ax.plot(Sfit, Efit, 'k-')
-        ax.set_xlabel('path [$\AA$]')
+        ax.set_xlabel(r'path [$\AA$]')
         ax.set_ylabel('energy [eV]')
         Ef = max(Efit) - E[0]
         Er = max(Efit) - E[-1]
         dE = E[-1] - E[0]
-        ax.set_title('$E_\mathrm{f} \\approx$ %.3f eV; '
-                     '$E_\mathrm{r} \\approx$ %.3f eV; '
+        ax.set_title('$E_\\mathrm{f} \\approx$ %.3f eV; '
+                     '$E_\\mathrm{r} \\approx$ %.3f eV; '
                      '$\\Delta E$ = %.3f eV'
                      % (Ef, Er, dE))
         return fig
