@@ -122,10 +122,6 @@ class Precon(object):
             raise ValueError('Dimension must be at least 1')
         self.dim = dim
 
-        #if not have_matscipy:
-        #    warnings.warn('Unable to import Matscipy. Neighbour list '
-        #                  'calculations may be very slow.')
-
     def make_precon(self, atoms, recalc_mu=None):
         """Create a preconditioner matrix based on the passed set of atoms.
 
@@ -655,7 +651,7 @@ class FF(Precon):
     def __init__(self, dim=3, c_stab=0.1, force_stab=False,
                  array_convention='C', solver="auto", solve_tol=1e-9,
                  apply_positions=True, apply_cell=True,
-                 hessian='reduced', morses=None, bonds=None, angles=None,
+                 hessian='spectral', morses=None, bonds=None, angles=None,
                  dihedrals=None):
         """Initialise an FF preconditioner with given parameters.
 
@@ -843,7 +839,7 @@ class Exp_FF(Exp, FF):
                  solver="auto", solve_tol=1e-9,
                  apply_positions=True, apply_cell=True,
                  estimate_mu_eigmode=False,
-                 hessian='reduced', morses=None, bonds=None, angles=None,
+                 hessian='spectral', morses=None, bonds=None, angles=None,
                  dihedrals=None):
         """Initialise an Exp+FF preconditioner with given parameters.
 
