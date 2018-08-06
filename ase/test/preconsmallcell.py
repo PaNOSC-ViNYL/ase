@@ -20,6 +20,8 @@ for N in [1, 3]:
 
     # check we get a warning about small system
     with warnings.catch_warnings(record=True) as w:
+        # Cause all warnings to always be triggered.
+        warnings.simplefilter("always")
         opt = PreconLBFGS(atoms, precon="auto")
         if N == 1:
             assert len(w) == 1
@@ -29,6 +31,8 @@ for N in [1, 3]:
 
     # check we get a warning about bad estimate for mu with big cell
     with warnings.catch_warnings(record=True) as w:
+        # Cause all warnings to always be triggered.
+        warnings.simplefilter("always")
         opt.run(1e-3)
         if N == 1:
             assert len(w) == 0
