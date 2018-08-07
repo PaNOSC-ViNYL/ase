@@ -165,3 +165,12 @@ Transition (v -> c):
    in the future.
 
 .. _VASP HSE band structure wiki: https://cms.mpi.univie.ac.at/wiki/index.php/Si_HSE_bandstructure#Procedure_2:_0-weight_.28Fake.29_SC_procedure_.28works_DFT_.26_hybrid_functionals.29
+
+
+Density of States
+------------------------
+
+Vasp2 also allows for quick access to the Density of States (DOS), through the ASE DOS module, see :class:`~ase.dft.dos.DOS`.
+Quick access to this function, however, can be found by using the ``get_dos()`` function:
+
+>>> energies, dos = calc.get_dos()
