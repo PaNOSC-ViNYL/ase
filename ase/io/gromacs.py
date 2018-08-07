@@ -22,7 +22,7 @@ def read_gromacs(filename):
     simulation cell (if present)
     """
 
-    from ase.data import chemical_symbols
+    from ase.data import atomic_numbers
     from ase import units
 
     atoms = Atoms()
@@ -79,11 +79,11 @@ def read_gromacs(filename):
             tag += 1
 
         tags.append(sym2tag[symbol_read])
-        if symbol_read in chemical_symbols:
+        if symbol_read in atomic_numbers:
             symbols.append(symbol_read)
-        elif symbol_read[0] in chemical_symbols:
+        elif symbol_read[0] in atomic_numbers:
             symbols.append(symbol_read[0])
-        elif symbol_read[-1] in chemical_symbols:
+        elif symbol_read[-1] in atomic_numbers:
             symbols.append(symbol_read[-1])
         else:
             # not an atomic symbol
