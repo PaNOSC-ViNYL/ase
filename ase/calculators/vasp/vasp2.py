@@ -34,8 +34,7 @@ from ase.io import read
 from ase.utils import basestring
 
 from ase.calculators.calculator import (FileIOCalculator, ReadError,
-                                        all_changes,
-                                        PropertyNotImplementedError)
+                                        all_changes)
 
 from .create_input import GenerateVaspInput
 
