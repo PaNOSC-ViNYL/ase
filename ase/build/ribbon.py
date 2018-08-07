@@ -48,8 +48,8 @@ def graphene_nanoribbon(n, m, type='zigzag', saturated=False, C_H=1.09,
                           [b * 2, 0, 3 * C_C / 2.],
                           [0, 0, 2 * C_C]]
     arm_unit_half = Atoms(main_element + '2',
-                     pbc=(1, 0, 1),
-                     cell=[2 * b, 0, 3 * C_C])
+                          pbc=(1, 0, 1),
+                          cell=[2 * b, 0, 3 * C_C])
     arm_unit_half.positions = [[b * 2, 0, C_C / 2.],
                                [b * 2, 0, 3 * C_C / 2.]]
     zz_unit = Atoms(main_element + '2',
@@ -93,20 +93,27 @@ def graphene_nanoribbon(n, m, type='zigzag', saturated=False, C_H=1.09,
         atoms.cell = [n * 3 * C_C / 2, 0, m * 4 * b]
 
     elif type == 'armchair':
-        for i in range(n//2):
+        n *= 2
+        n_int = int(round(n))
+        if abs(n_int - n) > 1e-10:
+            raise ValueError(
+                'The argument n has to be half-integer for armchair ribbons.')
+        n = n_int
+
+        for i in range(n // 2):
             layer = arm_unit.repeat((1, 1, m))
             layer.positions[:, 0] -= 4 * b * i
             atoms += layer
         if n % 2:
             layer = arm_unit_half.repeat((1, 1, m))
-            layer.positions[:, 0] -= 4 * b * (n//2)
+            layer.positions[:, 0] -= 4 * b * (n // 2)
             atoms += layer
 
         xmin = atoms.positions[-1, 0]
 
         if saturated:
             if n % 2:
-                arm_right_saturation = Atoms(saturate_element + '2', 
+                arm_right_saturation = Atoms(saturate_element + '2',
                                              pbc=(1, 0, 1),
                                              cell=[2 * b, 0, 3 * C_C])
                 arm_right_saturation.positions = [
