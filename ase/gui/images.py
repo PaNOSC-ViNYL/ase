@@ -149,34 +149,19 @@ class Images:
         from ase.utils import basestring
         if isinstance(default_index, basestring):
             default_index = string2index(default_index)
+
         images = []
         names = []
         for filename in filenames:
             from ase.io.formats import parse_filename
 
-            if '.json@' in filename or '.db@' in filename:
-                # Ugh! How would one deal with this?
-                # The parse_filename and string2index somehow conspire
-                # to cause an error.  See parse_filename
-                # in ase.io.formats for this particular
-                # special case.  -askhl
-                #
-                # TODO Someone figure out how to see what header
-                # a JSON file should have.
-                imgs = read(filename, default_index, filetype)
-                if hasattr(imgs, 'iterimages'):
-                    imgs = list(imgs.iterimages())
-                names += [filename] * len(imgs)
-                images += imgs
-                continue  # Argh!
-
-            if '@' in filename:
+            if '@' in filename and 'postgres' not in filename or \
+               'postgres' in filename and filename.count('@') == 2:
                 actual_filename, index = parse_filename(filename, None)
             else:
                 actual_filename, index = parse_filename(filename,
                                                         default_index)
-
-            imgs = read(filename, default_index, filetype)
+            imgs = read(filename, index, filetype)
             if hasattr(imgs, 'iterimages'):
                 imgs = list(imgs.iterimages())
 
@@ -187,11 +172,14 @@ class Images:
                 start = index.start or 0
                 step = index.step or 1
             else:
-                start = index  # index is just an integer
-                assert len(imgs) == 1
+                start = index
                 step = 1
             for i, img in enumerate(imgs):
-                names.append('{}@{}'.format(actual_filename, start + i * step))
+                if isinstance(start, int):
+                    names.append('{}@{}'.format(actual_filename, start + i * step))
+                else:
+                    names.append('{}@{}'.format(actual_filename, start))
+
 
         self.initialize(images, names)
 

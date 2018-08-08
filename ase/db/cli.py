@@ -309,9 +309,9 @@ def main(args):
         return
 
     db.python = args.metadata_from_python_script
-    db.meta = process_metadata(db, html=args.open_web_browser)
 
     if args.long:
+        db.meta = process_metadata(db, html=args.open_web_browser)
         # Remove .png files so that new ones will be created.
         for func, filenames in db.meta.get('functions', []):
             for filename in filenames:

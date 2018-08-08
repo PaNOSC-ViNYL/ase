@@ -140,7 +140,8 @@ def connect(name, type='extract_from_name', create_indices=True,
             type = None
         elif not isinstance(name, basestring):
             type = 'json'
-        elif name.startswith('postgresql://'):
+        elif (name.startswith('postgresql://') or
+              name.startswith('postgres://')):
             type = 'postgresql'
         else:
             type = os.path.splitext(name)[1][1:]
@@ -403,7 +404,6 @@ class Database:
         selection: int, str or list
             See the select() method.
         """
-
         rows = list(self.select(selection, limit=2, **kwargs))
         if not rows:
             raise KeyError('no match')
@@ -413,7 +413,7 @@ class Database:
     @parallel_generator
     def select(self, selection=None, filter=None, explain=False,
                verbosity=1, limit=None, offset=0, sort=None,
-               include_data=True, **kwargs):
+               include_data=True, columns='all', **kwargs):
         """Select rows.
 
         Return AtomsRow iterator with results.  Selection is done
@@ -445,6 +445,10 @@ class Database:
             Sort rows after key.  Prepend with minus sign for a decending sort.
         include_data: bool
             Use include_data=False to skip reading data from rows.
+        columns: 'all' or list of str
+            Specify which columns from the SQL table to include.
+            For example, if only the row id and the energy is needed,
+            queries can be speeded up by setting columns=['id', 'energy'].
         """
 
         if sort:
@@ -459,7 +463,8 @@ class Database:
         for row in self._select(keys, cmps, explain=explain,
                                 verbosity=verbosity,
                                 limit=limit, offset=offset, sort=sort,
-                                include_data=include_data):
+                                include_data=include_data,
+                                columns=columns):
             if filter is None or filter(row):
                 yield row
 
