@@ -44,6 +44,12 @@ Git master branch
 * Added callback method :meth:`ase.gui.gui.GUI.repeat_poll` to the GUI.
   Useful for programmatically updating the GUI.
 
+* :class:`~ase.constraints.UnitCellFilter` now supports scalar pressure and
+  hydrostatic strain.
+
+* :ref:`ase convert <cli>` now provides options to execute custom code
+  on each processed image.
+
 Version 3.16.2
 ==============
 
