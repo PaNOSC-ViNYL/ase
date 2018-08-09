@@ -353,7 +353,7 @@ def read_cif(fileobj, index, store_tags=False, primitive_cell=False,
 def split_chem_form(comp_name):
     """Returns e.g. AB2  as ['A', '1', 'B', '2']"""
     split_form = re.findall(r'[A-Z][a-z]*|\d+',
-                            re.sub('[A-Z][a-z]*(?![\da-z])',
+                            re.sub(r'[A-Z][a-z]*(?![\da-z])',
                                    r'\g<0>1', comp_name))
     return split_form
 
