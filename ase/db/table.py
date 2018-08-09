@@ -170,6 +170,8 @@ class Row:
                 value = subscript.sub(r'<sub>\1</sub>', value)
             elif isinstance(value, dict):
                 value = str(value)
+            elif isinstance(value, list):
+                value = str(value)
             elif isinstance(value, int):
                 value = str(value)
                 numbers.add(column)
