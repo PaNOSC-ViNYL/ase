@@ -168,6 +168,8 @@ class Row:
         for value, column in zip(self.values, columns):
             if column == 'formula' and subscript:
                 value = subscript.sub(r'<sub>\1</sub>', value)
+            elif isinstance(value, dict):
+                value = str(value)
             elif isinstance(value, int):
                 value = str(value)
                 numbers.add(column)
