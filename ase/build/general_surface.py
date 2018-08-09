@@ -56,14 +56,10 @@ def surface(lattice, indices, layers, vacuum=None, tol=1e-10, termination=0):
         d = set(d)
         d = sorted(list(d))
         d = [0]+d #distances of atoms from cut plane
-        cell = np.matmul(np.diag([1/h1,1/k1,1/l1]),lattice1.get_cell())
-        if termination != 0:
-            for atom in lattice1: 
-                #move atoms in original unit cell to influence cut surface
-                cell = lattice1.get_cell()
-                atom.position += (h*cell[0]+k*cell[1]+l*cell[2])*d[termination]
+        displacement = (h*cell[0]+k*cell[1]+l*cell[2])*d[termination]
+        lattice1.positions += displacement
         lattice = lattice1
-    
+       
     if h0 and k0 or h0 and l0 or k0 and l0:  # if two indices are zero
         if not h0:
             c1, c2, c3 = [(0, 1, 0), (0, 0, 1), (1, 0, 0)]
