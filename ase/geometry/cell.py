@@ -254,34 +254,26 @@ def tet(a, c, axis=2):
     d[axis] = c
     return np.diag(d)
 
-def bct(a, c, axis=2):
-    cell = 0.5 * np.array([[-a, a, c], [a, -a, c], [a, a, -c]])
-    permutation = ((2 - axis) + np.arange(3)) % 3
-    # permutation correct??
-    return cell[permutation]
+def bct(a, c):
+    return 0.5 * np.array([[-a, a, c], [a, -a, c], [a, a, -c]])
 
 def orc(a, b, c):
     return np.diag([a, b, c]).astype(float)
 
 def orcf(a, b, c):
-    # permutation?
     return 0.5 * np.array([[0, b, c], [a, 0, c], [a, b, 0]])
 
 def orci(a, b, c):
-    # permutation?
     return 0.5 * np.array([[-a, b, c], [a, -b, c], [a, b, -c]])
 
 def orcc(a, b, c):
-    # XXX axis
     return np.array([[0.5 * a, -0.5 * b, 0], [0.5 * a, 0.5 * b, 0], [0, 0, c]])
 
 def hex(a, c):
-    # XXX axis
     x = 0.5 * np.sqrt(3)
     return np.array([[0.5 * a, -x * a, 0], [0.5 * a, x * a, 0], [0., 0., c]])
 
 def rhl(a, alpha):
-    # XXX axis
     alpha *= np.pi / 180
     acosa = a * np.cos(alpha)
     acosa2 = a * np.cos(0.5 * alpha)
@@ -291,13 +283,11 @@ def rhl(a, alpha):
                      [a * acosfrac, 0, a * np.sqrt(1 - acosfrac**2)]])
 
 def mcl(a, b, c, alpha):
-    # XXX axis
     alpha *= np.pi / 180
     return np.array([[a, 0, 0], [0, b, 0],
                      [0, c * np.cos(alpha), c * np.sin(alpha)]])
 
 def mclc(a, b, c, alpha):
-    # XXXX axis
     alpha *= np.pi / 180
     return np.array([[0.5 * a, 0.5 * b, 0], [-0.5 * a, 0.5 * b, 0],
                      [0, c * np.cos(alpha), c * np.sin(alpha)]])
@@ -404,3 +394,133 @@ def orthorhombic(cell):
     if not is_orthorhombic(cell):
         raise ValueError('Not orthorhombic')
     return cell.diagonal().copy()
+
+
+
+def get_structure_name(uc, eps=2e-4):
+    cellpar = uc.cellpar()
+    ABC = cellpar[:3]
+    angles = cellpar[3:]
+    A, B, C, alpha, beta, gamma = cellpar
+
+    def categorize_differences(numbers):
+        a, b, c = numbers
+        eq = [abs(b - c) < eps, abs(c - a) < eps, abs(a - b) < eps]
+        neq = sum(eq)
+
+        all_equal = neq == 3
+        all_different = neq == 0
+        funny_direction = np.argmax(eq) if neq == 1 else None
+        assert neq != 2
+        return all_equal, all_different, funny_direction
+
+    (all_lengths_equal, all_lengths_different,
+     unequal_length_dir) = categorize_differences(ABC)
+
+    (all_angles_equal, all_angles_different,
+     unequal_angle_dir) = categorize_differences(angles)
+
+    def check(f, *args, axis=0):
+        cell = f(*args)
+        mycellpar = Cell(cell).cellpar()
+        permutation = (np.arange(-3, 0) + axis) % 3
+        mycellpar = mycellpar.reshape(2, 3)[:, permutation].ravel()
+        return np.allclose(mycellpar, cellpar)
+
+    _c = uc.cell
+    BC_CA_AB = np.array([np.vdot(_c[1], _c[2]),
+                         np.vdot(_c[2], _c[0]),
+                         np.vdot(_c[0], _c[1])])
+
+    _, _, unequal_scalarprod_dir = categorize_differences(BC_CA_AB)
+
+    def allclose(a, b):
+        return np.allclose(a, b, atol=eps)
+
+    if all_lengths_equal:
+        if allclose(angles, 90):
+            assert check(cub, A)
+            return 'cub'
+        if allclose(angles, 60):
+            assert check(fcc, np.sqrt(2) * A)
+            return 'fcc'
+        if allclose(angles, np.arccos(-1 / 3) * 180 / np.pi):
+            assert check(bcc, 2.0 * A / np.sqrt(3))
+            return 'bcc'
+
+    if all_lengths_equal and unequal_angle_dir is not None:
+        x = BC_CA_AB[unequal_angle_dir]
+        y = BC_CA_AB[(unequal_angle_dir + 1) % 3]
+
+        if x < 0:
+            c = 2.0 * np.sqrt(-y)
+            a = np.sqrt(2.0 * A**2 - 0.5 * c**2)
+            if check(bct, a, c, axis=-unequal_angle_dir + 2):
+                return 'bct'
+
+    if (unequal_angle_dir is not None
+          and abs(angles[unequal_angle_dir] - 120) < eps
+          and abs(angles[unequal_angle_dir - 1] - 90) < eps):
+        a2 = -2 * BC_CA_AB[unequal_scalarprod_dir]
+        c = ABC[unequal_scalarprod_dir]
+        assert a2 > 0
+        assert check(hex, np.sqrt(a2), c, axis=-unequal_scalarprod_dir + 2)
+        return 'hex'
+
+    if allclose(angles, 90) and unequal_length_dir is not None:
+        a = ABC[unequal_length_dir - 1]
+        c = ABC[unequal_length_dir]
+        assert check(tet, a, c, axis=-unequal_length_dir + 2)
+        return 'tet'
+
+    if unequal_length_dir is not None:
+        X = ABC[unequal_length_dir - 1]**2
+        Y = BC_CA_AB[unequal_length_dir]
+        c = ABC[unequal_length_dir]
+        a = np.sqrt(2 * (X + Y))
+        b = np.sqrt(2 * (X - Y))
+        if check(orcc, a, b, c, axis=2 - unequal_length_dir):
+            return 'orcc'
+
+    if allclose(angles, 90) and all_lengths_different:
+        assert check(orc, A, B, C)
+        return 'orc'
+
+    if all_lengths_different:
+        if check(orcf, *(2 * np.sqrt(BC_CA_AB))):
+            return 'orcf'
+
+    if all_lengths_equal:
+        dims = -2 * np.array([BC_CA_AB[1] + BC_CA_AB[2],
+                              BC_CA_AB[2] + BC_CA_AB[0],
+                              BC_CA_AB[0] + BC_CA_AB[1]])
+        if all(dims > 0) and check(orci, *np.sqrt(dims)):
+            return 'orci'
+
+    if all_lengths_equal:
+        cosa = BC_CA_AB[0] / A**2
+        alpha = np.arccos(cosa) * 180 / np.pi
+        if check(rhl, A, alpha):
+            return 'rhl'
+
+    if all_lengths_different and unequal_scalarprod_dir is not None:
+        alpha = angles[unequal_scalarprod_dir]
+        abc = ABC[range(-3, 0) + unequal_scalarprod_dir]
+        if check(mcl, *abc, alpha, axis=-unequal_scalarprod_dir):
+            return 'mcl'
+
+    if unequal_length_dir is not None:
+        c = ABC[unequal_length_dir]
+        L = ABC[unequal_length_dir - 1]
+        b = np.sqrt(2 * (L**2 + BC_CA_AB[unequal_length_dir]))
+        a = np.sqrt(4 * L**2 - b**2)
+        cosa = 2 * BC_CA_AB[unequal_length_dir - 1] / (b * c)
+        alpha = np.arccos(cosa) * 180 / np.pi
+        if check(mclc, a, b, c, alpha, axis=-unequal_length_dir + 2):
+            return 'mclc'
+
+    if check(tri, A, B, C, *angles):
+        # Should always be true
+        return 'tri'
+
+    raise RuntimeError('Cannot recognize cell at all somehow!')
