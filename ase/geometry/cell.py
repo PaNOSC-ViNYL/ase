@@ -571,10 +571,11 @@ def get_bravais_lattice(uc, eps=2e-4):
             return obj
 
     if all_lengths_equal:
-        dims = np.sqrt(-2 * np.array([BC_CA_AB[1] + BC_CA_AB[2],
-                                      BC_CA_AB[2] + BC_CA_AB[0],
-                                      BC_CA_AB[0] + BC_CA_AB[1]]))
-        if all(dims > 0):
+        dims2 = -2 * np.array([BC_CA_AB[1] + BC_CA_AB[2],
+                               BC_CA_AB[2] + BC_CA_AB[0],
+                               BC_CA_AB[0] + BC_CA_AB[1]])
+        if all(dims2 > 0):
+            dims = np.sqrt(dims2)
             obj = check(orci, *dims)
             if obj:
                 return obj
