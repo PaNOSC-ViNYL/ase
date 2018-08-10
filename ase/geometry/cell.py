@@ -16,6 +16,8 @@ class Cell:
     Cells of less than three dimensions are represented by placeholder
     unit vectors that are zero."""
     def __init__(self, cell):
+        if hasattr(cell, 'cell'):
+            cell = cell.cell
         assert cell.shape == (3, 3)
         # We could have lazy attributes for structure (bcc, fcc, ...)
         # and other things.  However this requires making the cell
@@ -109,6 +111,10 @@ class Cell:
         pathstring = special_paths[structure]
         paths = pathstring.split(',')
         return paths
+
+    def bravais(self):
+        name = get_structure_name(self)
+        return bravais[name]
 
 
 def unit_vector(x):
@@ -240,39 +246,85 @@ def metric_from_cell(cell):
     return np.dot(cell, cell.T)
 
 
+class Bravais:
+    def __init__(self, newcellarray):
+        self.newcellarray = newcellarray
+
+    @property
+    def type(self):
+        return self.newcellarray.__name__
+
+    @property
+    def varnames(self):
+        code = self.newcellarray.__code__
+        return code.co_varnames[:code.co_argcount]
+
+    def __call__(self, *args, **kwargs):
+        cycle = kwargs.pop('cycle', None)
+        cell = self.newcellarray(*args, **kwargs)
+        assert cell.shape == (3, 3), cell
+        if cycle:
+            perm = (np.arange(-3, 0) + cycle) % 3
+            cell = cell[perm]
+        return Cell(cell)
+
+    def __repr__(self):
+        return '{}({}{})'.format(self.__class__.__name__,
+                                 self.type,
+                                 self.varnames)
+
+
+bravais = {}
+def bravaisclass(func):
+    name = func.__name__
+    b = Bravais(func)
+    bravais[name] = b
+    return b
+
+@bravaisclass
 def cub(a):
     return a * np.eye(3)
 
+@bravaisclass
 def fcc(a):
     return 0.5 * np.array([[0., a, a], [a, 0, a], [a, a, 0]])
 
+@bravaisclass
 def bcc(a):
     return 0.5 * np.array([[-a, a, a], [a, -a, a], [a, a, -a]])
 
+@bravaisclass
 def tet(a, c, axis=2):
     d = np.array([a, a, a])
     d[axis] = c
     return np.diag(d)
 
+@bravaisclass
 def bct(a, c):
     return 0.5 * np.array([[-a, a, c], [a, -a, c], [a, a, -c]])
 
+@bravaisclass
 def orc(a, b, c):
     return np.diag([a, b, c]).astype(float)
 
+@bravaisclass
 def orcf(a, b, c):
     return 0.5 * np.array([[0, b, c], [a, 0, c], [a, b, 0]])
 
+@bravaisclass
 def orci(a, b, c):
     return 0.5 * np.array([[-a, b, c], [a, -b, c], [a, b, -c]])
 
+@bravaisclass
 def orcc(a, b, c):
     return np.array([[0.5 * a, -0.5 * b, 0], [0.5 * a, 0.5 * b, 0], [0, 0, c]])
 
+@bravaisclass
 def hex(a, c):
     x = 0.5 * np.sqrt(3)
     return np.array([[0.5 * a, -x * a, 0], [0.5 * a, x * a, 0], [0., 0., c]])
 
+@bravaisclass
 def rhl(a, alpha):
     alpha *= np.pi / 180
     acosa = a * np.cos(alpha)
@@ -282,16 +334,19 @@ def rhl(a, alpha):
     return np.array([[acosa2, -asina2, 0], [acosa2, asina2, 0],
                      [a * acosfrac, 0, a * np.sqrt(1 - acosfrac**2)]])
 
+@bravaisclass
 def mcl(a, b, c, alpha):
     alpha *= np.pi / 180
     return np.array([[a, 0, 0], [0, b, 0],
                      [0, c * np.cos(alpha), c * np.sin(alpha)]])
 
+@bravaisclass
 def mclc(a, b, c, alpha):
     alpha *= np.pi / 180
     return np.array([[0.5 * a, 0.5 * b, 0], [-0.5 * a, 0.5 * b, 0],
                      [0, c * np.cos(alpha), c * np.sin(alpha)]])
 
+@bravaisclass
 def tri(a, b, c, alpha, beta, gamma):
     alpha, beta, gamma = np.array([alpha, beta, gamma]) * (np.pi / 180)
     singamma = np.sin(gamma)
@@ -420,8 +475,9 @@ def get_structure_name(uc, eps=2e-4):
     (all_angles_equal, all_angles_different,
      unequal_angle_dir) = categorize_differences(angles)
 
-    def check(f, *args, axis=0):
-        cell = f(*args)
+    def check(f, *args, **kwargs):
+        axis = kwargs.pop('axis', 0)
+        cell = f(*args, **kwargs)
         mycellpar = Cell(cell).cellpar()
         permutation = (np.arange(-3, 0) + axis) % 3
         mycellpar = mycellpar.reshape(2, 3)[:, permutation].ravel()
@@ -506,7 +562,7 @@ def get_structure_name(uc, eps=2e-4):
     if all_lengths_different and unequal_scalarprod_dir is not None:
         alpha = angles[unequal_scalarprod_dir]
         abc = ABC[range(-3, 0) + unequal_scalarprod_dir]
-        if check(mcl, *abc, alpha, axis=-unequal_scalarprod_dir):
+        if check(mcl, *abc, alpha=alpha, axis=-unequal_scalarprod_dir):
             return 'mcl'
 
     if unequal_length_dir is not None:
