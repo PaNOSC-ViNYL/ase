@@ -132,9 +132,9 @@ def write_castep_cell(fd, atoms, positions_frac=False, castep_cell=None,
     fd.write('%BLOCK LATTICE_CART\n')
     cell = np.matrix(atoms.get_cell())
 
-    fformat = '%{0}.{1}f'.format(precision+3, precision)
+    fformat = '%{0}.{1}f'.format(precision + 3, precision)
 
-    cell_block_format = '    ' + ' '.join([fformat]*3) + '\n'
+    cell_block_format = '    ' + ' '.join([fformat] * 3) + '\n'
     for line in atoms.get_cell():
         fd.write(cell_block_format % tuple(line))
     fd.write('%ENDBLOCK LATTICE_CART\n\n\n')
@@ -157,7 +157,7 @@ def write_castep_cell(fd, atoms, positions_frac=False, castep_cell=None,
 
     # Gather the data that will be used to generate the block
     pos_block_data = []
-    pos_block_format = '%s ' + ' '.join([fformat]*3)
+    pos_block_format = '%s ' + ' '.join([fformat] * 3)
     if atoms.has('castep_custom_species'):
         pos_block_data.append(atoms.get_array('castep_custom_species'))
     else:
@@ -368,7 +368,7 @@ def read_castep_cell(fd, index=None, units=units_CODATA2002):
     def get_tokens(lines, l, maxsplit=0, has_species=False):
         """Tokenizes one line of a *cell file."""
         comment_chars = '#!;'
-        separator_re = '[\s=:]+'
+        separator_re = '[\\s=:]+'
         while l < len(lines):
             line = lines[l].strip()
             if len(line) == 0 or line[0] in comment_chars:
@@ -626,11 +626,11 @@ def read_castep_cell(fd, index=None, units=units_CODATA2002):
                     if tokens[0].upper() == '%ENDBLOCK':
                         break
                     else:
-                        block_lines.append(lines[l-1].strip())
+                        block_lines.append(lines[l - 1].strip())
                 if not _fallback:
                     try:
                         calc.__setattr__(block_name, block_lines)
-                    except:
+                    except Exception:
                         print('Problem setting calc.cell.%s' % (block_name))
                         raise
         else:
@@ -639,7 +639,7 @@ def read_castep_cell(fd, index=None, units=units_CODATA2002):
             if not _fallback:
                 try:
                     calc.__setattr__(key, value)
-                except:
+                except Exception:
                     print('Problem setting calc.cell.%s = %s' % (key, value))
                     raise
 
