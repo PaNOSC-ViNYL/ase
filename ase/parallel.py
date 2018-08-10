@@ -102,6 +102,10 @@ if '_gpaw' in sys.builtin_module_names:
     # http://wiki.fysik.dtu.dk/gpaw
     import _gpaw
     world = _gpaw.Communicator()
+elif '_gpaw' in sys.modules:
+    # Same thing as above but for the module version
+    import _gpaw
+    world = _gpaw.Communicator()
 elif '_asap' in sys.builtin_module_names:
     # Modern version of Asap
     # http://wiki.fysik.dtu.dk/asap
