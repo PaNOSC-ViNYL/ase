@@ -49,6 +49,35 @@ def info(gui):
         periodic = [[_('no'), _('yes')][periodic] for periodic in atoms.pbc]
         # TRANSLATORS: This has the form Periodic: no, no, yes
         add(_('Periodic: {}, {}, {}').format(*periodic))
+        add()
+
+        uc = atoms.unitcell
+        cellpar = uc.cellpar()
+        add()
+        add(_('Lengths [Å]: {:.3f}, {:.3f}, {:.3f}').format(*cellpar[:3]))
+        add(_('Angles: {:.1f}°, {:.1f}°, {:.1f}°').format(*cellpar[3:]))
+
+        if atoms.number_of_lattice_vectors == 3:
+            add(_('Volume: {:.3f} Å³').format(atoms.get_volume()))
+
+        add()
+
+        lattice, par = uc.bravais()
+        lattice_string = _('Lattice: {}').format(lattice.name)
+        add(lattice_string)
+
+        pretty = dict(alpha='α', beta='β', gamma='γ')
+        if lattice.type != 'tri':
+            parts = []
+            for varname in lattice.varnames:
+                prettyname = pretty.get(varname, varname)
+                unit = ' Å' if varname in 'abc' else '°'
+                part = '{}={:.3f}{}'.format(prettyname,
+                                            par[varname],
+                                            unit)
+                parts.append(part)
+            add(format(', '.join(parts)))
+
 
         if nimg > 1:
             if all((atoms.cell == img.cell).all() for img in images):
@@ -56,8 +85,6 @@ def info(gui):
             else:
                 add(_('Unit cell varies.'))
 
-        if atoms.number_of_lattice_vectors == 3:
-            add(_('Volume: {:.3f} Å³').format(atoms.get_volume()))
 
         # Print electronic structure information if we have a calculator
         if atoms.calc:
