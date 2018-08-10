@@ -112,9 +112,13 @@ class Cell:
         paths = pathstring.split(',')
         return paths
 
-    def bravais(self):
-        name = get_structure_name(self)
-        return bravais[name]
+    def bravais(self, eps=2e-4):
+        """Get bravais lattice and lattice parameters as (lattice, par).
+
+        lattice, par = uc.bravais()
+        print(uc.cellpar())
+        print(lattice(**par).cellpar())"""
+        return get_bravais_lattice(self, eps=eps)
 
 
 def unit_vector(x):
@@ -247,12 +251,30 @@ def metric_from_cell(cell):
 
 
 class Bravais:
+    data = dict(cub='cubic',
+                fcc='face-centered cubic',
+                bcc='body-centered cubic',
+                tet='tetragonal',
+                bct='body-centered tetragonal',
+                orc='orthorhombic',
+                orcf='face-centered orthorhombic',
+                orci='body-centered orthorhombic',
+                orcc='c-centered orthorhombic',
+                hex='hexagonal',
+                rhl='rhombohedral',
+                mcl='monoclinic',
+                mclc='c-centered monoclinic',
+                tri='triclinic')
     def __init__(self, newcellarray):
         self.newcellarray = newcellarray
 
     @property
     def type(self):
         return self.newcellarray.__name__
+
+    @property
+    def name(self):
+        return self.data[self.type]
 
     @property
     def varnames(self):
@@ -281,6 +303,7 @@ def bravaisclass(func):
     bravais[name] = b
     return b
 
+
 @bravaisclass
 def cub(a):
     return a * np.eye(3)
@@ -294,10 +317,8 @@ def bcc(a):
     return 0.5 * np.array([[-a, a, a], [a, -a, a], [a, a, -a]])
 
 @bravaisclass
-def tet(a, c, axis=2):
-    d = np.array([a, a, a])
-    d[axis] = c
-    return np.diag(d)
+def tet(a, c):
+    return np.diag(np.array([a, a, c]))
 
 @bravaisclass
 def bct(a, c):
@@ -452,7 +473,7 @@ def orthorhombic(cell):
 
 
 
-def get_structure_name(uc, eps=2e-4):
+def get_bravais_lattice(uc, eps=2e-4):
     cellpar = uc.cellpar()
     ABC = cellpar[:3]
     angles = cellpar[3:]
@@ -481,7 +502,13 @@ def get_structure_name(uc, eps=2e-4):
         mycellpar = Cell(cell).cellpar()
         permutation = (np.arange(-3, 0) + axis) % 3
         mycellpar = mycellpar.reshape(2, 3)[:, permutation].ravel()
-        return np.allclose(mycellpar, cellpar)
+        if np.allclose(mycellpar, cellpar):
+            # Return bravais function as well as the bravais parameters
+            # that would reproduce the cell
+            d = dict(zip(f.varnames, args))
+            if axis:
+                d['cycle'] = axis
+            return f, d
 
     _c = uc.cell
     BC_CA_AB = np.array([np.vdot(_c[1], _c[2]),
@@ -495,14 +522,11 @@ def get_structure_name(uc, eps=2e-4):
 
     if all_lengths_equal:
         if allclose(angles, 90):
-            assert check(cub, A)
-            return 'cub'
+            return check(cub, A)
         if allclose(angles, 60):
-            assert check(fcc, np.sqrt(2) * A)
-            return 'fcc'
+            return check(fcc, np.sqrt(2) * A)
         if allclose(angles, np.arccos(-1 / 3) * 180 / np.pi):
-            assert check(bcc, 2.0 * A / np.sqrt(3))
-            return 'bcc'
+            return check(bcc, 2.0 * A / np.sqrt(3))
 
     if all_lengths_equal and unequal_angle_dir is not None:
         x = BC_CA_AB[unequal_angle_dir]
@@ -511,8 +535,9 @@ def get_structure_name(uc, eps=2e-4):
         if x < 0:
             c = 2.0 * np.sqrt(-y)
             a = np.sqrt(2.0 * A**2 - 0.5 * c**2)
-            if check(bct, a, c, axis=-unequal_angle_dir + 2):
-                return 'bct'
+            obj = check(bct, a, c, axis=-unequal_angle_dir + 2)
+            if obj:
+                return obj
 
     if (unequal_angle_dir is not None
           and abs(angles[unequal_angle_dir] - 120) < eps
@@ -520,14 +545,12 @@ def get_structure_name(uc, eps=2e-4):
         a2 = -2 * BC_CA_AB[unequal_scalarprod_dir]
         c = ABC[unequal_scalarprod_dir]
         assert a2 > 0
-        assert check(hex, np.sqrt(a2), c, axis=-unequal_scalarprod_dir + 2)
-        return 'hex'
+        return check(hex, np.sqrt(a2), c, axis=-unequal_scalarprod_dir + 2)
 
     if allclose(angles, 90) and unequal_length_dir is not None:
         a = ABC[unequal_length_dir - 1]
         c = ABC[unequal_length_dir]
-        assert check(tet, a, c, axis=-unequal_length_dir + 2)
-        return 'tet'
+        return check(tet, a, c, axis=-unequal_length_dir + 2)
 
     if unequal_length_dir is not None:
         X = ABC[unequal_length_dir - 1]**2
@@ -535,35 +558,40 @@ def get_structure_name(uc, eps=2e-4):
         c = ABC[unequal_length_dir]
         a = np.sqrt(2 * (X + Y))
         b = np.sqrt(2 * (X - Y))
-        if check(orcc, a, b, c, axis=2 - unequal_length_dir):
-            return 'orcc'
+        obj = check(orcc, a, b, c, axis=2 - unequal_length_dir)
+        if obj:
+            return obj
 
     if allclose(angles, 90) and all_lengths_different:
-        assert check(orc, A, B, C)
-        return 'orc'
+        return check(orc, A, B, C)
 
     if all_lengths_different:
-        if check(orcf, *(2 * np.sqrt(BC_CA_AB))):
-            return 'orcf'
+        obj = check(orcf, *(2 * np.sqrt(BC_CA_AB)))
+        if obj:
+            return obj
 
     if all_lengths_equal:
-        dims = -2 * np.array([BC_CA_AB[1] + BC_CA_AB[2],
-                              BC_CA_AB[2] + BC_CA_AB[0],
-                              BC_CA_AB[0] + BC_CA_AB[1]])
-        if all(dims > 0) and check(orci, *np.sqrt(dims)):
-            return 'orci'
+        dims = np.sqrt(-2 * np.array([BC_CA_AB[1] + BC_CA_AB[2],
+                                      BC_CA_AB[2] + BC_CA_AB[0],
+                                      BC_CA_AB[0] + BC_CA_AB[1]]))
+        if all(dims > 0):
+            obj = check(orci, *dims)
+            if obj:
+                return obj
 
     if all_lengths_equal:
         cosa = BC_CA_AB[0] / A**2
         alpha = np.arccos(cosa) * 180 / np.pi
-        if check(rhl, A, alpha):
-            return 'rhl'
+        obj = check(rhl, A, alpha)
+        if obj:
+            return obj
 
     if all_lengths_different and unequal_scalarprod_dir is not None:
         alpha = angles[unequal_scalarprod_dir]
         abc = ABC[range(-3, 0) + unequal_scalarprod_dir]
-        if check(mcl, *abc, alpha=alpha, axis=-unequal_scalarprod_dir):
-            return 'mcl'
+        obj = check(mcl, *abc, alpha=alpha, axis=-unequal_scalarprod_dir)
+        if obj:
+            return obj
 
     if unequal_length_dir is not None:
         c = ABC[unequal_length_dir]
@@ -572,11 +600,13 @@ def get_structure_name(uc, eps=2e-4):
         a = np.sqrt(4 * L**2 - b**2)
         cosa = 2 * BC_CA_AB[unequal_length_dir - 1] / (b * c)
         alpha = np.arccos(cosa) * 180 / np.pi
-        if check(mclc, a, b, c, alpha, axis=-unequal_length_dir + 2):
-            return 'mclc'
+        obj = check(mclc, a, b, c, alpha, axis=-unequal_length_dir + 2)
+        if obj:
+            return obj
 
-    if check(tri, A, B, C, *angles):
+    obj = check(tri, A, B, C, *angles)
+    if obj:
         # Should always be true
-        return 'tri'
+        return obj
 
     raise RuntimeError('Cannot recognize cell at all somehow!')
