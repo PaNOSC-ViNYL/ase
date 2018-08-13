@@ -265,23 +265,33 @@ class Bravais:
                 mcl='monoclinic',
                 mclc='c-centered monoclinic',
                 tri='triclinic')
+
     def __init__(self, newcellarray):
         self.newcellarray = newcellarray
 
     @property
     def type(self):
+        """Short name, e.g. fcc."""
         return self.newcellarray.__name__
 
     @property
     def name(self):
+        """Long name, e.g. face-centered cubic"""
         return self.data[self.type]
 
     @property
     def varnames(self):
+        """Get names of standardized variables that define cell."""
+        # The varnames are the standardized arguments that define a
+        # lattice, e.g. ['a', 'c'] for tetragonal.  We might as well
+        # take them from the function which builds the lattice:
         code = self.newcellarray.__code__
         return code.co_varnames[:code.co_argcount]
 
     def __call__(self, *args, **kwargs):
+        """Return a new cell.
+
+        Allowed arguments are those given by varnames."""
         cycle = kwargs.pop('cycle', None)
         cell = self.newcellarray(*args, **kwargs)
         assert cell.shape == (3, 3), cell
@@ -474,6 +484,9 @@ def orthorhombic(cell):
 
 
 def get_bravais_lattice(uc, eps=2e-4):
+    if np.linalg.det(uc.cell) < 0:
+        raise ValueError('Cell should be right-handed')
+
     cellpar = uc.cellpar()
     ABC = cellpar[:3]
     angles = cellpar[3:]
@@ -589,7 +602,7 @@ def get_bravais_lattice(uc, eps=2e-4):
 
     if all_lengths_different and unequal_scalarprod_dir is not None:
         alpha = angles[unequal_scalarprod_dir]
-        abc = ABC[range(-3, 0) + unequal_scalarprod_dir]
+        abc = ABC[np.arange(-3, 0) + unequal_scalarprod_dir]
         obj = check(mcl, *abc, alpha=alpha, axis=-unequal_scalarprod_dir)
         if obj:
             return obj
