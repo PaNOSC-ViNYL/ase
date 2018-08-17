@@ -87,8 +87,8 @@ class NEB:
         if parallel:
             assert world.size == 1 or world.size % (self.nimages - 2) == 0
 
-        self.real_forces = None  # ndarray of sahpe (nimages, natom, 3)
-        self.energies = None  # ndarray of sahpe (nimages,)
+        self.real_forces = None  # ndarray of shape (nimages, natom, 3)
+        self.energies = None  # ndarray of shape (nimages,)
 
     def interpolate(self, method='linear', mic=False):
         if self.remove_rotation_and_translation:
