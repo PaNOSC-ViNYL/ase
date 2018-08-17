@@ -315,7 +315,7 @@ class NEB:
     def iterimages(self):
         # Allows trajectory to convert NEB into several images
         if not self.parallel or self.world.size == 1:
-            return iter(self.items)
+            return iter(self.images)
 
         for i, atoms in enumerate(self.images):
             if i == 0 or i == self.nimages - 1:
