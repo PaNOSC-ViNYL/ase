@@ -24,7 +24,7 @@ Git master branch
 * The :meth:`ase.db.core.Database.update` can now update the Atoms and the data
   parts of a row.
 
-* The :meth:`ase.db.core.Database.update` will no longer accept a list of
+* The :meth:`ase.db.core.Database.update` method will no longer accept a list of
   row ID's as the first argument.  Replace this::
 
       db.update(ids, ...)
@@ -49,6 +49,11 @@ Git master branch
 
 * :ref:`ase convert <cli>` now provides options to execute custom code
   on each processed image.
+
+* Writing a trajectory file from a parallelize :class:`~ase.neb.NEB`
+  calculation is now much simpler.  Works the same way as for the serial
+  case.
+
 
 Version 3.16.2
 ==============
