@@ -1033,6 +1033,13 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
         return xc
 
     def get_pdos(self):
+        """ Return a DOS object containing the PDOS of a VASP calculation.
+        Does not currently trigger a calculation, so a calculation needs
+        to the run before calling this.
+
+        Requires LORBIT >= 10 or manually specifying RWIGS in order for VASP
+        to write information on PDOS to DOSCAR.
+        """
         # XX - what sort of keywords do we want?
 
         # Check if we have the correct parameters for writing PDOS
@@ -1047,7 +1054,7 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
 
         # Check if we have stored pdos
         if 'pdos' not in self.results:
-            # We might want to trigger a calculation here
+            # We might want to trigger a calculation here?
             Vdos = VaspDos(os.path.join(self.directory,
                                         'DOSCAR'),
                            efermi=self.get_fermi_level())

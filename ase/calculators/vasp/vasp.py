@@ -1156,9 +1156,7 @@ class VaspDos(object):
         # Set of helper functions to break down
         # the orb name into quantum numbers
         def orb2l(orb):
-            conv = {'s': 0,
-                    'p': 1,
-                    'd': 2}
+            conv = {'s': 0, 'p': 1, 'd': 2}
             return conv[orb[0]]
 
         def orb2m(orb):
@@ -1184,7 +1182,8 @@ class VaspDos(object):
             else:
                 return None
 
-        def get_qn(orb):
+        # Get quantum numbers from orbital
+        def orb2qn(orb):
             l_qn = orb2l(orb)
             ml = orb2m(orb)
             spin = orb2spin(orb)
@@ -1196,7 +1195,8 @@ class VaspDos(object):
         ii = 0
         for atom in atoms:
             for orb in orbs_all:
-                l, m, spin = get_qn(orb)
+                # Construct info about this weight
+                l, m, spin = orb2qn(orb)
                 infod = {'atom': atom.index,
                          'symbol': atom.symbol,
                          'orbital': orb,

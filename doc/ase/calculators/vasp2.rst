@@ -219,6 +219,61 @@ Then we get the PDOS from the calculation:
 			   ylabel='DOS')
 
 Which produces the following:
-			   
+
 .. image:: vasp_co_pdos.png
 
+The orbital resolution from :meth:`~ase.calculators.vasp.Vasp2.get_pdos` depends on the value of ``LORBIT``,
+and therefore the name of the orbital also depends on whether the calculation was spin-polarized, and on the
+value of ``LORBIT``. The naming is as follows (in order of increasing m and l quantum numbers):
+
+======  =========  =========================
+LORBIT  ISPIN      Name
+======  =========  =========================
+10      ``False``  ``s``, ``p``,
+                   ``d``
+10      ``True``   ``s-down``,
+                   ``p-up``,
+                   ``p-down``,
+                   ``d-up``,
+                   ``d-down``
+11, 12  ``False``  ``s``, ``py``,
+                   ``pz``, ``px``,
+	           ``dxy``, ``dyz``,
+	           ``dz2``, ``dxz``,
+	           ``dx2``
+11, 12  ``True``   ``s-down``, ``s-up``
+
+                   ``py-down``, ``py-up``,	       
+                   ``pz-down``, ``pz-up``,
+	           ``px-down``, ``px-up``
+	       
+	           ``dxy-down``, ``dxy-up``,
+         	   ``dyz-down``, ``dyz-up``,
+		   ``dz2-down``, ``dz2-up``,
+		   ``dxz-down``, ``dxz-up``,
+		   ``dx2-down``, ``dx2-up``
+======  =========  =========================
+			   
+
+Additionally, the ``info`` dictionary will contain the ``atom`` index as well as ``symbol``. For instance, the full
+info dict from the above calculation will be
+
+>>> print(pdos.info)
+[{'atom': 0, 'symbol': 'O', 'orbital': 's', 'l': 0, 'm': 0}
+ {'atom': 0, 'symbol': 'O', 'orbital': 'py', 'l': 1, 'm': -1}
+ {'atom': 0, 'symbol': 'O', 'orbital': 'pz', 'l': 1, 'm': 0}
+ {'atom': 0, 'symbol': 'O', 'orbital': 'px', 'l': 1, 'm': 1}
+ {'atom': 0, 'symbol': 'O', 'orbital': 'dxy', 'l': 2, 'm': -2}
+ {'atom': 0, 'symbol': 'O', 'orbital': 'dyz', 'l': 2, 'm': -1}
+ {'atom': 0, 'symbol': 'O', 'orbital': 'dz2', 'l': 2, 'm': 0}
+ {'atom': 0, 'symbol': 'O', 'orbital': 'dxz', 'l': 2, 'm': 1}
+ {'atom': 0, 'symbol': 'O', 'orbital': 'dx2', 'l': 2, 'm': 2}
+ {'atom': 1, 'symbol': 'C', 'orbital': 's', 'l': 0, 'm': 0}
+ {'atom': 1, 'symbol': 'C', 'orbital': 'py', 'l': 1, 'm': -1}
+ {'atom': 1, 'symbol': 'C', 'orbital': 'pz', 'l': 1, 'm': 0}
+ {'atom': 1, 'symbol': 'C', 'orbital': 'px', 'l': 1, 'm': 1}
+ {'atom': 1, 'symbol': 'C', 'orbital': 'dxy', 'l': 2, 'm': -2}
+ {'atom': 1, 'symbol': 'C', 'orbital': 'dyz', 'l': 2, 'm': -1}
+ {'atom': 1, 'symbol': 'C', 'orbital': 'dz2', 'l': 2, 'm': 0}
+ {'atom': 1, 'symbol': 'C', 'orbital': 'dxz', 'l': 2, 'm': 1}
+ {'atom': 1, 'symbol': 'C', 'orbital': 'dx2', 'l': 2, 'm': 2}]
