@@ -91,7 +91,7 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
     env_commands = ['ASE_VASP_COMMAND', 'VASP_COMMAND', 'VASP_SCRIPT']
 
     implemented_properties = ['energy', 'free_energy', 'forces', 'dipole',
-                              'fermi', 'stress', 'magmom', 'magmoms', 'pdos']
+                              'fermi', 'stress', 'magmom', 'magmoms']
 
     default_parameters = {}     # Can be used later to set some ASE defaults
 
