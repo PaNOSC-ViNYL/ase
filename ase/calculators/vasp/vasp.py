@@ -28,7 +28,6 @@ import numpy as np
 
 import ase.io
 from ase.utils import devnull, basestring
-from ase.dft.pdos import PDOS
 
 from ase.calculators.singlepoint import SinglePointCalculator
 from ase.calculators.calculator import PropertyNotImplementedError
@@ -1143,6 +1142,7 @@ class VaspDos(object):
         self._site_dos = np.array(dos)
 
     def get_pdos(self, atoms=None):
+        from ase.dft.pdos import DOS
         if atoms is None:
             atoms = ase.io.read(os.path.join(self.directory,
                                              'POSCAR'))
@@ -1209,7 +1209,7 @@ class VaspDos(object):
 
                 weights[ii] = self.site_dos(atom.index, orb)
                 ii += 1
-        return PDOS(energy, weights, info=info)
+        return DOS(energy, weights, info=info)
 
     def _get_orb_names(self):
         n = self._site_dos.shape[1]
