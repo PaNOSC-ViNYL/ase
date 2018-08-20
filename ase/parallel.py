@@ -97,11 +97,18 @@ class MPI4PY:
         a[:] = self.comm.bcast(a, root=rank)
 
 
+world = None
+
 # Check for special MPI-enabled Python interpreters:
 if '_gpaw' in sys.builtin_module_names:
     # http://wiki.fysik.dtu.dk/gpaw
     import _gpaw
     world = _gpaw.Communicator()
+elif '_gpaw' in sys.modules:
+    # Same thing as above but for the module version
+    import _gpaw
+    if hasattr(_gpaw, 'Communicator'):
+        world = _gpaw.Communicator()
 elif '_asap' in sys.builtin_module_names:
     # Modern version of Asap
     # http://wiki.fysik.dtu.dk/asap
@@ -116,7 +123,8 @@ elif 'Scientific_mpi' in sys.modules:
     from Scientific.MPI import world
 elif 'mpi4py' in sys.modules:
     world = MPI4PY()
-else:
+
+if world is None:
     # This is a standard Python interpreter:
     world = DummyMPI()
 
@@ -168,8 +176,8 @@ def parallel_function(func):
         if world.rank == 0:
             try:
                 result = func(*args, **kwargs)
-            except Exception as ex:
-                pass
+            except Exception as x:
+                ex = x
         ex, result = broadcast((ex, result))
         if ex is not None:
             raise ex

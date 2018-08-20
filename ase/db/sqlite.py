@@ -19,13 +19,14 @@ import numbers
 import os
 import sqlite3
 import sys
+import functools
 
 import numpy as np
 
 from ase.data import atomic_numbers
 from ase.db.row import AtomsRow
 from ase.db.core import Database, ops, now, lock, invop, parse_selection
-from ase.io.jsonio import encode, decode
+from ase.io.jsonio import encode, numpyfy, mydecode
 from ase.parallel import parallel_function
 from ase.utils import basestring
 
@@ -120,6 +121,7 @@ def float_if_not_none(x):
 
 
 class SQLite3Database(Database, object):
+    type = 'db'
     initialized = False
     _allow_reading_old_format = False
     default = 'NULL'  # used for autoincrement id
@@ -194,12 +196,24 @@ class SQLite3Database(Database, object):
 
     def _write(self, atoms, key_value_pairs, data, id):
         Database._write(self, atoms, key_value_pairs, data)
+        if self.type == 'postgresql':
+            encode = functools.partial(_encode, pg=True)
+        else:
+            encode = _encode
 
         con = self.connection or self._connect()
         self._initialize(con)
         cur = con.cursor()
 
         mtime = now()
+
+        if self.type == 'postgresql':
+            blob = functools.partial(_blob, pg=True)
+        else:
+            blob = _blob
+
+        text_key_values = []
+        number_key_values = []
 
         if not isinstance(atoms, AtomsRow):
             row = AtomsRow(atoms)
@@ -211,6 +225,9 @@ class SQLite3Database(Database, object):
         if id:
             self._delete(cur, [id], ['keys', 'text_key_values',
                                      'number_key_values', 'species'])
+        else:
+            if not key_value_pairs:
+                key_value_pairs = row.key_value_pairs
 
         constraints = row._constraints
         if constraints:
@@ -239,8 +256,8 @@ class SQLite3Database(Database, object):
         else:
             values += (None, None)
 
-        if data is None:
-            data = {}
+        if not data:
+            data = row._data
         if not isinstance(data, basestring):
             data = encode(data)
 
@@ -302,8 +319,12 @@ class SQLite3Database(Database, object):
 
     def get_last_id(self, cur):
         cur.execute('SELECT seq FROM sqlite_sequence WHERE name="systems"')
-        id = cur.fetchone()[0]
-        return id
+        result = cur.fetchone()
+        if result is not None:
+            id = result[0]
+            return id
+        else:
+            return 0
 
     def _get_row(self, id):
         con = self._connect()
@@ -321,6 +342,13 @@ class SQLite3Database(Database, object):
         return self._convert_tuple_to_row(values)
 
     def _convert_tuple_to_row(self, values):
+        if self.type == 'postgresql':
+            deblob = functools.partial(_deblob, pg=True)
+            decode = functools.partial(_decode, pg=True)
+        else:
+            deblob = _deblob
+            decode = _decode
+
         values = self._old2new(values)
         dct = {'id': values[0],
                'unique_id': values[1],
@@ -329,8 +357,10 @@ class SQLite3Database(Database, object):
                'user': values[4],
                'numbers': deblob(values[5], np.int32),
                'positions': deblob(values[6], shape=(-1, 3)),
-               'cell': deblob(values[7], shape=(3, 3)),
-               'pbc': (values[8] & np.array([1, 2, 4])).astype(bool)}
+               'cell': deblob(values[7], shape=(3, 3))}
+
+        if values[8] is not None:
+            dct['pbc'] = (values[8] & np.array([1, 2, 4])).astype(bool)
         if values[9] is not None:
             dct['initial_magmoms'] = deblob(values[9])
         if values[10] is not None:
@@ -345,6 +375,7 @@ class SQLite3Database(Database, object):
             dct['constraints'] = values[14]
         if values[15] is not None:
             dct['calculator'] = values[15]
+        if values[16] is not None:
             dct['calculator_parameters'] = decode(values[16])
         if values[17] is not None:
             dct['energy'] = values[17]
@@ -365,18 +396,20 @@ class SQLite3Database(Database, object):
         if values[25] != '{}':
             dct['key_value_pairs'] = decode(values[25])
         if len(values) >= 27 and values[26] != 'null':
-            dct['data'] = values[26]
+            dct['data'] = decode(values[26])
 
         return AtomsRow(dct)
 
     def _old2new(self, values):
+        if self.type == 'postgresql':
+            assert self.version >= 8, 'Your db-version is too old!'
         assert self.version >= 4, 'Your db-file is too old!'
         if self.version < 5:
             pass  # should be ok for reading by convert.py script
         if self.version < 6:
             m = values[23]
             if m is not None and not isinstance(m, float):
-                magmom = float(deblob(m, shape=()))
+                magmom = float(_deblob(m, shape=()))
                 values = values[:23] + (magmom,) + values[24:]
         return values
 
@@ -426,23 +459,38 @@ class SQLite3Database(Database, object):
                     assert op in ['=', '!=']
                     value = int(np.dot([x == 'T' for x in value], [1, 2, 4]))
                 elif key == 'magmom':
-                    assert self.version >= 6, 'Update you db-file'
+                    assert self.version >= 6, 'Update your db-file'
                 where.append('systems.{}{}?'.format(key, op))
                 args.append(value)
             elif isinstance(key, int):
-                if bad[key]:
+                if self.type == 'postgresql':
                     where.append(
-                        'NOT EXISTS (SELECT id FROM species WHERE\n' +
-                        '  species.id=systems.id AND species.Z=? AND ' +
-                        'species.n{}?)'.format(invop[op]))
+                        'cardinality(array_positions(' +
+                        'numbers::int[], ?)){}?'.format(op))
                     args += [key, value]
                 else:
-                    tables.append('species AS specie{}'.format(nspecies))
-                    where.append(('systems.id=specie{0}.id AND ' +
-                                  'specie{0}.Z=? AND ' +
-                                  'specie{0}.n{1}?').format(nspecies, op))
-                    args += [key, value]
-                    nspecies += 1
+                    if bad[key]:
+                        where.append(
+                            'NOT EXISTS (SELECT id FROM species WHERE\n' +
+                            '  species.id=systems.id AND species.Z=? AND ' +
+                            'species.n{}?)'.format(invop[op]))
+                        args += [key, value]
+                    else:
+                        tables.append('species AS specie{}'.format(nspecies))
+                        where.append(('systems.id=specie{0}.id AND ' +
+                                      'specie{0}.Z=? AND ' +
+                                      'specie{0}.n{1}?').format(nspecies, op))
+                        args += [key, value]
+                        nspecies += 1
+
+            elif self.type == 'postgresql':
+                jsonop = '->'
+                if isinstance(value, basestring):
+                    jsonop = '->>'
+                where.append("systems.key_value_pairs {} '{}'{}?"
+                             .format(jsonop, key, op))
+                args.append(str(value))
+
             elif isinstance(value, basestring):
                 tables.append('text_key_values AS text{0}'.format(ntext))
                 where.append(('systems.id=text{0}.id AND ' +
@@ -485,9 +533,22 @@ class SQLite3Database(Database, object):
         return sql, args
 
     def _select(self, keys, cmps, explain=False, verbosity=0,
-                limit=None, offset=0, sort=None, include_data=True):
+                limit=None, offset=0, sort=None, include_data=True,
+                columns='all'):
         con = self._connect()
         self._initialize(con)
+
+        values = np.array([None for i in range(27)])
+        values[25] = '{}'
+        values[26] = 'null'
+
+        if columns == 'all':
+            columnindex = list(range(26))
+        else:
+            columnindex = [c for c in range(0, 26)
+                           if self.columnnames[c] in columns]
+        if include_data:
+            columnindex.append(26)
 
         if sort:
             if sort[0] == '-':
@@ -501,7 +562,8 @@ class SQLite3Database(Database, object):
                 sort_table = 'systems'
             else:
                 for dct in self._select(keys + [sort], cmps, limit=1,
-                                        include_data=False):
+                                        include_data=False,
+                                        columns=['key_value_pairs']):
                     if isinstance(dct['key_value_pairs'][sort], basestring):
                         sort_table = 'text_key_values'
                     else:
@@ -515,11 +577,9 @@ class SQLite3Database(Database, object):
             order = None
             sort_table = None
 
-        if include_data:
-            what = 'systems.*'
-        else:
-            what = ', '.join('systems.' + name
-                             for name in self.columnnames[:26])
+        what = ', '.join('systems.' + name
+                         for name in
+                         np.array(self.columnnames)[np.array(columnindex)])
 
         sql, args = self.create_select_statement(keys, cmps, sort, order,
                                                  sort_table, what)
@@ -543,8 +603,9 @@ class SQLite3Database(Database, object):
                 yield {'explain': row}
         else:
             n = 0
-            for values in cur.fetchall():
-                yield self._convert_tuple_to_row(values)
+            for shortvalues in cur.fetchall():
+                values[columnindex] = shortvalues
+                yield self._convert_tuple_to_row(tuple(values))
                 n += 1
 
             if sort and sort_table != 'systems':
@@ -556,7 +617,8 @@ class SQLite3Database(Database, object):
 
                 for row in self._select(keys + ['-' + sort], cmps,
                                         limit=limit, offset=offset,
-                                        include_data=include_data):
+                                        include_data=include_data,
+                                        columns=columns):
                     yield row
 
     @parallel_function
@@ -577,6 +639,8 @@ class SQLite3Database(Database, object):
     @parallel_function
     @lock
     def delete(self, ids):
+        if len(ids) == 0:
+            return
         con = self._connect()
         self._delete(con.cursor(), ids)
         con.commit()
@@ -585,8 +649,8 @@ class SQLite3Database(Database, object):
     def _delete(self, cur, ids, tables=None):
         tables = tables or all_tables[::-1]
         for table in tables:
-            cur.executemany('DELETE FROM {0} WHERE id=?'.format(table),
-                            ((id,) for id in ids))
+            cur.execute('DELETE FROM {} WHERE id in ({});'.
+                        format(table, ', '.join([str(id) for id in ids])))
 
     @property
     def metadata(self):
@@ -613,7 +677,7 @@ class SQLite3Database(Database, object):
         con.commit()
 
 
-def blob(array):
+def _blob(array, pg=False):
     """Convert array to blob/buffer object."""
 
     if array is None:
@@ -622,18 +686,21 @@ def blob(array):
         array = np.zeros(0)
     if array.dtype == np.int64:
         array = array.astype(np.int32)
+    if pg:
+        return array.tolist()
     if not np.little_endian:
         array = array.byteswap()
     return buffer(np.ascontiguousarray(array))
 
 
-def deblob(buf, dtype=float, shape=None):
+def _deblob(buf, dtype=float, shape=None, pg=False):
     """Convert blob/buffer object to ndarray of correct dtype and shape.
 
     (without creating an extra view)."""
-
     if buf is None:
         return None
+    if pg:
+        return np.array(buf, dtype=dtype)
     if len(buf) == 0:
         array = np.zeros(0, dtype)
     else:
@@ -647,6 +714,19 @@ def deblob(buf, dtype=float, shape=None):
     if shape is not None:
         array.shape = shape
     return array
+
+
+def _encode(obj, pg=False):
+    if pg:
+        return encode(obj).replace('NaN', '"NaN"').replace('Infinity', '"Infinity"')
+    else:
+        return encode(obj)
+
+
+def _decode(txt, pg=False):
+    if pg:
+        txt = encode(txt).replace('"NaN"', 'NaN').replace('"Infinity"', 'Infinity')
+    return numpyfy(mydecode(txt))
 
 
 if __name__ == '__main__':

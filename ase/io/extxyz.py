@@ -451,11 +451,9 @@ def _read_xyz_frame(lines, natoms, properties_parser=key_val_str_to_dict, nvec=0
                                    stress[0, 2],
                                    stress[0, 1]])
                 results[key] = stress
-            del atoms.info[key]
     for key in list(atoms.arrays.keys()):
         if key in all_properties:
             results[key] = atoms.arrays[key]
-            del atoms.arrays[key]
     if results != {}:
         calculator = SinglePointCalculator(atoms, **results)
         atoms.set_calculator(calculator)
@@ -719,7 +717,7 @@ def write_xyz(fileobj, images, comment='', columns=None, write_info=True,
         if fr_cols is None:
             fr_cols = (['symbols', 'positions'] +
                        [key for key in atoms.arrays.keys() if
-                        key not in ['symbols', 'positions',
+                        key not in ['symbols', 'positions', 'numbers',
                                     'species', 'pos']])
 
         if vec_cell:

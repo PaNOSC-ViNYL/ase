@@ -4,13 +4,19 @@
 Release notes
 =============
 
-
 Git master branch
 =================
 
 :git:`master <>`.
 
 * Test suite now runs in parallel.
+
+* Socked-based interface to certain calculators through the
+  :mod:`~ase.calculators.socketio` module:
+  Added support for
+  communicating coordinates, forces and other quantities over
+  sockets using the i-PI protocol.  This removes the overhead for
+  starting and stopping calculators for each geometry step.
 
 * The :meth:`ase.db.core.Database.write` method now takes a ``id`` that
   allows you to overwrite an existing row.
@@ -28,6 +34,28 @@ Git master branch
       with db:
           for id in ids:
               db.update(id, ...)
+
+* Neighbor lists can now :meth:`get connectivity matrices
+  <ase.neighborlist.NeighborList.get_connectivity_matrix>`.
+
+* New ``--show-keys`` and ``--show-values=...`` options for the
+  :ref:`ase db <cli>` command line interface.
+
+* Added callback method :meth:`ase.gui.gui.GUI.repeat_poll` to the GUI.
+  Useful for programmatically updating the GUI.
+
+* :class:`~ase.constraints.UnitCellFilter` now supports scalar pressure and
+  hydrostatic strain.
+
+* :ref:`ase convert <cli>` now provides options to execute custom code
+  on each processed image.
+
+Version 3.16.2
+==============
+
+4 June 2018: :git:`3.16.2 <../3.16.2>`
+
+* Fix test failure for newer versions of flask due to error within the test itself.  Fix trajectory format on bigendian architectures.  Fix issue with trajectory files opened in append mode where header would not be written correctly for images with different length, atomic species, boundary conditions, or constraints.
 
 
 Version 3.16.0
@@ -313,7 +341,6 @@ Version 3.12.0
 * New :ref:`defects` tutorial and new super-cell functions:
   :func:`~ase.build.get_deviation_from_optimal_cell_shape`,
   :func:`~ase.build.find_optimal_cell_shape`,
-  :func:`~ase.build.find_optimal_cell_shape_pure_python`,
   :func:`~ase.build.make_supercell`.
 
 * New :class:`~ase.dft.band_structure.BandStructure` object.  Can identify

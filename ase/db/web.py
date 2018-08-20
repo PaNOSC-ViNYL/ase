@@ -55,14 +55,14 @@ def process_metadata(db, html=True):
             key = special[1]
             choises = sorted({row.get(key) for row in db.select(key)})
             if key in kd:
-                longkey = kd[key][0]
+                longkey = kd[key][1]
             else:
                 longkey = key
             special = ['SELECT', key, longkey, choises]
         elif kind == 'BOOL':
             key = special[1]
             if key in kd:
-                longkey = kd[key][0]
+                longkey = kd[key][1]
             else:
                 longkey = key
             special = ['BOOL', key, longkey]

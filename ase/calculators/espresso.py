@@ -59,3 +59,8 @@ class Espresso(FileIOCalculator):
     def read_results(self):
         output = io.read(self.label + '.pwo')
         self.results = output.calc.results
+
+    def socket_driver(self, **kwargs):
+        from ase.calculators.socketio import SocketIOCalculator
+        calc = SocketIOCalculator(self, **kwargs)
+        return calc

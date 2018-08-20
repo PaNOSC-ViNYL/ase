@@ -1,11 +1,11 @@
 #!/usr/bin/env python
-from torque import *
-from ase import *
+# from torque import *
+# from ase import *
 from ase.optimize import QuasiNewton
 from ase.constraints import FixAtoms
-from ase.calculators.jacapo import *
+from ase.calculators.jacapo import Jacapo
 
-import os, string, sys, tempfile
+import os, string, tempfile
 
 from optparse import OptionParser
 
@@ -33,7 +33,7 @@ parser.add_option('-t',
 options,args = parser.parse_args()
 
 for ncfile in args:
- 
+
     base,ext = os.path.splitext(ncfile)
     atoms = Jacapo.read_atoms(ncfile)
 
@@ -46,7 +46,7 @@ for ncfile in args:
 
     #True means fixed
     mask = [atom.get_tag() not in freetags for atom in atoms]
-    
+
     #if False not in mask:
     #    raise Exception, 'No free atoms found!'
 
@@ -59,8 +59,8 @@ for ncfile in args:
         qn.run(fmax=0.05)
 
     else:
-        
-        h,fname = tempfile.mkstemp() 
+
+        h,fname = tempfile.mkstemp()
         script = '''\
 #!/bin/tcsh
 

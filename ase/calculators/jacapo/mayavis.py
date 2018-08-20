@@ -7,11 +7,11 @@ mlab.figure(1, bgcolor=(1,1,1), size=(350, 350))
 mlab.clf()
 
 def plot_cylinder(start,end,tube_radius=0.1,color=(0,0,0)):
-    
+
     mlab.plot3d([start[0],end[0]],[start[1],end[1]],[start[2],end[2]],
                 tube_radius=tube_radius,color=color)
-    
-    
+
+
 def plot_atoms(atoms):
 
     for atom in atoms:
@@ -24,7 +24,7 @@ def plot_atoms(atoms):
 
     (u0,u1,u2) = atoms.get_cell()
     origin = np.array([0.0,0.0,0.0])
-    
+
     plot_cylinder(origin,u0)
     plot_cylinder(origin,u1)
     plot_cylinder(origin,u2)
@@ -44,15 +44,14 @@ def plot_atoms(atoms):
     mlab.show()
 
 
-    
+
 
 
 
 if __name__ == '__main__':
-    from ase.lattice.cubic import *
+    from ase.lattice.cubic import FaceCenteredCubic
 
     from ase.lattice.bravais import cross
-    import numpy as np
 
     a = np.array([0.5,0,0])
     c = np.array([0,1,0],dtype=np.float)
@@ -68,8 +67,8 @@ if __name__ == '__main__':
     a2 = cross(b2,a3)
     v211 = FaceCenteredCubic(directions=[a1,a2,a3],
                              miller=(None,None,[2,1,1]),
-                             symbol='Pd',    
-                             size=(1,1,2),  
+                             symbol='Pd',
+                             size=(1,1,2),
                              debug=0)
 
     uc = v211.get_cell()
@@ -77,4 +76,4 @@ if __name__ == '__main__':
     v211.set_cell(uc)
 
     plot_atoms(v211.repeat((2,2,1)))
-    
+

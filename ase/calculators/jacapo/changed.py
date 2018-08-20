@@ -162,7 +162,7 @@ def extpot_changed(calc, x):
     return True
 
 def fftgrid_changed(calc, x):
-    validkeys = ['soft', 'hard']
+    # validkeys = ['soft', 'hard']
 
     myx = calc.get_fftgrid()
     if (myx['soft'] == x['soft'] and myx['hard'] == x['hard']):
@@ -176,7 +176,7 @@ def ncoutput_changed(calc, x):
         if x[key] != ncout[key]:
             return True
     return False
-    
+
 def nbands_changed(calc, x):
     if calc.get_nbands() == x:
         return False

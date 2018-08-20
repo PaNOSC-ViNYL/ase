@@ -9,6 +9,7 @@ from glob import glob
 from distutils.version import LooseVersion
 import time
 import traceback
+import warnings
 
 import numpy as np
 
@@ -20,6 +21,10 @@ NotAvailable = unittest.SkipTest
 
 test_calculator_names = []
 
+if sys.version_info[0] == 2:
+    class ResourceWarning(UserWarning):
+        pass  # Placeholder - this warning does not exist in Py2 at all.
+
 
 def require(calcname):
     if calcname not in test_calculator_names:
@@ -29,17 +34,22 @@ def require(calcname):
 def get_tests(files=None):
     dirname, _ = os.path.split(__file__)
     if files:
-        files = [os.path.join(dirname, f) for f in files]
+        fnames = [os.path.join(dirname, f) for f in files]
+
+        files = set()
+        for fname in fnames:
+            files.update(glob(fname))
+        files = list(files)
     else:
-        files = glob(dirname + '/*')
-        files.remove(dirname + '/testsuite.py')
+        files = glob(os.path.join(dirname, '*'))
+        files.remove(os.path.join(dirname, 'testsuite.py'))
 
     sdirtests = []  # tests from subdirectories: only one level assumed
     tests = []
     for f in files:
         if os.path.isdir(f):
             # add test subdirectories (like calculators)
-            sdirtests.extend(glob(f + '/*.py'))
+            sdirtests.extend(glob(os.path.join(f, '*.py')))
         else:
             # add py files in testdir
             if f.endswith('.py'):
@@ -55,13 +65,20 @@ def get_tests(files=None):
 def runtest_almost_no_magic(test):
     dirname, _ = os.path.split(__file__)
     path = os.path.join(dirname, test)
+    # exclude some test for windows, not done automatic
+    if os.name == 'nt':
+        skip = [name for name in calc_names]
+        skip += ['db_web', 'h2.py', 'bandgap.py', 'al.py',
+                 'runpy.py', 'oi.py']
+        if any(s in test for s in skip):
+            raise NotAvailable('not on windows')
     try:
         with open(path) as fd:
             exec(compile(fd.read(), path, 'exec'), {})
     except ImportError as ex:
         module = ex.args[0].split()[-1].replace("'", '').split('.')[0]
         if module in ['scipy', 'matplotlib', 'Scientific', 'lxml',
-                      'flask', 'gpaw', 'GPAW', 'netCDF4']:
+                      'flask', 'gpaw', 'GPAW', 'netCDF4', 'psycopg2']:
             raise unittest.SkipTest('no {} module'.format(module))
         else:
             raise
@@ -74,14 +91,29 @@ def run_single_test(filename):
     # Some tests may write to files with the same name as other tests.
     # Hence, create new subdir for each test:
     cwd = os.getcwd()
-    testsubdir = filename.replace('/', '_').replace('.', '_')
+    testsubdir = filename.replace(os.sep, '_').replace('.', '_')
     os.mkdir(testsubdir)
     os.chdir(testsubdir)
     t1 = time.time()
 
     sys.stdout = devnull
     try:
-        runtest_almost_no_magic(filename)
+        with warnings.catch_warnings():
+            # We want all warnings to be errors.  Except some that are
+            # normally entirely ignored by Python, and which we don't want
+            # to bother about.
+            warnings.filterwarnings('error')
+            for warntype in [PendingDeprecationWarning, ImportWarning,
+                             ResourceWarning]:
+                warnings.filterwarnings('ignore', category=warntype)
+
+            # This happens from matplotlib sometimes.
+            # How can we allow matplotlib to import badly and yet keep
+            # a higher standard for modules within our own codebase?
+            warnings.filterwarnings('ignore',
+                                    'Using or importing the ABCs from',
+                                    DeprecationWarning)
+            runtest_almost_no_magic(filename)
     except KeyboardInterrupt:
         raise
     except unittest.SkipTest as ex:
@@ -111,6 +143,7 @@ class Result:
     """Represents the result of a test; for communicating between processes."""
     attributes = ['name', 'pid', 'exception', 'traceback', 'time', 'status',
                   'whyskipped']
+
     def __init__(self, **kwargs):
         d = {key: None for key in self.attributes}
         d['pid'] = os.getpid()
@@ -202,9 +235,14 @@ def runtests_parallel(nprocs, tests):
 
         # Collect results:
         for i in range(len(tests)):
-            result = result_queue.get()  # blocking call
-            if result.status == 'please run on master':
-                result = run_single_test(result.name)
+            if nprocs == 0:
+                # No external workers so we do everything.
+                task = task_queue.get()
+                result = run_single_test(task)
+            else:
+                result = result_queue.get()  # blocking call
+                if result.status == 'please run on master':
+                    result = run_single_test(result.name)
             print_test_result(result)
             yield result
 
@@ -212,7 +250,7 @@ def runtests_parallel(nprocs, tests):
                 raise RuntimeError('ABORT: Internal error in test suite')
     except KeyboardInterrupt:
         raise
-    except BaseException as err:
+    except BaseException:
         for proc in procs:
             proc.terminate()
         raise
@@ -262,7 +300,7 @@ def test(calculators=[], jobs=0,
               file=sys.stderr)
         sys.exit(1)
 
-    if jobs == 0:
+    if jobs == -1:  # -1 == auto
         jobs = min(cpu_count(), len(tests))
 
     print_info()
@@ -273,7 +311,8 @@ def test(calculators=[], jobs=0,
 
     # Note: :25 corresponds to ase.cli indentation
     print('{:25}{}'.format('test directory', testdir))
-    print('{:25}{}'.format('number of processes', jobs))
+    print('{:25}{}'.format('number of processes',
+                           jobs or '1 (multiprocessing disabled)'))
     print('{:25}{}'.format('time', time.strftime('%c')))
     print()
 
@@ -356,11 +395,14 @@ class CLICommand:
                             help='print all tests and exit')
         parser.add_argument('--list-calculators', action='store_true',
                             help='print all calculator names and exit')
-        parser.add_argument('-j', '--jobs', type=int, default=0,
+        parser.add_argument('-j', '--jobs', type=int, default=-1,
                             metavar='N',
-                            help='number of parallel jobs '
-                            '[default: number of available processors]')
-        parser.add_argument('tests', nargs='*')
+                            help='number of worker processes '
+                            '[default: number of available processors].  '
+                            'Use 0 to disable multiprocessing.')
+        parser.add_argument('tests', nargs='*',
+                            help='Specify particular test files.  '
+                            'Glob patterns are accepted.')
 
     @staticmethod
     def run(args):
@@ -371,7 +413,7 @@ class CLICommand:
 
         if args.list:
             dirname, _ = os.path.split(__file__)
-            for testfile in get_tests():
+            for testfile in get_tests(args.tests):
                 print(os.path.join(dirname, testfile))
             sys.exit(0)
 
@@ -391,24 +433,3 @@ class CLICommand:
         ntrouble = test(calculators=calculators, jobs=args.jobs,
                         files=args.tests)
         sys.exit(ntrouble)
-
-
-if __name__ == '__main__':
-    # Run pyflakes on all code in ASE:
-    try:
-        output = subprocess.check_output(['pyflakes', 'ase', 'doc'],
-                                         stderr=subprocess.STDOUT)
-    except subprocess.CalledProcessError as ex:
-        output = ex.output.decode()
-
-    lines = []
-    for line in output.splitlines():
-        # Ignore these:
-        for txt in ['jacapo', 'list comprehension redefines']:
-            if txt in line:
-                break
-        else:
-            lines.append(line)
-    if lines:
-        print('\n'.join(lines))
-        sys.exit(1)

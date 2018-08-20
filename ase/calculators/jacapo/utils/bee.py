@@ -2,7 +2,6 @@
 adapted from ASE/Utilities/BEE.py
 '''
 
-from math import sqrt
 import numpy as num
 import numpy.random as ra
 

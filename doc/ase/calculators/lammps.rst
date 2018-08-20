@@ -4,7 +4,7 @@
 LAMMPS Calculators
 ==================
 
-LAMMPS_link_ (Large-scale Atomic/Molecular Massively Parallel Simulator) is
+LAMMPS_ (Large-scale Atomic/Molecular Massively Parallel Simulator) is
 a classical molecular dynamics code.
 
 There are two calculators that interface to the LAMMPS molecular

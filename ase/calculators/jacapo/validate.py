@@ -147,12 +147,15 @@ def valid_pseudopotentials(x):
 def valid_extracharge(x):
     return valid_float(x)
 
+
+"""
 def valid_extpot(x):
     grids = get_fftgrid()
     if (x.shape == np.array(grids['soft'])).all():
         return True
     else:
         return False
+"""
 
 def valid_ascii_debug(x):
     return (x.strip() in ['Off', 'MediumLevel', 'HighLevel'])
@@ -335,7 +338,7 @@ def valid_mdos(x):
 def valid_psp(x):
 
     dacapopath = get_dacapopath()
-    
+
     valid_keys = ['sym','psp']
     if x is None:
         return True
@@ -349,7 +352,7 @@ def valid_psp(x):
             if key not in chemical_symbols:
                 return False
         if key == 'psp':
-            
+
             if os.path.exists(x['psp']):
                 return True
 

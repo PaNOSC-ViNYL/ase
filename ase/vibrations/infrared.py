@@ -29,7 +29,7 @@ class Infrared(Vibrations):
 
     The calculator object (calc) linked to the Atoms object (atoms) must
     have the attribute:
-    
+
     >>> calc.get_dipole_moment(atoms)
 
     In addition to the methods included in the ``Vibrations`` class
@@ -66,7 +66,7 @@ class Infrared(Vibrations):
         use the dipole moment in all directions.
 
     Example:
-    
+
     >>> from ase.io import read
     >>> from ase.calculators.vasp import Vasp
     >>> from ase.vibrations import Infrared
@@ -140,7 +140,8 @@ class Infrared(Vibrations):
     """
     def __init__(self, atoms, indices=None, name='ir', delta=0.01,
                  nfree=2, directions=None):
-        super().__init__(atoms, indices=indices, name=name, delta=delta, nfree=nfree)
+        Vibrations.__init__(self, atoms, indices=indices, name=name,
+                            delta=delta, nfree=nfree)
         if atoms.constraints:
             print('WARNING! \n Your Atoms object is constrained. '
                   'Some forces may be unintended set to zero. \n')
@@ -323,5 +324,5 @@ class Infrared(Vibrations):
         fd.close()
         # np.savetxt(out, outdata, fmt='%.3f  %15.5e  %15.5e')
 
-        
+
 InfraRed = Infrared  # old name

@@ -78,7 +78,9 @@ for f in files:
         _f.write('DUMMY PP')
 
 
-c = Castep(directory=tmp_dir, label='test_label_pspots', castep_pp_path=pp_path)
+c = Castep(directory=tmp_dir,
+           label='test_label_pspots',
+           castep_pp_path=pp_path)
 c._pedantic = True
 atoms = ase.build.bulk('Ag')
 atoms.set_calculator(c)
@@ -87,19 +89,18 @@ atoms.set_calculator(c)
 
 # disabled, but may be useful still
 # try:
-    # # this should yield no files
-    # atoms.calc.find_pspots(suffix='uspp')
-    # raise AssertionError
+#    # this should yield no files
+#    atoms.calc.find_pspots(suffix='uspp')
+#    raise AssertionError
 # except RuntimeError as e:
-    # #print(e)
-    # pass
+#     # print(e)
+#     pass
 
 try:
     # this should yield non-unique files
     atoms.calc.find_pspots(suffix='recpot')
     raise AssertionError
-except RuntimeError as e:
-    #print(e)
+except RuntimeError:
     pass
 
 
@@ -120,12 +121,13 @@ atoms.calc.find_pspots(pspot='OTF', suffix='usp')
 assert atoms.calc.cell.species_pot.value.split()[-1] == 'Ag_OTF.usp'
 
 atoms.calc.find_pspots(suffix='UPF')
-assert atoms.calc.cell.species_pot.value.split()[-1] == 'ag_pbe_v1.4.uspp.F.UPF'
+assert (atoms.calc.cell.species_pot.value.split()[-1] ==
+        'ag_pbe_v1.4.uspp.F.UPF')
 
 
 # testing regular workflow
 c = Castep(directory=tmp_dir, label='test_label_pspots',
-        castep_pp_path=pp_path, find_pspots=True)
+           castep_pp_path=pp_path, find_pspots=True)
 c._build_missing_pspots = False
 atoms = ase.build.bulk('Ag')
 atoms.set_calculator(c)
@@ -134,8 +136,7 @@ atoms.set_calculator(c)
 try:
     c._fetch_pspots()
     raise AssertionError
-except RuntimeError as e:
-    #print(e)
+except RuntimeError:
     pass
 
 for e in ['Ni', 'Fe', 'Cu']:
@@ -145,15 +146,17 @@ for e in ['Ni', 'Fe', 'Cu']:
 
 # test writing to file
 tmp_dir = os.path.join(tmp_dir, 'input_files')
-c = Castep(directory=tmp_dir, label='test_label_pspots',
-        find_pspots=True, castep_pp_path=pp_path)
+c = Castep(directory=tmp_dir,
+           label='test_label_pspots',
+           find_pspots=True,
+           castep_pp_path=pp_path)
 c._label = 'test'
 atoms = ase.build.bulk('Cu')
 atoms.set_calculator(c)
 c.prepare_input_files()
 
 with open(os.path.join(tmp_dir, 'test.cell'), 'r') as f:
-    assert re.search('Cu Cu_01\.recpot', ''.join(f.readlines())) is not None
+    assert re.search(r'Cu Cu_01\.recpot', ''.join(f.readlines())) is not None
 
 
 os.chdir(cwd)
