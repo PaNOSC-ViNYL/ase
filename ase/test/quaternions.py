@@ -97,3 +97,16 @@ for mode in ['zyz', 'zxz']:
         v2_m = np.array([np.dot(rot_eul, v) for v in v2])
 
         assert np.allclose(v2_q, v2_m)
+
+# Fifth: test that conversion back to rotation matrices works properly
+for i in range(test_n):
+
+    rotm1 = rand_rotm(rndstate)
+    rotm2 = rand_rotm(rndstate)
+
+    q1 = Quaternion.from_matrix(rotm1)
+    q2 = Quaternion.from_matrix(rotm2)
+
+    assert(np.allclose(q1.rotation_matrix(), rotm1))
+    assert(np.allclose(q2.rotation_matrix(), rotm2))
+    assert(np.allclose((q1*q2).rotation_matrix(), np.dot(rotm1, rotm2)))

@@ -84,9 +84,9 @@ class Quaternion:
         xz = qx * qz
         yz = qy * qz
 
-        return np.array([[ww + xx - yy - zz, 2 * (xy + wz), 2 * (xz - wy)],
-                         [2 * (xy - wz), ww - xx + yy - zz, 2 * (yz + wx)],
-                         [2 * (xz + wy), 2 * (yz - wx), ww - xx - yy + zz]])
+        return np.array([[ww + xx - yy - zz, 2 * (xy - wz), 2 * (xz + wy)],
+                         [2 * (xy + wz), ww - xx + yy - zz, 2 * (yz - wx)],
+                         [2 * (xz - wy), 2 * (yz + wx), ww - xx - yy + zz]])
 
     def axis_angle(self):
         """Returns axis and angle (in radians) for the rotation described
@@ -220,7 +220,7 @@ class Quaternion:
 
         n = np.array(n, float)/np.linalg.norm(n)
         return Quaternion(np.concatenate([[np.cos(theta/2.0)],
-                                          np.sin(theta/2.0)*n]))
+                                           np.sin(theta/2.0)*n]))
 
     @staticmethod
     def from_euler_angles(a, b, c, mode='zyz'):

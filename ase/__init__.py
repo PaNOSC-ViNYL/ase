@@ -19,7 +19,5 @@ import ase.parallel  # noqa
 ase.parallel  # silence pyflakes
 
 if LooseVersion(np.__version__) < '1.9':
-    # Make isinstance(x, numbers.Integral) work also for np.intxx:
-    import numbers
-    numbers.Integral.register(np.integer)
-    del numbers
+    raise ImportError(
+        'ASE needs NumPy-1.9.0 or later. You have:', np.version)

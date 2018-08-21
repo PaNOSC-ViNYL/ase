@@ -58,7 +58,7 @@ def read_qbox(f, index=-1):
             species[name] = spec_data
     else:
         # Find all species
-        species_blocks = _find_blocks(f, 'species', '[qbox]')
+        species_blocks = _find_blocks(f, 'species', '<cmd>run')
 
         for spec in species_blocks:
             name = spec.get('name')
