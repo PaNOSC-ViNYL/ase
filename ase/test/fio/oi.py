@@ -1,5 +1,6 @@
 from __future__ import print_function
 import os
+import warnings
 
 import numpy as np
 from ase import Atoms
@@ -75,38 +76,38 @@ if os.path.isdir(testdir):
 os.mkdir(testdir)
 
 
-for format in sorted(all_formats):
+def test(format):
     if format in ['abinit', 'castep-cell', 'dftb', 'eon', 'gaussian']:
         # Someone should do something ...
-        continue
+        return
 
     if format in ['v-sim', 'mustem']:
         # Standalone test used as not compatible with 1D periodicity
-        continue
+        return
 
     if format in ['mustem']:
         # Standalone test used as specific arguments are required
-        continue
+        return
 
     if format in ['dmol-arc', 'dmol-car', 'dmol-incoor']:
         # We have a standalone dmol test
-        continue
+        return
 
     if format in ['postgresql', 'trj', 'vti', 'vtu']:
         # Let's not worry about these.
-        continue
+        return
 
     if not matplotlib and format in ['eps', 'png']:
-        continue
+        return
 
     if not etree and format == 'exciting':
-        continue
+        return
 
     if not Scientific and format == 'etsf':
-        continue
+        return
 
     if not netCDF4 and format == 'netcdftrajectory':
-        continue
+        return
 
     atoms = get_atoms()
 
@@ -140,3 +141,9 @@ for format in sorted(all_formats):
                 assert len(aa) == 6, aa
                 for a in aa:
                     check(a, atoms, format)
+
+for format in sorted(all_formats):
+    with warnings.catch_warnings():
+        if format in ['proteindatabank', 'netcdftrajectory']:
+            warnings.simplefilter('ignore', UserWarning)
+        test(format)

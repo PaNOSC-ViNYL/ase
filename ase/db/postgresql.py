@@ -1,8 +1,9 @@
 import json
-import psycopg2
+from psycopg2 import connect
+from psycopg2.extras import execute_values
 
-from ase.db.sqlite import init_statements, index_statements, VERSION
-from ase.db.sqlite import SQLite3Database
+from ase.db.sqlite import (init_statements, index_statements, VERSION,
+                           SQLite3Database)
 
 
 class Connection:
@@ -33,14 +34,27 @@ class Cursor:
         self.cur.execute(statement.replace('?', '%s'), *args)
 
     def executemany(self, statement, *args):
-        self.cur.executemany(statement.replace('?', '%s'), *args)
+        if len(args[0]) > 0:
+            N = len(args[0][0])
+        else:
+            return
+        if 'INSERT INTO systems' in statement:
+            q = 'DEFAULT' + ', ' + ', '.join('?' * N)  # DEFAULT for id
+        else:
+            q = ', '.join('?' * N)
+        statement = statement.replace('({})'.format(q), '%s')
+        q = '({})'.format(q.replace('?', '%s'))
+
+        execute_values(self.cur, statement.replace('?', '%s'),
+                       argslist=args[0], template=q, page_size=len(args[0]))
 
 
 class PostgreSQLDatabase(SQLite3Database):
+    type = 'postgresql'
     default = 'DEFAULT'
 
     def _connect(self):
-        return Connection(psycopg2.connect(self.filename))
+        return Connection(connect(self.filename))
 
     def _initialize(self, con):
         if self.initialized:
@@ -49,26 +63,29 @@ class PostgreSQLDatabase(SQLite3Database):
         self._metadata = {}
 
         cur = con.cursor()
+        cur.execute("show search_path;")
+        schema = cur.fetchone()[0].split(', ')
+        if schema[0] == '"$user"':
+            schema = schema[1]
+        else:
+            schema = schema[0]
 
-        try:
-            cur.execute('SELECT name, value FROM information')
-        except psycopg2.ProgrammingError:
+        cur.execute("""
+        SELECT EXISTS(select * from information_schema.tables where
+        table_name='information' and table_schema='{}');
+        """.format(schema))
+
+        if not cur.fetchone()[0]:  # information schema doesn't exist.
             # Initialize database:
             sql = ';\n'.join(init_statements)
-            for a, b in [('BLOB', 'BYTEA'),
-                         ('REAL', 'DOUBLE PRECISION'),
-                         ('INTEGER PRIMARY KEY AUTOINCREMENT',
-                          'SERIAL PRIMARY KEY')]:
-                sql = sql.replace(a, b)
-
-            con.commit()
-            cur = con.cursor()
+            sql = schema_update(sql)
             cur.execute(sql)
             if self.create_indices:
                 cur.execute(';\n'.join(index_statements))
             con.commit()
             self.version = VERSION
         else:
+            cur.execute('select * from information;')
             for name, value in cur.fetchall():
                 if name == 'version':
                     self.version = int(value)
@@ -83,3 +100,33 @@ class PostgreSQLDatabase(SQLite3Database):
         cur.execute('SELECT last_value FROM systems_id_seq')
         id = cur.fetchone()[0]
         return int(id)
+
+
+def schema_update(sql):
+    for a, b in [('REAL', 'DOUBLE PRECISION'),
+                 ('INTEGER PRIMARY KEY AUTOINCREMENT',
+                  'SERIAL PRIMARY KEY')]:
+        sql = sql.replace(a, b)
+
+    arrays_1D = ['numbers', 'initial_magmoms', 'initial_charges', 'masses',
+                 'tags', 'momenta', 'stress', 'dipole', 'magmoms', 'charges']
+
+    arrays_2D = ['positions', 'cell', 'forces']
+
+    txt2jsonb = ['calculator_parameters', 'key_value_pairs', 'data']
+
+    for column in arrays_1D:
+        if column in ['numbers', 'tags']:
+            dtype = 'INTEGER'
+        else:
+            dtype = 'DOUBLE PRECISION'
+        sql = sql.replace('{} BLOB,'.format(column),
+                          '{} {}[],'.format(column, dtype))
+    for column in arrays_2D:
+        sql = sql.replace('{} BLOB,'.format(column),
+                          '{} DOUBLE PRECISION[][],'.format(column))
+    for column in txt2jsonb:
+        sql = sql.replace('{} TEXT,'.format(column),
+                          '{} JSONB,'.format(column))
+
+    return sql

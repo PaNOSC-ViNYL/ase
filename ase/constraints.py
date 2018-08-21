@@ -1321,7 +1321,8 @@ class UnitCellFilter(Filter):
     def __init__(self, atoms, mask=None,
                  cell_factor=None,
                  hydrostatic_strain=False,
-                 constant_volume=False):
+                 constant_volume=False,
+                 scalar_pressure=0.0):
         """Create a filter that returns the atomic forces and unit cell
         stresses together, so they can simultaneously be minimized.
 
@@ -1389,6 +1390,10 @@ class UnitCellFilter(Filter):
             the volume and breaks energy/force consistency so can only be
             used with optimizers that do require do a line minimisation
             (e.g. FIRE).
+
+        scalar_pressure: float (default 0.0)
+            Applied pressure to use for enthalpy pV term. As above, this
+            breaks energy/force consistency.
         """
 
         Filter.__init__(self, atoms, indices=range(len(atoms)))
@@ -1412,6 +1417,7 @@ class UnitCellFilter(Filter):
             cell_factor = float(len(atoms))
         self.hydrostatic_strain = hydrostatic_strain
         self.constant_volume = constant_volume
+        self.scalar_pressure = scalar_pressure
         self.cell_factor = cell_factor
         self.copy = self.atoms.copy
         self.arrays = self.atoms.arrays
@@ -1451,6 +1457,14 @@ class UnitCellFilter(Filter):
         self.atoms.set_cell(np.dot(self.orig_cell, self.deform_grad.T),
                             scale_atoms=True)
 
+
+    def get_potential_energy(self, force_consistent=True):
+        '''
+        returns potential energy including enthalpy PV term.
+        '''
+        atoms_energy = self.atoms.get_potential_energy(force_consistent=force_consistent)
+        return atoms_energy + self.scalar_pressure*self.atoms.get_volume()
+
     def get_forces(self, apply_constraint=False):
         '''
         returns an array with shape (natoms+3,3) of the atomic forces
@@ -1465,7 +1479,7 @@ class UnitCellFilter(Filter):
         stress = self.atoms.get_stress()
 
         volume = self.atoms.get_volume()
-        virial = -volume * voigt_6_to_full_3x3_stress(stress)
+        virial = -volume * voigt_6_to_full_3x3_stress(stress) - np.diag([self.scalar_pressure]*3)*volume
         atoms_forces = np.dot(atoms_forces, self.deform_grad)
         dg_inv = np.linalg.inv(self.deform_grad)
         virial = np.dot(virial, dg_inv.T)

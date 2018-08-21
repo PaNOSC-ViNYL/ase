@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class PDOS:
+class DOS:
     def __init__(self, energy, weights, info=None, sampling={'type': 'raw'}):
         """
         Docstring here
@@ -77,12 +77,12 @@ class PDOS:
 
         weights_grid = self.smear(grid, width=width, smearing=smearing)
 
-        pdos_new = PDOS(grid, weights_grid,
-                        info=self.info, sampling=sampling)
-        return pdos_new
+        dos_new = DOS(grid, weights_grid,
+                      info=self.info, sampling=sampling)
+        return dos_new
 
-    def sample_uniform(self, spacing=None, npts=None, width=0.1,
-                       window=None, smearing='Gauss'):
+    def sample_grid(self, spacing=None, npts=None, width=0.1,
+                    window=None, smearing='Gauss'):
         """Sample onto uniform grid"""
 
         if window is None:
@@ -97,16 +97,16 @@ class PDOS:
         emin -= 5 * width
         emax += 5 * width
 
-        grid_uniform = PDOS._make_uniform_grid(emin, emax, spacing=spacing,
-                                               npts=npts, width=width)
+        grid_uniform = DOS._make_uniform_grid(emin, emax, spacing=spacing,
+                                              npts=npts, width=width)
 
         return self.sample(grid_uniform, width=width,
                            smearing=smearing, gridtype='uniform')
 
     @staticmethod
-    def resample(doslist, grid, width=0.1, smearing='Gauss',
-                 gridtype='general'):
-        """Take list of PDOS objects, and combine into 1, with same grid"""
+    def sample_many(doslist, grid, width=0.1, smearing='Gauss',
+                    gridtype='general'):
+        """Take list of DOS objects, and combine into 1, with same grid"""
 
         # Count the total number of weights
         n_weights = sum(len(dos.weights) for dos in doslist)
@@ -118,23 +118,23 @@ class PDOS:
         # Do sampling
         ii = 0
         for dos in doslist:
-            pdos_sample = dos.sample(grid, width=width,
-                                     smearing=smearing)
-            info_new.extend(pdos_sample.info)
-            for w_i in pdos_sample.weights:
+            dos_sample = dos.sample(grid, width=width,
+                                    smearing=smearing)
+            info_new.extend(dos_sample.info)
+            for w_i in dos_sample.weights:
                 weight_grid[ii] = w_i
                 ii += 1
         sampling = {'smearing': smearing,
                     'width': width,
                     'npts': npts,
                     'type': gridtype}
-        return PDOS(energy=grid, weights=weight_grid, info=info_new,
-                    sampling=sampling)
+        return DOS(energy=grid, weights=weight_grid, info=info_new,
+                   sampling=sampling)
 
     @staticmethod
-    def resample_uniform(doslist, window=None, spacing=None,
+    def sample_many_grid(doslist, window=None, spacing=None,
                          npts=None, width=0.1, smearing='Gauss'):
-        """Resample list of PDOS objects onto uniform grid.
+        """Combine list of DOS objects onto uniform grid.
         Takes the lowest and highest energies as grid range, if
         no window is specified"""
         dosen = [dos.energy for dos in doslist]
@@ -151,11 +151,33 @@ class PDOS:
         emin -= 5 * width
         emax += 5 * width
 
-        grid_uniform = PDOS._make_uniform_grid(emin, emax, spacing=spacing,
-                                               npts=npts, width=width)
+        grid_uniform = DOS._make_uniform_grid(emin, emax, spacing=spacing,
+                                              npts=npts, width=width)
 
-        return PDOS.resample(doslist, grid_uniform, width=width,
-                             smearing=smearing, gridtype='uniform')
+        return DOS.sample_many(doslist, grid_uniform, width=width,
+                               smearing=smearing, gridtype='uniform')
+
+    @staticmethod
+    def join(doslist, atol=1e-08):
+        """Join a list of DOS objects into one, without applying sampling.
+        Requires all energies to be identical"""
+
+        # Test if energies are the same
+        eneq = all(np.allclose(doslist[0].energy, dos.energy, atol=atol)
+                   for dos in doslist)
+        if not eneq:
+            msg = 'Energies must the the same in all DOS objects.'
+            raise ValueError(msg)
+
+        energy = doslist[0].energy     # Just use the first energy
+        weights = []
+        info = []
+        for dos in doslist:
+            for info_i, w_i in zip(dos.info, dos.weights):
+                weights.append(w_i)
+                info.append(info_i)
+
+        return DOS(energy, weights, info=info)
 
     @staticmethod
     def _make_uniform_grid(emin, emax, spacing=None, npts=None, width=0.1):
@@ -180,9 +202,9 @@ class PDOS:
              ymin=None, ymax=None, ylabel=None,
              *plotargs, **plotkwargs):
 
-        pdp = PDOSPlot(self, ax=None,
-                       emin=None, emax=None,
-                       ymin=None, ymax=None, ylabel=None)
+        pdp = DOSPlot(self, ax=None,
+                      emin=None, emax=None,
+                      ymin=None, ymax=None, ylabel=None)
         return pdp.plot(*plotargs, **plotkwargs)
 
     def sum(self):
@@ -207,12 +229,12 @@ class PDOS:
             # This prevents set.intersection from blowing up
             info_new = None
 
-        return PDOS(energy=self.energy, weights=weights_sum,
-                    info=info_new, sampling=self.sampling)
+        return DOS(energy=self.energy, weights=weights_sum,
+                   info=info_new, sampling=self.sampling)
 
     def pick(self, **kwargs):
-        # Pick key/value pairs using logical AND
-        # i.e., all conditions from kwargs must be met
+        """Pick key/value pairs using logical AND
+        i.e., all conditions from kwargs must be met"""
         idx = [i for i, d in enumerate(self.info)
                if all(d.get(key) == value
                       for key, value in kwargs.items())]
@@ -220,16 +242,16 @@ class PDOS:
         return self[idx]
 
     def split(self, key):
-        # Find all unique instances of key in info
+        """Find all unique instances of key in info"""
         unique = np.unique([info.get(key) for info in self.info
                             if info.get(key, None) is not None])
 
-        pdos_lst = []
+        dos_lst = []
         for value in unique:
             # Use **{key: value} instead of key=value,
             # as key=value will litterally look up "key" in info.
-            pdos_lst.append(self.pick(**{key: value}))
-        return pdos_lst
+            dos_lst.append(self.pick(**{key: value}))
+        return dos_lst
 
     def __getitem__(self, i):
         if isinstance(i, int):
@@ -241,17 +263,17 @@ class PDOS:
         if len(indices.shape) == 0:
             indices = indices[np.newaxis]
 
-        return PDOS(energy=self.energy,
-                    weights=self.weights[indices],
-                    info=self.info[indices],
-                    sampling=self.sampling)
+        return DOS(energy=self.energy,
+                   weights=self.weights[indices],
+                   info=self.info[indices],
+                   sampling=self.sampling)
 
 
-class PDOSPlot:
-    def __init__(self, pdos, ax=None,
+class DOSPlot:
+    def __init__(self, dos, ax=None,
                  emin=None, emax=None,
                  ymin=None, ymax=None, ylabel=None):
-        self.pdos = pdos
+        self.dos = dos
         self.ax = ax
         if self.ax is None:
             self.ax = self.prepare_plot(ax, emin, emax,
@@ -263,7 +285,7 @@ class PDOSPlot:
 
         ax = self.ax
 
-        for ii, w_i in enumerate(self.pdos.weights):
+        for ii, w_i in enumerate(self.dos.weights):
             # We can add smater labeling later
             kwargs = {}
             if colors is not None:
@@ -273,9 +295,9 @@ class PDOSPlot:
             if labels is not None:
                 kwargs['label'] = labels[ii]
             else:
-                kwargs['label'] = self.pdos.info[ii]
+                kwargs['label'] = self.dos.info[ii]
             kwargs.update(plotkwargs)
-            ax.plot(self.pdos.energy, w_i,
+            ax.plot(self.dos.energy, w_i,
                     **kwargs)
 
         self.finish_plot(filename, show, show_legend, loc)

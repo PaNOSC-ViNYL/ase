@@ -191,6 +191,8 @@ class AtomsRow:
     @property
     def volume(self):
         """Volume of unit cell."""
+        if self.cell is None:
+            return None
         vol = abs(np.linalg.det(self.cell))
         if vol == 0.0:
             raise AttributeError

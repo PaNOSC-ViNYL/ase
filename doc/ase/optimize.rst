@@ -281,22 +281,26 @@ You can read more about the theory and implementation here:
 
 __ http://dx.doi.org/10.1063/1.4947024
 
-Tests with a variety of solid-state systems using both DFT and
-classical interatomic potentials driven though ASE calculators show
-speedup factors of up to an order of magnitude for preconditioned
-L-BFGS over standard L-BFGS, and the gain grows with system
-size. Precomputations are performed to automatically estimate all
-parameters required. A linesearch based on enforcing only the first
-Wolff condition (i.e. the Armijo sufficient descent condition) is also
-provided in :mod:`ase.utils.linesearcharmijo`; this typically leads to a
-further speed up when used in conjunction with the preconditioner.
+Tests with a variety of solid-state systems using both DFT and classical
+interatomic potentials driven though ASE calculators show speedup factors of up
+to an order of magnitude for preconditioned L-BFGS over standard L-BFGS, and the
+gain grows with system size. Precomputations are performed to automatically
+estimate all parameters required. A linesearch based on enforcing only the first
+Wolff condition (i.e. the Armijo sufficient descent condition) is also provided
+in :mod:`ase.utils.linesearcharmijo`; this typically leads to a further speed up
+when used in conjunction with the preconditioner.
 
-The preconditioned L-BFGS method implemented in ASE does not require
-external dependencies, but the :mod:`scipy.sparse` module can be used for
-efficient sparse linear algebra, and the :mod:`matscipy` package is used for
-fast computation of neighbour lists if available. The PyAMG package can be
-used to efficiently invert the preconditioner using an adaptive multigrid
-method.
+For small systems, unless they are highly ill-conditioned due to large
+variations in bonding stiffness, it is unlikely that preconditioning provides a
+performance gain, and standard BFGS and LBFGS should be preferred. Therefore,
+for systems with fewer than 100 atoms, `PreconLBFGS` reverts to standard LBFGS.
+Preconditioning can be enforces with the keyword argument `precon`.
+
+The preconditioned L-BFGS method implemented in ASE does not require external
+dependencies, but the :mod:`scipy.sparse` module can be used for efficient
+sparse linear algebra, and the :mod:`matscipy` package is used for fast
+computation of neighbour lists if available. The PyAMG package can be used to
+efficiently invert the preconditioner using an adaptive multigrid method.
 
 Usage is very similar to the standard optimizers. The example below compares
 unpreconditioned LBGFS with the default `Exp` preconditioner for a 3x3x3 bulk
