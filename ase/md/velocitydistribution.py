@@ -70,7 +70,8 @@ def ZeroRotation(atoms):
     atoms.set_velocities(velocities - np.cross(omega, positions))
 
 
-def PhononHarmonics(atoms, temp, force_constants, rng=np.random):
+def PhononHarmonics(atoms, temp, force_constants, rng=np.random,
+                    failfast=True):
     """Excite phonon modes to specified temperature.
 
     This excites all phonon modes randomly so that each contributes,
@@ -107,7 +108,10 @@ def PhononHarmonics(atoms, temp, force_constants, rng=np.random):
 
     for a derivation.
 
-    """
+    If failfast is true, a ValueError will be raised if the
+    eigenvalues of the dynamical matrix look suspicious (they should
+    be three zeros for translational modes followed by any number of
+    strictly positive eigenvalues)."""
     mass_a = atoms.get_masses()
 
     rminv = (mass_a**-0.5).repeat(3)
@@ -116,6 +120,19 @@ def PhononHarmonics(atoms, temp, force_constants, rng=np.random):
     dynamical_matrix *= rminv[None, :]
 
     w2_s, X_is = np.linalg.eigh(dynamical_matrix)
+
+    if failfast:
+        zeros = w2_s[:3]
+        worst_zero = np.abs(zeros).max()
+        if worst_zero > 1e-3:
+            raise ValueError('Translational modes have suspiciously large '
+                             'energies; should be close to zero: {}'
+                             .format(w2_s[:3]))
+
+        w2min = w2_s[3:].min()
+        if w2min < 0:
+            raise ValueError('Dynamical matrix has negative eigenvalues '
+                             'such as {}'.format(w2min))
 
     # First three modes are translational so ignore:
     nw = len(w2_s) - 3
