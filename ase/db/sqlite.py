@@ -365,7 +365,7 @@ class SQLite3Database(Database, object):
                 con.commit()
                 con.close()
             return ids
-        
+
         for spec in species:
             spec[2] = ids[spec[2]]
             spec = tuple(spec)
