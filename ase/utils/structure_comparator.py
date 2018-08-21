@@ -26,7 +26,7 @@ class SymmetryEquivalenceCheck(object):
     Based on the recipe from Comput. Phys. Commun. 183, 690-697 (2012).
 
     Attributes:
-    ==========
+    ===========
     angle_tol: float
         angle tolerance for the lattice vectors in degrees
 
