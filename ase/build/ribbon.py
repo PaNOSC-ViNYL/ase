@@ -17,7 +17,8 @@ def graphene_nanoribbon(n, m, type='zigzag', saturated=False, C_H=1.09,
     Parameters:
 
     n: int
-        The width of the nanoribbon.
+        The width of the nanoribbon.  For armchair nanoribbons, this
+        n may be half-integer to repeat by half a cell.
     m: int
         The length of the nanoribbon.
     type: str
@@ -38,6 +39,11 @@ def graphene_nanoribbon(n, m, type='zigzag', saturated=False, C_H=1.09,
     sheet: bool
         If true, make an infinite sheet instead of a ribbon (default: False)
     """
+
+    if m % 1 != 0:
+        raise ValueError('m must be integer')
+    if type == 'zigzag' and n % 1 != 0:
+        raise ValueError('n must be an integer for zigzag ribbons')
 
     b = sqrt(3) * C_C / 4
     arm_unit = Atoms(main_element + '4',

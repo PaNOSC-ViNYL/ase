@@ -3,7 +3,7 @@ import numpy as np
 from ase.build import bulk
 from ase.calculators.lj import LennardJones
 from ase.constraints import UnitCellFilter
-from ase.optimize import MDMin
+from ase.optimize import BFGS
 
 # Theoretical infinite-cutoff LJ FCC unit cell parameters
 vol0 = 4 * 0.91615977036  # theoretical minimum
@@ -35,7 +35,7 @@ print("Percent error in stress:\n", s_p_err)
 assert np.all(abs(s_p_err) < 1e-5)
 
 # Minimize unit cell
-opt = MDMin(UnitCellFilter(a), dt=0.01)
+opt = BFGS(UnitCellFilter(a))
 opt.run(fmax=1e-3)
 
 # Verify minimized unit cell using Niggli tensors
