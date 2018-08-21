@@ -363,35 +363,34 @@ class SQLite3Database(Database, object):
             last_id = self.get_last_id(cur)
             ids = range(last_id + 1 - N_rows, last_id + 1)
             
-        # Update with id from systems
-        if len(ids) == 0:
-            if self.connection is None:
-                con.commit()
-                con.close()
-            return ids
+            # Update with id from systems
+            if len(ids) == 0:
+                if self.connection is None:
+                    con.commit()
+                    con.close()
+                return ids
 
-        for spec in species:
-            spec[2] = ids[spec[2]]
-            spec = tuple(spec)
-        for tkv in text_key_values:
-            tkv[2] = ids[tkv[2]]
-            tkv = tuple(tkv)
-        for nkv in number_key_values:
-            nkv[2] = ids[nkv[2]]
-            nkv = tuple(nkv)
-        for key in keys:
-            key[1] = ids[key[1]]
-            key = tuple(key)
+            for spec in species:
+                spec[2] = ids[spec[2]]
+                spec = tuple(spec)
+            for tkv in text_key_values:
+                tkv[2] = ids[tkv[2]]
+                tkv = tuple(tkv)
+            for nkv in number_key_values:
+                nkv[2] = ids[nkv[2]]
+                nkv = tuple(nkv)
+            for key in keys:
+                key[1] = ids[key[1]]
+                key = tuple(key)
 
-        cur.executemany('INSERT INTO species VALUES (?, ?, ?)',
-                        species)
-        cur.executemany('INSERT INTO text_key_values VALUES (?, ?, ?)',
-                        text_key_values)
-        cur.executemany('INSERT INTO number_key_values VALUES (?, ?, ?)',
-                        number_key_values)
-        cur.executemany('INSERT INTO keys VALUES (?, ?)',
-                        keys)
-
+            cur.executemany('INSERT INTO species VALUES (?, ?, ?)',
+                            species)
+            cur.executemany('INSERT INTO text_key_values VALUES (?, ?, ?)',
+                            text_key_values)
+            cur.executemany('INSERT INTO number_key_values VALUES (?, ?, ?)',
+                            number_key_values)
+            cur.executemany('INSERT INTO keys VALUES (?, ?)',
+                            keys)
 
         if self.connection is None:
             con.commit()
