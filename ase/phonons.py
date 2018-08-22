@@ -658,8 +658,8 @@ class Phonons(Displacement):
         #dos = self.dos(kpts, npts, delta, indices)
         kpts_kc = monkhorst_pack(kpts)
         omega_w = self.band_structure(kpts_kc).ravel()
-        from ase.dft.pdos import PDOS
-        dos = PDOS(omega_w, np.ones_like(omega_w)[None])
+        from ase.dft.pdos import DOS
+        dos = DOS(omega_w, np.ones_like(omega_w)[None])
         return dos
 
     def dos(self, kpts=(10, 10, 10), npts=1000, delta=1e-3, indices=None):
