@@ -219,13 +219,13 @@ def test_reduce_to_primitive(comparator):
     comparator.to_primitive = False
 
 
-def test_order_of_candidates(prim_comp):
+def test_order_of_candidates(comparator):
     s1 = bulk("Al", crystalstructure='fcc', a=3.2)
     s1 = s1 * (2, 2, 2)
     s2 = s1.copy()
     s1.positions[0, :] += .2
 
-    assert prim_comp.compare(s2, s1) == prim_comp.compare(s1, s2)
+    assert comparator.compare(s2, s1) == comparator.compare(s1, s2)
 
 
 def test_original_paper_structures():
@@ -261,6 +261,26 @@ def test_symmetrical_one_element_out(comparator):
     assert not comparator.compare(s2, s1)
 
 
+def test_one_vs_many():
+    s1 = Atoms('H3', positions=[[0.5, 0.5, 0], [0.5, 1.5, 0], [1.5, 1.5, 0]],
+               cell=[2, 2, 2], pbc=True)
+    # Get the unit used for position comparison
+    u = (s1.get_volume() / len(s1))**(1 / 3)
+    comp = SymmetryEquivalenceCheck(stol=.095 / u, scale_volume=True)
+    s2 = s1.copy()
+    assert comp.compare(s1, s2)
+    s2_list = []
+    s3 = Atoms('H3', positions=[[0.5, 0.5, 0], [0.5, 1.5, 0], [1.5, 1.5, 0]],
+               cell=[3, 3, 3], pbc=True)
+    s2_list.append(s3)
+    for d in np.linspace(0.1, 1.0, 5):
+        s2 = s1.copy()
+        s2.positions[0] += [d, 0, 0]
+        s2_list.append(s2)
+    assert not comp.compare(s1, s2_list[:-1])
+    assert comp.compare(s1, s2_list)
+
+
 def run_all_tests(comparator):
     test_compare(comparator)
     test_fcc_bcc(comparator)
@@ -278,6 +298,7 @@ def run_all_tests(comparator):
     test_one_atom_out_of_pos(comparator)
     test_reduce_to_primitive(comparator)
     test_order_of_candidates(comparator)
+    test_one_vs_many()
     test_original_paper_structures()
 
 
