@@ -46,7 +46,7 @@ Ekins = []
 Etots = []
 
 
-for i in range(100):
+for i in range(24):
     PhononHarmonics(atoms, T, K, rng=np.random.RandomState(888 + i))
 
     Epot = atoms.get_potential_energy() - Epotref
@@ -92,8 +92,10 @@ print('ekinmean', Ekinmean)
 print('rel imbalance', relative_imbalance)
 print('Tmean', Tmean, 'Tref', T / u.kB, 'err', Terr)
 
-assert Terr < 4.0  # error in Kelvin for instantaneous velocity
-assert relative_imbalance < 0.02  # Epot == Ekin give or take 2 %
+assert Terr < 5.0, Terr  # error in Kelvin for instantaneous velocity
+# Epot == Ekin give or take 2 %:
+assert relative_imbalance < 0.04, relative_imbalance
+
 
 if 0:
     import matplotlib.pyplot as plt
