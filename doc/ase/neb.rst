@@ -198,14 +198,7 @@ only some of them have a calculator attached::
       if i == j:
           image.set_calculator(EMT())
 
-Create the NEB object with ``NEB(images, parallel=True)`` and let the
-master processes write the images::
-
-  if rank % (size // n) == 0:
-      traj = io.Trajectory('neb%d.traj' % j, 'w', images[1 + j],
-                           master=True)
-      optimizer.attach(traj)
-
+Create the NEB object with ``NEB(images, parallel=True)``.
 For a complete example using GPAW_, see here_.
 
 .. _GPAW: http://wiki.fysik.dtu.dk/gpaw

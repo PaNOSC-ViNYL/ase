@@ -93,6 +93,13 @@ class CLICommand:
                         print(x, end=' ')
                     print()
         else:
+            import os
             from ase.gui.gui import GUI
+
+            backend = os.environ.get('MPLBACKEND', '')
+            if backend == 'module://ipykernel.pylab.backend_inline':
+                # Jupyter should not steal our windows
+                del os.environ['MPLBACKEND']
+
             gui = GUI(images, args.rotations, args.bonds, args.graph)
             gui.run()

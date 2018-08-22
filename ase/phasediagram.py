@@ -322,6 +322,10 @@ class PhaseDiagram:
             Write information.
         """
 
+        if not references:
+            raise ValueError("You must provide a non-empty list of references"
+                             " for the phase diagram! "
+                             "You have provided '{}'".format(references))
         filter = parse_formula(filter)[0]
 
         self.verbose = verbose
@@ -345,7 +349,8 @@ class PhaseDiagram:
                     self.species[symbol] = len(self.species)
             self.references.append((count, energy, name, natoms))
 
-        self.symbols = [None] * len(self.species)
+        ns = len(self.species)
+        self.symbols = [None] * ns
         for symbol, id in self.species.items():
             self.symbols[id] = symbol
 
@@ -355,27 +360,27 @@ class PhaseDiagram:
             for i, (count, energy, name, natoms) in enumerate(self.references):
                 print('{:<5}{:10}{:10.3f}'.format(i, name, energy))
 
-        self.points = np.zeros((len(self.references), len(self.species) + 1))
+        self.points = np.zeros((len(self.references), ns + 1))
         for s, (count, energy, name, natoms) in enumerate(self.references):
             for symbol, n in count.items():
                 self.points[s, self.species[symbol]] = n / natoms
             self.points[s, -1] = energy / natoms
 
-        if len(self.points) == 2:
-            self.simplices = np.array([[0, 1]])
-            self.hull = np.ones(2, bool)
-            return
+        if len(self.points) == ns:
+            # Simple case that qhull would choke on:
+            self.simplices = np.arange(ns).reshape((1, ns))
+            self.hull = np.ones(ns, bool)
+        else:
+            hull = ConvexHull(self.points[:, 1:])
 
-        hull = ConvexHull(self.points[:, 1:])
+            # Find relevant simplices:
+            ok = hull.equations[:, -2] < 0
+            self.simplices = hull.simplices[ok]
 
-        # Find relevant simplices:
-        ok = hull.equations[:, -2] < 0
-        self.simplices = hull.simplices[ok]
-
-        # Create a mask for those points that are on the convex hull:
-        self.hull = np.zeros(len(self.points), bool)
-        for simplex in self.simplices:
-            self.hull[simplex] = True
+            # Create a mask for those points that are on the convex hull:
+            self.hull = np.zeros(len(self.points), bool)
+            for simplex in self.simplices:
+                self.hull[simplex] = True
 
         if verbose:
             print('Simplices:', len(self.simplices))
@@ -409,12 +414,13 @@ class PhaseDiagram:
 
         # Find the simplex with positive coordinates that sum to
         # less than one:
+        eps = 1e-15
         for i, Y in enumerate(X):
             try:
                 x = np.linalg.solve((Y[1:] - Y[:1]).T, -Y[0])
             except np.linalg.linalg.LinAlgError:
                 continue
-            if (x >= 0).all() and x.sum() <= 1:
+            if (x > -eps).all() and x.sum() < 1 + eps:
                 break
         else:
             assert False, X

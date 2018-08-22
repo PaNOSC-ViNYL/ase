@@ -205,7 +205,7 @@ class Displacement:
 
 
 class Phonons(Displacement):
-    """Class for calculating phonon modes using the finite displacement method.
+    r"""Class for calculating phonon modes using the finite displacement method.
 
     The matrix of force constants is calculated from the finite difference
     approximation to the first-order derivative of the atomic forces as::
@@ -306,7 +306,7 @@ class Phonons(Displacement):
         return fmin, fmax, i_min, i_max
 
     def read_born_charges(self, name=None, neutrality=True):
-        """Read Born charges and dieletric tensor from pickle file.
+        r"""Read Born charges and dieletric tensor from pickle file.
 
         The charge neutrality sum-rule::
 

@@ -128,7 +128,8 @@ class JSONDatabase(Database, object):
         return AtomsRow(dct)
 
     def _select(self, keys, cmps, explain=False, verbosity=0,
-                limit=None, offset=0, sort=None, include_data=True):
+                limit=None, offset=0, sort=None, include_data=True,
+                columns='all'):
         if explain:
             yield {'explain': (0, 0, 0, 'scan table')}
             return

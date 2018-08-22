@@ -9,6 +9,7 @@ from glob import glob
 from distutils.version import LooseVersion
 import time
 import traceback
+import warnings
 
 import numpy as np
 
@@ -19,6 +20,10 @@ from ase.cli.info import print_info
 NotAvailable = unittest.SkipTest
 
 test_calculator_names = []
+
+if sys.version_info[0] == 2:
+    class ResourceWarning(UserWarning):
+        pass  # Placeholder - this warning does not exist in Py2 at all.
 
 
 def require(calcname):
@@ -73,7 +78,7 @@ def runtest_almost_no_magic(test):
     except ImportError as ex:
         module = ex.args[0].split()[-1].replace("'", '').split('.')[0]
         if module in ['scipy', 'matplotlib', 'Scientific', 'lxml',
-                      'flask', 'gpaw', 'GPAW', 'netCDF4']:
+                      'flask', 'gpaw', 'GPAW', 'netCDF4', 'psycopg2']:
             raise unittest.SkipTest('no {} module'.format(module))
         else:
             raise
@@ -93,7 +98,22 @@ def run_single_test(filename):
 
     sys.stdout = devnull
     try:
-        runtest_almost_no_magic(filename)
+        with warnings.catch_warnings():
+            # We want all warnings to be errors.  Except some that are
+            # normally entirely ignored by Python, and which we don't want
+            # to bother about.
+            warnings.filterwarnings('error')
+            for warntype in [PendingDeprecationWarning, ImportWarning,
+                             ResourceWarning]:
+                warnings.filterwarnings('ignore', category=warntype)
+
+            # This happens from matplotlib sometimes.
+            # How can we allow matplotlib to import badly and yet keep
+            # a higher standard for modules within our own codebase?
+            warnings.filterwarnings('ignore',
+                                    'Using or importing the ABCs from',
+                                    DeprecationWarning)
+            runtest_almost_no_magic(filename)
     except KeyboardInterrupt:
         raise
     except unittest.SkipTest as ex:
@@ -281,7 +301,7 @@ def test(calculators=[], jobs=0,
         sys.exit(1)
 
     if jobs == -1:  # -1 == auto
-        jobs = min(cpu_count(), len(tests))
+        jobs = min(cpu_count(), len(tests), 32)
 
     print_info()
 
@@ -377,9 +397,10 @@ class CLICommand:
                             help='print all calculator names and exit')
         parser.add_argument('-j', '--jobs', type=int, default=-1,
                             metavar='N',
-                            help='number of worker processes '
-                            '[default: number of available processors].  '
-                            'Use 0 to disable multiprocessing.')
+                            help='number of worker processes.  '
+                            'By default use all available processors '
+                            'up to a maximum of 32.  '
+                            '0 disables multiprocessing.')
         parser.add_argument('tests', nargs='*',
                             help='Specify particular test files.  '
                             'Glob patterns are accepted.')
