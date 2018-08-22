@@ -462,6 +462,8 @@ class SQLite3Database(Database, object):
                     assert self.version >= 6, 'Update your db-file'
                 where.append('systems.{}{}?'.format(key, op))
                 args.append(value)
+            elif key == 'nspecies':
+                where.append('COUNT(systems.id=numbers.????)')
             elif isinstance(key, int):
                 if self.type == 'postgresql':
                     where.append(
