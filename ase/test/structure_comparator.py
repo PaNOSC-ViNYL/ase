@@ -251,6 +251,9 @@ def test_original_paper_structures():
     org_comparator = SymmetryEquivalenceCheck(stol=0.3)
     assert org_comparator.compare(s1, s2)
 
+    comp = SymmetryEquivalenceCheck()
+    assert comp.compare(s2, s1) == comp.compare(s1, s2)
+
 
 def test_symmetrical_one_element_out(comparator):
     s1 = get_atoms_with_mixed_elements()
