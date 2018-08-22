@@ -175,13 +175,12 @@ class RumPath:
 class LineSearchArmijo:
 
     def __init__(self, func, c1=0.1, tol=1e-14):
-
         """Initialise the linesearch with set parameters and functions.
 
         Args:
             func: the function we are trying to minimise (energy), which should
                 take an array of positions for its argument
-            c1: parameter for the sufficient decrease condition \in (0.0 0.5)
+            c1: parameter for the sufficient decrease condition in (0.0 0.5)
             tol: tolerance for evaluating equality
 
         """
