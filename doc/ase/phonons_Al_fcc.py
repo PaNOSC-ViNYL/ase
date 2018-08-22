@@ -1,7 +1,7 @@
 # creates: Al_phonon.png, Al_mode.gif, Al_mode.pdf
 from ase.build import bulk
 from ase.calculators.emt import EMT
-from ase.dft.kpoints import ibz_points, bandpath
+from ase.dft.kpoints import bandpath
 from ase.phonons import Phonons
 
 # Setup crystal and EMT calculator
