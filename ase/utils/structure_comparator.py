@@ -5,7 +5,7 @@ from itertools import combinations, product
 import numpy as np
 from scipy.spatial import cKDTree as KDTree
 from ase import Atom, Atoms
-from ase.build import tools as asetools
+from ase.build.tools import niggli_reduce
 
 try:
     from itertools import filterfalse
@@ -61,20 +61,22 @@ class SymmetryEquivalenceCheck(object):
         self.position_tolerance = 0.0
         self.to_primitive = to_primitive
 
-    def _niggli_reduce(self):
+    def _niggli_reduce(self, atoms):
         """Reduce to niggli cells.
 
-        Reduce the two atoms to niggli cells, then rotates the niggli cells to
+        Reduce the atoms to niggli cells, then rotates the niggli cells to
         the so called "standard" orientation with one lattice vector along the
-        x-axis.
+        x-axis and a second vector in the xy plane.
         """
-        asetools.niggli_reduce(self.s1)
-        asetools.niggli_reduce(self.s2)
-        self._standarize_cell(self.s1)
-        self._standarize_cell(self.s2)
+        niggli_reduce(atoms)
+        self._standarize_cell(atoms)
 
     def _standarize_cell(self, atoms):
-        """Rotate the first vector such that it points along the x-axis."""
+        """Rotate the first vector such that it points along the x-axis.
+        Then rotate around the first vector so the second vector is in the
+        xy plane.
+        """
+        # Rotate first vector to x axis
         cell = atoms.get_cell().T
         total_rot_mat = np.eye(3)
         v1 = cell[:, 0]
@@ -128,65 +130,65 @@ class SymmetryEquivalenceCheck(object):
         atoms.wrap(pbc=[1, 1, 1])
         return atoms
 
-    def _get_element_count(self):
+    def _get_element_count(self, struct):
         """Count the number of elements in each of the structures."""
-        elem1 = Counter(self.s1.get_chemical_symbols())
-        elem2 = Counter(self.s2.get_chemical_symbols())
-
-        return elem1, elem2
-
-    def _has_same_elements(self):
-        """Check if two structures have same elements."""
-        elem1, elem2 = self._get_element_count()
-        return elem1 == elem2
+        return Counter(struct.numbers)
 
     def _get_angles(self, cell):
         """Get the internal angles of the unit cell."""
-        cellT = cell.copy().T
+        cell = cell.copy()
 
         # Normalize each vector
-        for i in range(3):
-            cellT[:, i] /= np.sqrt(np.sum(cellT[:, i]**2))
-        dot = cellT.T.dot(cellT)
+        cell /= np.linalg.norm(cell, axis=1, keepdims=True)
+
+        dot = cell.dot(cell.T)
 
         # Extract only the relevant dot products
         dot = [dot[0, 1], dot[0, 2], dot[1, 2]]
 
-        # Convert to angles
-        angles = [np.arccos(scalar_prod) for scalar_prod in dot]
+        # Return angles
+        return np.arccos(dot)
 
-        return angles
+    def _has_same_elements(self):
+        """Check if two structures have same elements."""
+        elem1 = self._get_element_count(self.s1)
+        return elem1 == self._get_element_count(self.s2)
 
     def _has_same_angles(self):
         """Check that the Niggli unit vectors has the same internal angles."""
-        ang1 = self._get_angles(self.s1.get_cell())
-        ang2 = self._get_angles(self.s2.get_cell())
+        ang1 = np.sort(self._get_angles(self.s1.get_cell()))
+        ang2 = np.sort(self._get_angles(self.s2.get_cell()))
 
-        for i in range(3):
-            closestIndex = np.argmin(np.abs(np.array(ang2) - ang1[i]))
-            if np.abs(ang2[closestIndex] - ang1[i]) < self.angle_tol:
-                # Remove the entry that matched
-                del ang2[closestIndex]
-            else:
-                return False
-        return True
-
-    def _scale_volumes(self):
-        """Scale the cell of s1 to have the same volume as s2."""
-        cell1 = self.s1.get_cell()
-        # Get the volumes
-        v1 = np.linalg.det(cell1)
-        v2 = np.linalg.det(self.s2.get_cell())
-
-        # Scale the cells
-        coordinate_scaling = (v2 / v1)**(1.0 / 3.0)
-        cell1 *= coordinate_scaling
-        self.s1.set_cell(cell1, scale_atoms=True)
+        return np.allclose(ang1, ang2, rtol=0, atol=self.angle_tol)
 
     def _has_same_volume(self):
         vol1 = self.s1.get_volume()
         vol2 = self.s2.get_volume()
         return np.abs(vol1 - vol2) < self.vol_tol
+
+    def _scale_volumes(self):
+        """Scale the cell of s2 to have the same volume as s1."""
+        cell2 = self.s2.get_cell()
+        # Get the volumes
+        v2 = np.linalg.det(cell2)
+        v1 = np.linalg.det(self.s1.get_cell())
+
+        # Scale the cells
+        coordinate_scaling = (v1 / v2)**(1.0 / 3.0)
+        cell2 *= coordinate_scaling
+        self.s2.set_cell(cell2, scale_atoms=True)
+
+    # def _scale_volumes(self):
+    #     """Scale the cell of s1 to have the same volume as s2."""
+    #     cell1 = self.s1.get_cell()
+    #     # Get the volumes
+    #     v1 = np.linalg.det(cell1)
+    #     v2 = np.linalg.det(self.s2.get_cell())
+
+    #     # Scale the cells
+    #     coordinate_scaling = (v2 / v1)**(1.0 / 3.0)
+    #     cell1 *= coordinate_scaling
+    #     self.s1.set_cell(cell1, scale_atoms=True)
 
     def compare(self, s1, s2):
         """Compare the two structures.
@@ -202,9 +204,14 @@ class SymmetryEquivalenceCheck(object):
                         On the next call it will try to read the matrices
                         from this file instead of computing them
         """
+        if self.to_primitive:
+            s1 = self._reduce_to_primitive(s1)
         self.s1 = s1.copy()
+        vol = self.s1.get_volume()
+        self.expanded_s1 = None
+        s1_niggli_reduced = False
 
-        if not isinstance(s2, list):
+        if isinstance(s2, Atoms):
             # Just make it a list of length 1
             s2 = [s2]
 
@@ -212,30 +219,34 @@ class SymmetryEquivalenceCheck(object):
         translations = None
         for struct in s2:
             self.s2 = struct.copy()
+            self.expanded_s2 = None
 
             if self.to_primitive:
-                self.s1 = self._reduce_to_primitive(self.s1)
                 self.s2 = self._reduce_to_primitive(self.s2)
 
-            vol = self.s1.get_volume()
             self.position_tolerance = \
                 self.stol * (vol / len(self.s2))**(1.0 / 3.0)
 
+            # Compare number of elements in structures
             if len(self.s1) != len(self.s2):
-                return False
+                continue
 
+            # Compare chemical formulae
             if not self._has_same_elements():
-                return False
+                continue
 
-            self._niggli_reduce()
+            # Compare angles
+            if not s1_niggli_reduced:
+                self._niggli_reduce(self.s1)
+            self._niggli_reduce(self.s2)
             if not self._has_same_angles():
-                return False
+                continue
 
+            # Compare volumes
             if self.scale_volume:
                 self._scale_volumes()
-
             if not self._has_same_volume():
-                return False
+                continue
 
             if matrices is None:
                 matrices, translations = \
@@ -243,70 +254,81 @@ class SymmetryEquivalenceCheck(object):
 
             # After the candidate translation based on s1 has been computed
             # we need potentially to swap s1 and s2 for robust comparison
-            self._set_reference_struct()
+            least_freq_s2 = self._get_only_least_frequent_of(self.s2)
+            self._translate_s2(least_freq_s2)
+            switch = self._switch_reference_struct()
             if self._positions_match(matrices, translations):
                 return True
+
             # Set the reference structure back to its original
             self.s1 = s1.copy()
+            if switch:
+                self.expanded_s1 = self.expanded_s2
         return False
 
     def _get_least_frequent_element(self):
-        """Return the symbol of the least frequent element."""
-        elem1, elem2 = self._get_element_count()
-        assert elem1 == elem2
+        """Return the atomic number of the least frequent element.
+        At this point of the comparison it is determined that both structures
+        contain the same elements, thus we only need to take into account one
+        of the structures here.
+        """
+        elem1 = self._get_element_count(self.s1)
         return elem1.most_common()[-1][0]
 
-    def _extract_positions_of_least_frequent_element(self):
-        """Get the atoms object with all other elements than the specified
+    def _get_only_least_frequent_of(self, struct):
+        """Get the atoms object with all other elements than the least frequent
         one removed. Wrap the positions to get everything in the cell."""
         least_freq_element = self._get_least_frequent_element()
 
-        atoms1 = Atoms(cell=self.s1.get_cell())
-        atoms2 = Atoms(cell=self.s2.get_cell())
+        pos = struct.get_positions(wrap=True)
 
-        pos1 = self.s1.get_positions(wrap=True)
-        pos2 = self.s2.get_positions(wrap=True)
-        for i in range(len(self.s1)):
-            symbol = self.s1[i].symbol
-            if symbol == least_freq_element:
-                atoms1.append(Atom(symbol, position=pos1[i, :]))
+        indices = struct.numbers == least_freq_element
+        least_freq_struct = struct[indices]
+        least_freq_struct.set_positions(pos[indices])
 
-            symbol = self.s2[i].symbol
-            if symbol == least_freq_element:
-                atoms2.append(Atom(symbol, position=pos2[i, :]))
+        return least_freq_struct
 
-        return atoms1, atoms2
-
-    def _set_reference_struct(self):
+    def _switch_reference_struct(self):
         """There is an intrinsic assymetry in the system because
         one of the atoms are being expanded, while the other is not.
         This can cause the algorithm to return different result
         depending on which structure is passed first.
         We adopt the convention of using the atoms object
         having the fewest atoms in its expanded cell as the
-        reference object"""
+        reference object.
+        We return True if a switch of structures has been performed."""
 
-        exp1 = self._expand(self.s1)
-        exp2 = self._expand(self.s2)
+        # First expand the cells
+        if self.expanded_s1 is None:
+            self.expanded_s1 = self._expand(self.s1)
+        if self.expanded_s2 is None:
+            self.expanded_s2 = self._expand(self.s2)
+
+        exp1 = self.expanded_s1
+        exp2 = self.expanded_s2
         if len(exp1) < len(exp2):
             # s1 should be the reference structure
             # We have to swap s1 and s2
             s1_temp = self.s1.copy()
             self.s1 = self.s2
             self.s2 = s1_temp
+            exp1_temp = self.expanded_s1.copy()
+            self.expanded_s1 = self.expanded_s2
+            self.expanded_s2 = exp1_temp
+            return True
+        return False
 
     def _positions_match(self, rotation_reflection_matrices, translations):
         """Check if the position and elements match.
 
         Note that this function changes self.s1 and self.s2 to the rotation and
         translation that matches best. Hence, it is crucial that this function
-        is called before the element comparison.
+        calls the element comparison, not the other way around.
         """
-        # Position matching not implemented yet
         pos1_ref = self.s1.get_positions(wrap=True)
 
-        # Expand the reference object
-        exp2 = self._expand(self.s2)
+        # Get the expanded reference object
+        exp2 = self.expanded_s2
         # Build a KD tree to enable fast look-up of nearest neighbours
         tree = KDTree(exp2.get_positions())
         for i in range(translations.shape[0]):
@@ -346,15 +368,14 @@ class SymmetryEquivalenceCheck(object):
         normal_vectors = np.array([np.cross(cell[1, :], cell[2, :]),
                                    np.cross(cell[0, :], cell[2, :]),
                                    np.cross(cell[0, :], cell[1, :])])
-        normal_vectors = [vec / np.sqrt(np.sum(vec**2)) for vec
-                          in normal_vectors]
+        normal_vectors /= np.linalg.norm(normal_vectors, axis=1, keepdims=True)
 
         # Get the distance to the unit cell faces from each atomic position
-        pos2faces = np.abs(positions.dot(np.array(normal_vectors).T))
+        pos2faces = np.abs(positions.dot(normal_vectors.T))
 
         # And the opposite faces
         pos2oppofaces = np.abs(np.dot(positions - np.sum(cell, axis=0),
-                                      np.array(normal_vectors).T))
+                                      normal_vectors.T))
 
         for i, i2face in enumerate(pos2faces):
             # Append indices for positions close to the other faces
@@ -411,10 +432,17 @@ class SymmetryEquivalenceCheck(object):
 
         return True
 
+    def _translate_s2(self, least_freq_s2):
+        """Put one of the least frequent elements of structure 2 at the origin.
+        """
+        cell_diag = np.sum(self.s2.get_cell(), axis=0)
+        d = least_freq_s2.get_positions()[0] - 1e-6 * cell_diag
+        self.s2.positions -= d
+        self.s2.wrap(pbc=[1, 1, 1])
+
     def _get_rotation_reflection_matrices(self):
         """Compute candidates for the transformation matrix."""
-        atoms1_ref, atoms2_ref = \
-            self._extract_positions_of_least_frequent_element()
+        atoms1_ref = self._get_only_least_frequent_of(self.s1)
         cell = self.s1.get_cell().T
         cell_diag = np.sum(cell, axis=1)
         angle_tol = self.angle_tol
@@ -423,15 +451,8 @@ class SymmetryEquivalenceCheck(object):
         # there always is an atom at the origin
         delta_vec = 1E-6 * cell_diag
 
-        # Put one of the least frequent elements of structure 2 at the origin
-        translation = atoms2_ref.get_positions()[0, :] - delta_vec
-        atoms2_ref.set_positions(atoms2_ref.get_positions() - translation)
-        atoms2_ref.wrap(pbc=[1, 1, 1])
-        self.s2.set_positions(self.s2.get_positions() - translation)
-        self.s2.wrap(pbc=[1, 1, 1])
-
         # Store three reference vectors and their lengths
-        ref_vec = atoms2_ref.get_cell()
+        ref_vec = self.s2.get_cell()
         ref_vec_lengths = np.linalg.norm(ref_vec, axis=1)
 
         # Compute ref vec angles
@@ -440,15 +461,12 @@ class SymmetryEquivalenceCheck(object):
         large_angles = ref_angles > np.pi / 2.0
         ref_angles[large_angles] = np.pi - ref_angles[large_angles]
 
+        # Translate by one cell diagonal so that a central cell is
+        # surrounded by cells in all directions
         sc_atom_search = atoms1_ref * (3, 3, 3)
-        sc_pos = atoms1_ref.get_positions()
-        # Translate by one cell diagonal
-        sc_pos += cell_diag
-        sc_pos_search = sc_atom_search.get_positions()
+        new_sc_pos = sc_atom_search.get_positions()
+        new_sc_pos -= new_sc_pos[0] + cell_diag - delta_vec
 
-        translation = sc_pos[0, :] - delta_vec
-
-        new_sc_pos = sc_pos_search - translation
         lengths = np.linalg.norm(new_sc_pos, axis=1)
 
         candidate_indices = []
