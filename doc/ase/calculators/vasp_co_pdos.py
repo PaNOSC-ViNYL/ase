@@ -1,6 +1,5 @@
 # creates: vasp_co_pdos.png, vasp_co_ldos.png
 
-import numpy as np
 from numpy import array
 import matplotlib.pyplot as plt
 
