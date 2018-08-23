@@ -243,12 +243,7 @@ def test_original_paper_structures():
           (0.50, 0.00, 0.00), (0.00, 0.50, 0.00)]
     s2 = Atoms(syms, cell=cell2, scaled_positions=p2, pbc=True)
 
-    # It seems like the positions are off by approx 0.65 angstrom after
-    # applying the optimal rotation/translation.
-    # set stol=0.3 --> position tolerance 0.71 angstrom
-    # this evaluates to True, and is still significantly smaller than
-    # the smallest interatomic distance
-    org_comparator = SymmetryEquivalenceCheck(stol=0.3)
+    org_comparator = SymmetryEquivalenceCheck()
     assert org_comparator.compare(s1, s2)
 
     comp = SymmetryEquivalenceCheck()
