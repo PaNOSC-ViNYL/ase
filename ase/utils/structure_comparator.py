@@ -218,6 +218,7 @@ class SymmetryEquivalenceCheck(object):
         matrices = None
         translations = None
         for struct in s2:
+            self._least_frequent_element_to_origin(self.s1)
             self.s2 = struct.copy()
             self.expanded_s2 = None
 
@@ -254,9 +255,11 @@ class SymmetryEquivalenceCheck(object):
 
             # After the candidate translation based on s1 has been computed
             # we need potentially to swap s1 and s2 for robust comparison
-            least_freq_s2 = self._get_only_least_frequent_of(self.s2)
-            self._translate_s2(least_freq_s2)
+            self._least_frequent_element_to_origin(self.s2)
+            # least_freq_s2 = self._get_only_least_frequent_of(self.s2)
+            # self._translate_s2(least_freq_s2)
             switch = self._switch_reference_struct()
+
             if self._positions_match(matrices, translations):
                 return True
 
@@ -279,7 +282,6 @@ class SymmetryEquivalenceCheck(object):
         """Get the atoms object with all other elements than the least frequent
         one removed. Wrap the positions to get everything in the cell."""
         least_freq_element = self._get_least_frequent_element()
-
         pos = struct.get_positions(wrap=True)
 
         indices = struct.numbers == least_freq_element
@@ -400,7 +402,6 @@ class SymmetryEquivalenceCheck(object):
                         disp_vec += cell[k % 3] * (int(k < 3) * 2 - 1)
                     pos = positions[i] + disp_vec
                     expanded_atoms.append(Atom(syms[i], position=pos))
-
         return expanded_atoms
 
     def _equal_elements_in_array(self, arr):
@@ -418,6 +419,7 @@ class SymmetryEquivalenceCheck(object):
             pos_order = [order, (order + 1) % 3, (order + 2) % 3]
             pos = pos1[:, np.argsort(pos_order)]
             dists, closest_in_s2 = kdtree.query(pos)
+
             # Check if the elements are the same
             if not np.all(s2.numbers[closest_in_s2] == s1.numbers):
                 return False
@@ -439,6 +441,14 @@ class SymmetryEquivalenceCheck(object):
         d = least_freq_s2.get_positions()[0] - 1e-6 * cell_diag
         self.s2.positions -= d
         self.s2.wrap(pbc=[1, 1, 1])
+
+    def _least_frequent_element_to_origin(self, atoms):
+        """Put one of the least frequent elements at the origin."""
+        least_freq = self._get_only_least_frequent_of(atoms)
+        cell_diag = np.sum(atoms.get_cell(), axis=0)
+        d = least_freq.get_positions()[0] - 1e-6 * cell_diag
+        atoms.positions -= d
+        atoms.wrap(pbc=[1, 1, 1])
 
     def _get_rotation_reflection_matrices(self):
         """Compute candidates for the transformation matrix."""
@@ -478,7 +488,6 @@ class SymmetryEquivalenceCheck(object):
             # The first vector is not interesting
             correct_lengths_mask[0] = False
             candidate_indices.append(np.nonzero(correct_lengths_mask)[0])
-
         # Now we calculate all relevant angles in one step. The relevant angles
         # are the ones made by the current candidates. We will have to keep
         # track of the indices in the angles matrix and the indices in the
@@ -486,6 +495,7 @@ class SymmetryEquivalenceCheck(object):
 
         # Get all candidate indices (aci), only unique values
         aci = np.sort(list(set().union(*candidate_indices)))
+
         # Make a dictionary from original positions and lengths index to
         # index in angle matrix
         i2ang = dict(zip(aci, range(len(aci))))
@@ -507,6 +517,7 @@ class SymmetryEquivalenceCheck(object):
         # that there are no duplicate candidates. product is the same as
         # nested for loops.
         refined_candidate_list = []
+        from itertools import permutations
         for p in filterfalse(self._equal_elements_in_array,
                              product(*candidate_indices)):
             a = np.array([angles[i2ang[p[0]], i2ang[p[1]]],
