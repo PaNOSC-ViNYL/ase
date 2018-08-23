@@ -517,7 +517,6 @@ class SymmetryEquivalenceCheck(object):
         # that there are no duplicate candidates. product is the same as
         # nested for loops.
         refined_candidate_list = []
-        from itertools import permutations
         for p in filterfalse(self._equal_elements_in_array,
                              product(*candidate_indices)):
             a = np.array([angles[i2ang[p[0]], i2ang[p[1]]],
