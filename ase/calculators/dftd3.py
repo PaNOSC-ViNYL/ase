@@ -256,13 +256,14 @@ class DFTD3(FileIOCalculator):
                      'this system as 3D-periodic!')
             pbc = True
 
-        if pbc:
-            fname = os.path.join(self.directory,
-                                 '{}.POSCAR'.format(self.label))
-            write_vasp(fname, atoms)
-        else:
-            fname = os.path.join(self.directory, '{}.xyz'.format(self.label))
-            write_xyz(fname, atoms, plain=True)
+        if world.rank == 0:
+            if pbc:
+                fname = os.path.join(self.directory,
+                                     '{}.POSCAR'.format(self.label))
+                write_vasp(fname, atoms)
+            else:
+                fname = os.path.join(self.directory, '{}.xyz'.format(self.label))
+                write_xyz(fname, atoms, plain=True)
 
         # Generate custom damping parameters file. This is kind of ugly, but
         # I don't know of a better way of doing this.
