@@ -64,6 +64,9 @@ Git master branch
 * Positions and velocities can now be initialized from phononic
   force constant matrix; see
   :func:`~ase.md.velocitydistribution.PhononHarmonics`.
+        
+* Compare if two bulk structure are symmetrically equivalent with
+  :class:`~ase.utils.structure_comparator.SymmetryEquivalenceCheck`
 
 Version 3.16.2
 ==============
