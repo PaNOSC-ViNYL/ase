@@ -25,8 +25,8 @@ class SymmetryEquivalenceCheck(object):
 
     Based on the recipe from Comput. Phys. Commun. 183, 690-697 (2012).
 
-    Attributes:
-    ===========
+    Parameters:
+
     angle_tol: float
         angle tolerance for the lattice vectors in degrees
 
@@ -47,6 +47,49 @@ class SymmetryEquivalenceCheck(object):
     to_primitive: bool
         if True the structures are reduced to their primitive cells
         note that this feature requires spglib to installed
+
+    Examples:
+
+    >>> from ase.build import bulk
+    >>> from ase.utils.structure_comparator import SymmetryEquivalenceCheck
+    >>> comp = SymmetryEquivalenceCheck()
+
+    Compare a cell with a rotated version
+
+    >>> a = bulk('Al', orthorhombic=True)
+    >>> b = a.copy()
+    >>> b.rotate(60, 'x', rotate_cell=True)
+    >>> comp.compare(a, b)
+    True
+
+    Transform to the primitive cell and then compare
+
+    >>> pa = bulk('Al')
+    >>> comp.compare(a, pa)
+    False
+    >>> comp = SymmetryEquivalenceCheck(to_primitive=True)
+    >>> comp.compare(a, pa)
+    True
+
+    Compare one structure with a list of other structures
+
+    >>> import numpy as np
+    >>> from ase import Atoms
+    >>> s1 = Atoms('H3', positions=[[0.5, 0.5, 0],
+    ...                             [0.5, 1.5, 0],
+    ...                             [1.5, 1.5, 0]],
+    ...            cell=[2, 2, 2], pbc=True)
+    >>> comp = SymmetryEquivalenceCheck(stol=0.068)
+    >>> s2_list = []
+    >>> for d in np.linspace(0.1, 1.0, 5):
+    ...     s2 = s1.copy()
+    ...     s2.positions[0] += [d, 0, 0]
+    ...     s2_list.append(s2)
+    >>> comp.compare(s1, s2_list[:-1])
+    False
+    >>> comp.compare(s1, s2_list)
+    True
+
     """
 
     def __init__(self, angle_tol=1.0, ltol=0.05, stol=0.05, vol_tol=0.1,
@@ -188,14 +231,10 @@ class SymmetryEquivalenceCheck(object):
 
         Return *True* if the two structures are equivalent, *False* otherwise.
 
-        Arguments:
-        =========
-        s1, s2: Atoms objects. Transformation matrices are calculated based
-                on s1.
+        Parameters:
 
-        trans_mat_file: If given the candidate translation will be stored.
-                        On the next call it will try to read the matrices
-                        from this file instead of computing them
+        s1, s2: Atoms objects.
+            Transformation matrices are calculated based on s1.
         """
         if self.to_primitive:
             s1 = self._reduce_to_primitive(s1)

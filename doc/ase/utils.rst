@@ -30,7 +30,7 @@ This module compares two atomic structures to see if they are symmetrically equi
 __ https://doi.org/10.1016/j.cpc.2011.11.007
 
 .. autoclass:: ase.utils.structure_comparator.SymmetryEquivalenceCheck
-.. autofunction:: ase.utils.structure_comparator.SymmetryEquivalencecheck.compare               
+   :members:
                
 Symmetry analysis
 =================
