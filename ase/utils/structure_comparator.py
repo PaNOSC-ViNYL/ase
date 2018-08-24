@@ -14,7 +14,7 @@ except ImportError:  # python2.7
 
 
 class SpgLibNotFoundError(Exception):
-    """Raised if SPG lib is not found when needed"""
+    """Raised if SPG lib is not found when needed."""
 
     def __init__(self, msg):
         super(SpgLibNotFoundError, self).__init__(msg)
@@ -51,8 +51,6 @@ class SymmetryEquivalenceCheck(object):
 
     def __init__(self, angle_tol=1.0, ltol=0.05, stol=0.05, vol_tol=0.1,
                  scale_volume=False, to_primitive=False):
-        self.s1 = None
-        self.s2 = None
         self.angle_tol = angle_tol * np.pi / 180.0  # convert to radians
         self.scale_volume = scale_volume
         self.stol = stol
@@ -60,6 +58,13 @@ class SymmetryEquivalenceCheck(object):
         self.vol_tol = vol_tol
         self.position_tolerance = 0.0
         self.to_primitive = to_primitive
+
+        # Variables to be used in the compare function
+        self.s1 = None
+        self.s2 = None
+        self.expanded_s1 = None
+        self.expanded_s2 = None
+        self.least_freq_element = None
 
     def _niggli_reduce(self, atoms):
         """Reduce to niggli cells.
@@ -178,18 +183,6 @@ class SymmetryEquivalenceCheck(object):
         cell2 *= coordinate_scaling
         self.s2.set_cell(cell2, scale_atoms=True)
 
-    # def _scale_volumes(self):
-    #     """Scale the cell of s1 to have the same volume as s2."""
-    #     cell1 = self.s1.get_cell()
-    #     # Get the volumes
-    #     v1 = np.linalg.det(cell1)
-    #     v2 = np.linalg.det(self.s2.get_cell())
-
-    #     # Scale the cells
-    #     coordinate_scaling = (v2 / v1)**(1.0 / 3.0)
-    #     cell1 *= coordinate_scaling
-    #     self.s1.set_cell(cell1, scale_atoms=True)
-
     def compare(self, s1, s2):
         """Compare the two structures.
 
@@ -206,6 +199,8 @@ class SymmetryEquivalenceCheck(object):
         """
         if self.to_primitive:
             s1 = self._reduce_to_primitive(s1)
+        self._set_least_frequent_element(s1)
+        self._least_frequent_element_to_origin(s1)
         self.s1 = s1.copy()
         vol = self.s1.get_volume()
         self.expanded_s1 = None
@@ -218,15 +213,11 @@ class SymmetryEquivalenceCheck(object):
         matrices = None
         translations = None
         for struct in s2:
-            self._least_frequent_element_to_origin(self.s1)
             self.s2 = struct.copy()
             self.expanded_s2 = None
 
             if self.to_primitive:
                 self.s2 = self._reduce_to_primitive(self.s2)
-
-            self.position_tolerance = \
-                self.stol * (vol / len(self.s2))**(1.0 / 3.0)
 
             # Compare number of elements in structures
             if len(self.s1) != len(self.s2):
@@ -256,9 +247,11 @@ class SymmetryEquivalenceCheck(object):
             # After the candidate translation based on s1 has been computed
             # we need potentially to swap s1 and s2 for robust comparison
             self._least_frequent_element_to_origin(self.s2)
-            # least_freq_s2 = self._get_only_least_frequent_of(self.s2)
-            # self._translate_s2(least_freq_s2)
             switch = self._switch_reference_struct()
+
+            # Calculate tolerance on positions
+            self.position_tolerance = \
+                self.stol * (vol / len(self.s2))**(1.0 / 3.0)
 
             if self._positions_match(matrices, translations):
                 return True
@@ -269,22 +262,17 @@ class SymmetryEquivalenceCheck(object):
                 self.expanded_s1 = self.expanded_s2
         return False
 
-    def _get_least_frequent_element(self):
-        """Return the atomic number of the least frequent element.
-        At this point of the comparison it is determined that both structures
-        contain the same elements, thus we only need to take into account one
-        of the structures here.
-        """
-        elem1 = self._get_element_count(self.s1)
-        return elem1.most_common()[-1][0]
+    def _set_least_frequent_element(self, atoms):
+        """Save the atomic number of the least frequent element."""
+        elem1 = self._get_element_count(atoms)
+        self.least_freq_element = elem1.most_common()[-1][0]
 
     def _get_only_least_frequent_of(self, struct):
         """Get the atoms object with all other elements than the least frequent
         one removed. Wrap the positions to get everything in the cell."""
-        least_freq_element = self._get_least_frequent_element()
         pos = struct.get_positions(wrap=True)
 
-        indices = struct.numbers == least_freq_element
+        indices = struct.numbers == self.least_freq_element
         least_freq_struct = struct[indices]
         least_freq_struct.set_positions(pos[indices])
 
@@ -334,14 +322,11 @@ class SymmetryEquivalenceCheck(object):
         # Build a KD tree to enable fast look-up of nearest neighbours
         tree = KDTree(exp2.get_positions())
         for i in range(translations.shape[0]):
+            # Translate
+            pos1_trans = pos1_ref - translations[i]
             for matrix in rotation_reflection_matrices:
-                pos1 = pos1_ref.copy()
-
-                # Translate
-                pos1 -= translations[i, :]
-
                 # Rotate
-                pos1 = matrix.dot(pos1.T).T
+                pos1 = matrix.dot(pos1_trans.T).T
 
                 # Update the atoms positions
                 self.s1.set_positions(pos1)
@@ -433,14 +418,6 @@ class SymmetryEquivalenceCheck(object):
                 return False
 
         return True
-
-    def _translate_s2(self, least_freq_s2):
-        """Put one of the least frequent elements of structure 2 at the origin.
-        """
-        cell_diag = np.sum(self.s2.get_cell(), axis=0)
-        d = least_freq_s2.get_positions()[0] - 1e-6 * cell_diag
-        self.s2.positions -= d
-        self.s2.wrap(pbc=[1, 1, 1])
 
     def _least_frequent_element_to_origin(self, atoms):
         """Put one of the least frequent elements at the origin."""

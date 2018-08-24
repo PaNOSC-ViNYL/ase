@@ -243,10 +243,9 @@ def test_original_paper_structures():
           (0.50, 0.00, 0.00), (0.00, 0.50, 0.00)]
     s2 = Atoms(syms, cell=cell2, scaled_positions=p2, pbc=True)
 
-    org_comparator = SymmetryEquivalenceCheck()
-    assert org_comparator.compare(s1, s2)
-
     comp = SymmetryEquivalenceCheck()
+
+    assert comp.compare(s1, s2)
     assert comp.compare(s2, s1) == comp.compare(s1, s2)
 
 
