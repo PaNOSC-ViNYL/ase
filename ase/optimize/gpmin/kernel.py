@@ -207,35 +207,3 @@ class SquaredExponential(SE_kernel):
         return g
 
 
-if __name__ == "__main__":
-    x1 = np.array([[1, 2, 3]])
-    x2 = np.random.rand(2, 2)
-    kernel = SquaredExponential(2)
-    # kernel.set_params(np.array([100.,1.,6.e3,6.e3,6.e3]))
-    kernel.set_params(np.array([0.5, 0.3]))
-    #x2 = np.array([[3.], [3.000001]])
-    K = kernel.K(x2, x2)
-    print(K)
-    K = kernel.kernel_matrix(x2, 2)
-    print(K)
-
-    def is_pos_def(x):
-        j, D = x.shape
-        minors = []
-        for d in range(D):
-            minors.append(np.linalg.det(x[:d, :d]) > 0)
-        return np.all(minors)
-
-    def is_symm(x):
-        n1, n2 = x.shape
-        return np.all([[x[a, b] == x[b, a] for a in range(n1)] for b in range(n2)])
-
-    print(is_symm(K))
-
-    # print(np.linalg.det(K[:3,:3]))
-    print(is_pos_def(K))
-    # print(np.linalg.eigvals(K))
-    #from scipy.linalg import cholesky
-    #L = cholesky(K)
-    #G = np.array(kernel.gradient(x2))
-    # print(G)
