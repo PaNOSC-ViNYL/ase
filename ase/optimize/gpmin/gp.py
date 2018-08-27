@@ -4,10 +4,9 @@ from ase.optimize.gpmin.kernel import SquaredExponential
 import numpy as np
 import numpy.linalg as la
 from scipy.optimize import minimize
-from scipy.linalg import solve_triangular
 from scipy.linalg import cho_factor, cho_solve
 
-from ase.optimize.gpmin.prior import ZeroPrior, ConstantPrior
+from ase.optimize.gpmin.prior import ZeroPrior
 
 
 class GaussianProcess():
@@ -20,7 +19,6 @@ class GaussianProcess():
 
         if prior == None:
             self.Prior = ZeroPrior()
-            #self.prior = Prior.prior
         else:
             self.Prior = prior
 

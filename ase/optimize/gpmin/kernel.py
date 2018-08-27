@@ -1,7 +1,6 @@
 from __future__ import print_function
 import numpy as np
 import numpy.linalg as la
-from itertools import product as iterproduct
 
 
 class Kernel():

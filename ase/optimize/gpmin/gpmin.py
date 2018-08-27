@@ -2,11 +2,7 @@ from __future__ import print_function
 
 from ase.optimize.optimize import Optimizer
 import numpy as np
-from numpy import linalg as la
 from scipy.optimize import minimize
-
-from ase.parallel import rank, barrier, paropen
-import pickle
 
 from ase.optimize.gpmin.gp import GaussianProcess
 from ase.optimize.gpmin.kernel import SquaredExponential
@@ -92,7 +88,7 @@ class GPMin(Optimizer, GaussianProcess):
     def fit_to_batch(self):
         '''Fit hyperparameters and collect exception'''
         try:
-            hp = self.fit_hyperparameters(np.asarray(
+            self.fit_hyperparameters(np.asarray(
                 self.x_list), np.asarray(self.y_list))
         except Exception:
             pass
