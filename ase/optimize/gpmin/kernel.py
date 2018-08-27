@@ -26,14 +26,18 @@ class SE_kernel(Kernel):
         Kernel.__init__(self)
 
     def set_params(self, params):
-        '''Set the parameters, for example, after optimization of hyperparameters of the 
-        Gaussian Process via maximizing the marginal likelihood.
-        params should be a 1D array of shape (D+12, ) where D is the dimension,
-        containing the bias of the Kernel as a first entry, 
-        the weight as a second and the scales as the remaining'''
+        '''Set the parameters of the squared exponential kernel.
+        
+        Parameters:
+        
+        params: [weight, l] Parameters of the kernel:
+            weight: prefactor of the exponential
+            l : scale of the kernel
+            '''
 
         self.weight = params[0]
         self.l = params[1]
+        
 
     def SquaredDistance(self, x1, x2):
         '''Returns the norm of x1-x2 using diag(l) as metric '''
@@ -59,10 +63,23 @@ class SquaredExponential(SE_kernel):
     Nudged elastic band calculations accelerated with Gaussian process regression.
     section 3.
 
+    Before making any predictions, the parameters need to be set using the method
+    SquaredExponential.set_params(params) with the parameters being a list whose
+    first entry is the weight (prefactor of the exponential) and the second being
+    the scale (l)
+
+    Parameters:
+
+    dimensionality: The dimensionality of the problem to optimize, tipically, 3*N with
+        N being the number of atoms
+
+
+    
     Atributes:
     ----------------
+    D:          int. Dimensionality of the problem to optimize
     weight: 	float. Multiplicative constant to the exponenetial kernel
-    l : 		float. Lenght scale of the squared exponential kernel
+    l :         float. Lenght scale of the squared exponential kernel
 
     Relevant Methods:
     ----------------
@@ -70,9 +87,11 @@ class SquaredExponential(SE_kernel):
     kernel_function: 	squared exponential covariance function
     kernel: 		covariance matrix between two points in the manifold. 
                             Note the inputs are arrays of shape (D,)
-    K: 			kernel matrix of two sets of data.
-                            Note the inputs are arrays of shape (nsamples, D)
-    gradient:            Gradient of K(X,X) with respect to the parameters of the kernel
+    kernel_matrix: 	kernel matrix of a data set to itself, K(X,X)
+                            Note the input is an array of shape (nsamples, D)
+    kernel_vector       kernel matrix of a point x to a dataset X, K(x,X).
+                            
+    gradient:           Gradient of K(X,X) with respect to the parameters of the kernel
                             i.e. the hyperparameters of the Gaussian process.
     '''
 
@@ -105,12 +124,7 @@ class SquaredExponential(SE_kernel):
     def kernel(self, x1, x2):
         '''Squared exponential kernel including derivatives. 
         This function returns a D+1 x D+1 matrix, where D is the dimension of the manifold'''
-        '''
-      k =np.array([[1]]) # np.asarray(self.kernel_function(x1,x2)).reshape((1,1)) 
-      j2 = self.kernel_function_gradient(x1,x2).reshape(1, -1)
-      j1 = -j2.T #self.kernel_function_gradient(x2,x1).reshape(-1, 1)
-      h = self.kernel_function_hessian(x1, x2)
-      '''
+      
         K = np.identity(self.D+1)
         K[0, 1:] = self.kernel_function_gradient(x1, x2)
         K[1:, 0] = -K[0, 1:]
@@ -135,22 +149,12 @@ class SquaredExponential(SE_kernel):
                 k = self.kernel(X[i, :], X[j, :])
                 K[i*(D+1):(i+1)*(D+1), j*(D+1):(j+1)*(D+1)] = k
                 K[j*(D+1):(j+1)*(D+1), i*(D+1):(i+1)*(D+1)] = k.T
-            K[i*(D+1):(i+1)*(D+1), i*(D+1):(i+1)*(D+1)
-              ] = self.kernel(X[i, :], X[i, :])
+            K[i*(D+1):(i+1)*(D+1), 
+              i*(D+1):(i+1)*(D+1)] = self.kernel(X[i, :], X[i, :])
 
         return K
 
     def kernel_vector(self, x, X, nsample):
-        '''
-        #rename parameters
-        D = self.D
-        n = nsample
-
-        #allocate memory
-        k = np.empty((D+1, n*D + n), dtype=float)
-        for i in range(n):
-           k[:, i*(D+1):(i+1)*(D+1)] = self.kernel(x, X[i,:])
-        return k'''  # not worth it unless n>>10
         return np.hstack([self.kernel(x, x2) for x2 in X])
 
     # ---------Derivatives--------
@@ -161,24 +165,23 @@ class SquaredExponential(SE_kernel):
 
     # ----Derivatives of the kernel function respect to the scale ---
     def dK_dl_k(self, x1, x2):
-        '''Returns the derivative of the kernel function respect to  l '''
-        # return la.norm(x1-x2)**2/self.l**3 * self.kernel_function(x1,x2)
+        '''Returns the derivative of the kernel function respect to  l 
+        '''
         return np.dot((x1-x2), (x1-x2))/self.l**3
 
     def dK_dl_j(self, x1, x2):
-        '''Returns the derivative of the gradient of the kernel function respect to l'''
+        '''Returns the derivative of the gradient of the kernel 
+        function respect to l'''
         prefactor = -2 * (1 - 0.5*self.SquaredDistance(x1, x2))/self.l
-        # return self.kernel_function_gradient(x1, x2)* prefactor
-        # return self.kernel_function(x1,x2)* self.kernel_function_gradient(x1, x2)* prefactor
         return self.kernel_function_gradient(x1, x2) * prefactor
 
     def dK_dl_h(self, x1, x2):
-        '''Returns the derivative of the hessian of the kernel function respect to l'''
+        '''Returns the derivative of the hessian of the kernel 
+        function respect to l'''
         I = np.identity(self.D)
         P = np.outer(x1-x2, x1-x2)/self.l**2
         prefactor = 1-0.5*self.SquaredDistance(x1, x2)
 
-        # return -2*self.kernel_function(x1,x2)*(prefactor*(I-P) - P)/self.l**3
         return -2*(prefactor*(I-P) - P)/self.l**3
 
     def dK_dl_matrix(self, x1, x2):
@@ -196,13 +199,11 @@ class SquaredExponential(SE_kernel):
         return np.block([[self.dK_dl_matrix(x1, x2) for x2 in X] for x1 in X])
 
     def gradient(self, X):
-        '''Computes the gradient of matrix K given the data respect to the hyperparameters
+        '''Computes the gradient of matrix K given the data respect to the scale
         Note matrix K here is self.K(X,X)
 
-        returns a 2-entries list of n(D+1) x n(D+1) matrices '''
+        returns a 1-entry list of n(D+1) x n(D+1) matrices '''
 
         g = [self.dK_dl(X)]
 
         return g
-
-
