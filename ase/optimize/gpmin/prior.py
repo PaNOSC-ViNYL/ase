@@ -9,7 +9,7 @@ class Prior():
        that will be called by the prior method implemented here.
 
        When used, the prior should be initialized outside the optimizer 
-       and the prior object should be passed as a function to the optimizer.
+       and the Prior object should be passed as a function to the optimizer.
     '''
 
     def __init__(self):
@@ -18,8 +18,7 @@ class Prior():
         pass
 
     def prior(self, x):
-        '''Prior function that is called by the Gaussian Process in
-           the optimizer. '''
+        ''' Actual prior function, common to all Priors'''
 
         if len(x.shape)>1:
             n = x.shape[0]
@@ -31,6 +30,7 @@ class Prior():
 
 
 class ZeroPrior(Prior):
+    '''ZeroPrior object, consisting on a constant prior with 0eV energy.'''
     def __init__(self):
         Prior.__init__(self)
 
@@ -39,6 +39,19 @@ class ZeroPrior(Prior):
 
 
 class ConstantPrior(Prior):
+    '''Constant prior, with energy = constant and zero forces
+
+    Parameters:
+    
+    constant: energy value for the constant. 
+    
+    Example:
+
+    
+    >>> from ase.optimize import GPMin
+    >>> from ase.optimize.gpmin.prior import ConstantPrior
+    >>> op = GPMin(atoms, Prior = ConstantPrior(10)
+    '''
     def __init__(self, constant):
         self.constant = constant
         Prior.__init__(self)
@@ -54,6 +67,17 @@ class ConstantPrior(Prior):
 
 
 class CalculatorPrior(Prior):
+
+    '''CalculatorPrior object, allows the user to 
+    use another calculator as prior function instead of the 
+    default constant.
+
+    Parameters:
+
+    atoms: the Atoms object
+    calculator: one of ASE's calculators
+
+    '''
 
     def __init__(self, atoms, calculator):
 
