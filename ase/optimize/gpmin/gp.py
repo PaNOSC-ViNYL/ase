@@ -2,14 +2,27 @@ from __future__ import print_function
 from ase.optimize.gpmin.kernel import SquaredExponential
 
 import numpy as np
-#import numpy.linalg as la
+
 from scipy.optimize import minimize
-from scipy.linalg import cho_factor, cho_solve
+from scipy.linalg import solve_triangular, cho_factor, cho_solve
 
 from ase.optimize.gpmin.prior import ZeroPrior
 
-
 class GaussianProcess():
+
+    '''Gaussian Process Regression
+    It is recomended to be used with other Priors and Kernels
+    from ase.optimize.gpmin    
+
+    Parameters:
+    
+    prior: Prior class, as in ase.optimize.gpmin.prior
+        Defaults to ZeroPrior
+
+    kernel: Kernel function for the regression, as
+       in ase.optimize.gpmin.kernel
+        Defaults to the Squared Exponential kernel with derivatives '''
+
     def __init__(self, prior=None, kernel=None):
 
         if kernel == None:
@@ -23,18 +36,28 @@ class GaussianProcess():
             self.Prior = prior
 
     def set_hyperparams(self, params):
+        '''Set hyperparameters of the regression. 
+        This is a list containing the parameters of the 
+        kernel and the regularization (noise)
+        of the method as the last entry. '''
+
         self.hyperparams = params
         self.kernel.set_params(params[:-1])
         self.noise = params[-1]
 
     def train(self, X, Y, noise=None):
-        '''Given a set of observations, X, Y, gradY, compute the K matrix
-        of the Kernel given the data and its cholesky factorization such that
-        this needs only to run once if new data is added
+        '''Produces a PES model from data.
 
-        inputs: 
+        Given a set of observations, X, Y, compute the K matrix
+        of the Kernel given the data (and its cholesky factorization) 
+        This method should be executed whenever more data is added.
+
+        Parameters:
+ 
         X: observations(i.e. positions). numpy array with shape: nsamples x D
-        Y: targets (i.e. energy). numpy array with shape (nsamples, D+1) '''
+        Y: targets (i.e. energy and forces). numpy array with 
+            shape (nsamples, D+1)
+        noise: Noise parameter in the case it needs to be restated. '''
 
         if noise is not None:
             self.noise = noise  # Set noise atribute to a different value
@@ -44,8 +67,9 @@ class GaussianProcess():
 
         n = self.X.shape[0]
         D = self.X.shape[1]
-        regularization = np.array(
-            n*([self.noise*self.kernel.l**2] + D*[self.noise]))
+        regularization = np.array(n*([self.noise*self.kernel.l**2] 
+                                      + D*[self.noise]))
+
         K[range(K.shape[0]), range(K.shape[0])] += regularization**2
 
         self.m = self.Prior.prior(X)
@@ -55,30 +79,50 @@ class GaussianProcess():
         cho_solve((self.L, self.lower), self.a,
                   overwrite_b=True, check_finite=True)
 
-    def predict(self, x):
-        '''Given a trained and fitted gaussian process, it predicts the value and the 
-        derivative of the target at x
+    def predict(self, x, uncertainty = False):
+        '''Given a trained Gaussian Process, it predicts the value and the 
+        uncertainty at point x.
         It returns f and V:
         f : prediction: [y, grady]
-        V : Covariance matrix. Its diagonal is the variance of each component of f 
+        V : Covariance matrix. Its diagonal is the variance of each component of f.
 
+        Parameters:
 
-        TO BE FINISHED: explain what gradient is'''
+        x (1D np.array): The position at which the prediction is computed
+        uncertainty (bool): if False, only the prediction f is returned
+                            if True, the prediction f and the variance V are
+                            returned: Note V is O(D*nsample2)'''
 
-        #x = x.reshape(1,-1)
         n = self.X.shape[0]
         k = self.kernel.kernel_vector(x, self.X, n)
 
         f = self.Prior.prior(x) + np.matmul(k, self.a)
+        
+        if uncertainty:
+            v = k.T.copy()
+            v = solve_triangular(self.L, v, lower = True, check_finite = False)
 
+            variance = self.kernel.kernel(x,x)
+            covariance = np.matmul(v.T, v)
+            V = variance - covariance
+          
+            return f, V
         return f
 
-    def neg_log_likelihood(self, p, *args):
-        '''Negative logarithm of the marginal likelihood.
-           Nice documentation should be written here '''
+
+    def neg_log_likelihood(self, l, *args):
+        '''Negative logarithm of the marginal likelihood and its derivative.
+        It has been built in the form that suits the best its optimization, 
+        with the scipy minimize module, to find the optimal hyperparameters.
+
+        Parameters:
+
+        l: The scale for which we compute the marginal likelihood
+        *args: Should be a tuple containing the inputs and targets
+               in the training set- '''
 
         X, Y = args
-        self.kernel.set_params(np.array([self.kernel.weight, p, self.noise]))
+        self.kernel.set_params(np.array([self.kernel.weight, l , self.noise]))
         self.train(X, Y)
 
         y = Y.flatten()
@@ -88,36 +132,31 @@ class GaussianProcess():
             np.sum(np.log(np.diag(self.L)))-X.shape[0]*0.5*np.log(2*np.pi)
 
         # Gradient of the loglikelihood
-        #grad = np.array(self.kernel.gradient(X))
         grad = self.kernel.gradient(X)
 
-        #iL = la.inv(self.L)
-        #iK = np.matmul(iL.T,iL)
         a = self.a.reshape(1, -1)
-        # vectorizing the derivative of the log likelyhood
-        #D_P_input =np.array( [np.matmul( np.matmul(self.a.T, self.a), g) for g in grad])
-        D_P_input = np.array([np.matmul(a.T, np.matmul(a, g)) for g in grad])
-        #D_P_input = np.matmul( np.outer(self.a, self.a), grad)
-        D_complexity = np.array(
-            [cho_solve((self.L, self.lower),  g) for g in grad])
 
-        #DlogP=np.array([0.5*np.trace( np.matmul( np.outer(self.a,self.a) -iK, g)) for g in grad])
+        # vectorizing the derivative of the log likelyhood
+        D_P_input = np.array([np.matmul(a.T, np.matmul(a, g)) for g in grad])
+        D_complexity = np.array([cho_solve((self.L, self.lower),
+                                             g) for g in grad])
+
         DlogP = 0.5 * np.trace(D_P_input - D_complexity, axis1=1, axis2=2)
         return -logP, -DlogP
 
     def fit_hyperparameters(self, X, Y):
-        '''Given a set of observations, X, Y, gradY; optimize the hyperparameters 
+        '''Given a set of observations, X, Y; optimize the scale
         of the Gaussian Process maximizing the marginal log-likelihood.
-        This method calls TRAIN, so the atributes X, L and a are filled during the 
-        process, there is no need to call the TRAIN method again.
+        This method calls TRAIN there is no need to call the TRAIN method again.
         The method also sets the parameters of the Kernel to their optimal value at
         the end of execution
 
-        inputs: 
+        Parameters:
+
         X: observations(i.e. positions). numpy array with shape: nsamples x D
-        Y: targets (i.e. energy). numpy array with shape (nsamples, )
-        gradY: derivative of target ( i.e. forces).
-               numpy array with shape (nsamples,D) '''
+        Y: targets (i.e. energy and forces). 
+           numpy array with shape (nsamples, D+1)
+        '''
 
         l = np.copy(self.hyperparams)[1]
         arguments = (X, Y)
@@ -127,10 +166,10 @@ class GaussianProcess():
         if result.success == False:
             print(result)
             raise NameError("The Gaussian Process could not be fitted.")
-        else:  # result.sucess==True :)
+        else:
             self.hyperparams = np.array(
                 [self.kernel.weight, result.x.copy(), self.noise])
-            # print(self.hyperparams)
+            
         self.set_hyperparams(self.hyperparams)
         return self.hyperparams
 
