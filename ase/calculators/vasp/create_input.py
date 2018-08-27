@@ -1129,11 +1129,12 @@ class GenerateVaspInput(object):
         vdw_env = 'ASE_VASP_VDW'
         kernel = 'vdw_kernel.bindat'
         if self.bool_params['luse_vdw']:
+            src = None
             if vdw_env in os.environ:
                 src = os.path.join(os.environ[vdw_env],
                                    kernel)
 
-            if not src:
+            if not src or not isfile(src):
                 warnings.warn(('vdW has been enabled, however no'
                                ' location for the {} file'
                                ' has been specified.'
