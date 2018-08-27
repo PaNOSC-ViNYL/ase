@@ -1,5 +1,4 @@
 import numpy as np
-from itertools import product
 
 
 class Prior():
@@ -22,13 +21,12 @@ class Prior():
         '''Prior function that is called by the Gaussian Process in
            the optimizer. '''
 
-        try:
-            d = x.shape[1]
+        if len(x.shape)>1:
             n = x.shape[0]
 
             return np.hstack([self.potential(x[i, :]) for i in range(n)])
 
-        except IndexError:
+        else:
             return self.potential(x)
 
 
