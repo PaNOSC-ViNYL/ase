@@ -71,7 +71,8 @@ class SquaredExponential(SE_kernel):
     Parameters:
 
     dimensionality: The dimensionality of the problem to optimize, tipically, 3*N with
-        N being the number of atoms
+        N being the number of atoms. If dimensionality =None, it is computed when the kernel
+        method is called.
 
 
     
@@ -95,7 +96,7 @@ class SquaredExponential(SE_kernel):
                             i.e. the hyperparameters of the Gaussian process.
     '''
 
-    def __init__(self, dimensionality):
+    def __init__(self, dimensionality = None):
         self.D = dimensionality
         SE_kernel.__init__(self)
 
@@ -118,13 +119,12 @@ class SquaredExponential(SE_kernel):
         P = np.outer(x1-x2, x1-x2)/self.l**2
         prefactor = (np.identity(self.D) - P) / self.l**2
 
-        # return prefactor * self.kernel_function(x1,x2)
         return prefactor
 
     def kernel(self, x1, x2):
         '''Squared exponential kernel including derivatives. 
         This function returns a D+1 x D+1 matrix, where D is the dimension of the manifold'''
-      
+
         K = np.identity(self.D+1)
         K[0, 1:] = self.kernel_function_gradient(x1, x2)
         K[1:, 0] = -K[0, 1:]
@@ -134,11 +134,16 @@ class SquaredExponential(SE_kernel):
         # return np.block([[k,j2],[j1,h]])*self.kernel_function(x1, x2)
         return K * self.kernel_function(x1, x2)
 
-    def kernel_matrix(self, X, nsample):
+    def kernel_matrix(self, X):
         '''This is the same method than self.K for X1=X2, but using the matrix is then symmetric'''
         # rename parameters
-        D = self.D
-        n = nsample
+        shape = X.shape
+        if len(shape)>1:
+            D = shape[1]
+        else:
+            D = 1
+        n = shape[0]
+        self.D = D
 
         # allocate memory
         K = np.identity((n*(D+1)), dtype=float)

@@ -24,7 +24,6 @@ class GPMin(Optimizer, GaussianProcess):
 
         self.function_calls = 1
         self.force_calls = 0
-        D = len(atoms)*3
 
         Optimizer.__init__(self, atoms, restart, logfile,
                            trajectory, master, force_consistent)
@@ -40,7 +39,7 @@ class GPMin(Optimizer, GaussianProcess):
         else:
             self.update_prior = False
 
-        Kernel = SquaredExponential(D)
+        Kernel = SquaredExponential()
         GaussianProcess.__init__(self, Prior, Kernel)
 
         self.x_list = []  # Training set features

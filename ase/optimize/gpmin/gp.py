@@ -63,7 +63,7 @@ class GaussianProcess():
             self.noise = noise  # Set noise atribute to a different value
 
         self.X = X.copy()  # Store the data in an atribute
-        K = self.kernel.kernel_matrix(X, len(X))  # Compute the kernel matrix
+        K = self.kernel.kernel_matrix(X)  # Compute the kernel matrix
 
         n = self.X.shape[0]
         D = self.X.shape[1]
