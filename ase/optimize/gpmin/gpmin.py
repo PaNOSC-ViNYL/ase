@@ -4,6 +4,8 @@ from ase.optimize.optimize import Optimizer
 import numpy as np
 from scipy.optimize import minimize
 
+from ase.parallel import rank
+
 from ase.optimize.gpmin.gp import GaussianProcess
 from ase.optimize.gpmin.kernel import SquaredExponential
 from ase.optimize.gpmin.prior import ConstantPrior

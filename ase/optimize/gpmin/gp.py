@@ -2,7 +2,7 @@ from __future__ import print_function
 from ase.optimize.gpmin.kernel import SquaredExponential
 
 import numpy as np
-import numpy.linalg as la
+#import numpy.linalg as la
 from scipy.optimize import minimize
 from scipy.linalg import cho_factor, cho_solve
 
