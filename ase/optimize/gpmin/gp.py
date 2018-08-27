@@ -79,7 +79,7 @@ class GaussianProcess():
         cho_solve((self.L, self.lower), self.a,
                   overwrite_b=True, check_finite=True)
 
-    def predict(self, x, uncertainty = False):
+    def predict(self, x, get_variance = False):
         '''Given a trained Gaussian Process, it predicts the value and the 
         uncertainty at point x.
         It returns f and V:
@@ -89,7 +89,7 @@ class GaussianProcess():
         Parameters:
 
         x (1D np.array): The position at which the prediction is computed
-        uncertainty (bool): if False, only the prediction f is returned
+        get_variance (bool): if False, only the prediction f is returned
                             if True, the prediction f and the variance V are
                             returned: Note V is O(D*nsample2)'''
 
@@ -98,7 +98,7 @@ class GaussianProcess():
 
         f = self.Prior.prior(x) + np.matmul(k, self.a)
         
-        if uncertainty:
+        if get_variance:
             v = k.T.copy()
             v = solve_triangular(self.L, v, lower = True, check_finite = False)
 
