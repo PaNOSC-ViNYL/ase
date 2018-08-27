@@ -8,12 +8,12 @@ from scipy.optimize import minimize
 from ase.parallel import rank, barrier, paropen
 import pickle
 
-from .lightGP import LightGaussianProcess
-from .kernel import SquaredExponential
-from .prior import ConstantPrior
+from ase.optimize.gpmin.gp import GaussianProcess
+from ase.optimize.gpmin.kernel import SquaredExponential
+from ase.optimize.gpmin.prior import ConstantPrior
 
 
-class LightBayes(Optimizer, LightGaussianProcess):
+class GPMin(Optimizer, GaussianProcess):
     def __init__(self, atoms, restart=None, logfile='-', trajectory=None, Prior=None,
                  master=None, noise=0.005, weight=1., prior='maximum',
                  scale=0.4, force_consistent=None, batch_size=5, update=False):
@@ -43,7 +43,7 @@ class LightBayes(Optimizer, LightGaussianProcess):
             self.update_prior = False
 
         Kernel = SquaredExponential(D)
-        LightGaussianProcess.__init__(self, Prior, Kernel)
+        GaussianProcess.__init__(self, Prior, Kernel)
 
         self.x_list = []  # Training set features
         self.y_list = []  # Training set targets
@@ -154,41 +154,3 @@ class LightBayes(Optimizer, LightGaussianProcess):
         self.x_list = data['X']
         self.y_list = data['Y']
 
-
-class UpdatedBayes(LightBayes):
-    '''This is just a decorator class of the LightBayes class with different
-    default parameters for test purpose only'''
-
-    def __init__(self, atoms, restart=None, logfile='-', trajectory=None, Prior=None,
-                 master=None, noise=0.005, weight=1., prior='maximum',
-                 scale=0.4, force_consistent=None, batch_size=5, update=True):
-
-        LightBayes.__init__(self, atoms, restart=restart, logfile=logfile, trajectory=trajectory,
-                            Prior=Prior, master=master, noise=noise, weight=weight, prior=prior,
-                            scale=scale, force_consistent=force_consistent, batch_size=batch_size,
-                            update=update)
-
-
-# --------------------------------------------------------
-
-if __name__ == "__main__":
-    from ase import Atoms
-    from ase.calculators.emt import EMT
-    import random
-
-    random.seed(32)
-
-    a = 3.8  # angstrom
-    e = 5  # noise
-
-    def r(eps):
-        ''' decorator'''
-        return random.uniform(-eps/2., eps/2.)
-
-    atoms = Atoms('3Au', [(-0.3, 0., -1.1), (a+2+r(e),
-                                             0.-r(e), a+r(e)), (5.+r(e), a+r(e), a+r(e))])
-    atoms.set_calculator(EMT())
-    op = Bayes(atoms, logfile='bayes.log', trajectory='bayes.traj',
-               gradient_step=0.005, lcb=-0.005, noise=1e-3, nsample=0)
-    op.run(0.05, 20)
-    # print(op.params)

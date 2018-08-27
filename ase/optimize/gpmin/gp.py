@@ -1,5 +1,5 @@
 from __future__ import print_function
-from .kernel import SquaredExponential
+from ase.optimize.gpmin.kernel import SquaredExponential
 
 import numpy as np
 import numpy.linalg as la
@@ -7,10 +7,10 @@ from scipy.optimize import minimize
 from scipy.linalg import solve_triangular
 from scipy.linalg import cho_factor, cho_solve
 
-from .prior import ZeroPrior, ConstantPrior
+from ase.optimize.gpmin.prior import ZeroPrior, ConstantPrior
 
 
-class LightGaussianProcess():
+class GaussianProcess():
     def __init__(self, prior=None, kernel=None):
 
         if kernel == None:
@@ -137,26 +137,3 @@ class LightGaussianProcess():
         return self.hyperparams
 
 
-if __name__ == "__main__":
-
-    GP = GaussianProcess()
-    GP.set_hyperparams(np.array([1.0, 2.0, 1e-3]))
-    X = np.array([[0.1, 0.2, 300], [0.4, 0.1, 1.], [300, 5., 8.]])
-    Y = np.array([1000, 2.000, -1000])
-    gradY = np.array([[0., 0., 0.], [1., 1., 1.], [-15, 0., -1]])
-    observations = []
-    for i in range(len(Y)):
-        observations.append(np.block([Y[i], gradY[i]]).reshape(-1))
-    observations = np.asarray(observations)
-    print(observations)
-
-    GP.train(X, observations, 1e-6)
-    f, V = GP.predict(np.array([3, 1, 2]))
-    print('Predicted energy', f[0])
-    print('Predicted force', f[1:])
-    print('Predicted variance', np.diag(V))
-
-    logP, dlogP = GP.neg_log_likelihood(np.array([1., 2.]), X, observations)
-    print(logP, dlogP)
-    p = GP.fit_hyperparameters(X, observations)
-    print(p)
