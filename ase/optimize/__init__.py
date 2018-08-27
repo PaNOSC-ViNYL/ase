@@ -11,4 +11,4 @@ QuasiNewton = BFGSLineSearch
 
 __all__ = ['MDMin', 'FIRE', 'LBFGS',
            'LBFGSLineSearch', 'BFGSLineSearch', 'BFGS',
-           'GoodOldQuasiNewton', 'QuasiNewton']
+           'GoodOldQuasiNewton', 'QuasiNewton', 'GPMin']
