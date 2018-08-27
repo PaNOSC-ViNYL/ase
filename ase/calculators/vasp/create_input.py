@@ -22,6 +22,7 @@ http://cms.mpi.univie.ac.at/vasp/
 import os
 import sys
 import warnings
+import shutil
 from os.path import join, isfile, islink
 
 import numpy as np
@@ -1117,6 +1118,31 @@ class GenerateVaspInput(object):
         self.write_potcar(directory=directory)
         self.write_kpoints(directory=directory)
         self.write_sort_file(directory=directory)
+        self.copy_vdw_kernel(directory=directory)
+
+    def copy_vdw_kernel(self, directory='./'):
+        """Method to copy the vdw_kernel.bindat file.
+        Set ASE_VASP_VDW environment variable to the vdw_kernel.bindat
+        folder location. Checks if LUSE_VDW is enabled, and if no location
+        for the vdW kernel is specified, a warning is issued."""
+
+        vdw_env = 'ASE_VASP_VDW'
+        kernel = 'vdw_kernel.bindat'
+        if self.bool_params['luse_vdw']:
+            if vdw_env in os.environ:
+                src = os.path.join(os.environ[vdw_env],
+                                   kernel)
+
+            if not src:
+                warnings.warn(('vdW has been enabled, however no'
+                               ' location for the {} file'
+                               ' has been specified.'
+                               ' Set {} environment variable to'
+                               ' copy the vdW kernel.').format(
+                                   kernel, vdw_env))
+            else:
+                dst = os.path.join(directory, kernel)
+                shutil.copyfile(src, dst)
 
     def clean(self):
         """Method which cleans up after a calculation.
