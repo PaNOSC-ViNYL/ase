@@ -13,15 +13,83 @@ from ase.optimize.gpmin.prior import ConstantPrior
 
 class GPMin(Optimizer, GaussianProcess):
     def __init__(self, atoms, restart=None, logfile='-', trajectory=None, Prior=None,
-                 master=None, noise=0.005, weight=1., prior='maximum',
-                 scale=0.4, force_consistent=None, batch_size=5, update=False):
-        '''Beautiful doc string'''
+                 master=None, noise=0.005, weight=1., update_prior_strategy='maximum',
+                 scale=0.4, force_consistent=None, batch_size=5, 
+                 update_hyperparams=False):
 
-        # DEFINING OTHER ATRIBUTES
+
+        """Optimize atomic positions using GPMin algorithm, which uses
+        both potential energies and forces information to build a PES
+        via Gaussian Process (GP) regression and then minimizes it.
+
+        Parameters:
+
+        atoms: Atoms object
+            The Atoms object to relax.
+
+        restart: string
+            TO BE DONE AFTER TEST
+
+        logfile: file object or str
+            If *logfile* is a string, a file with that name will be opened.
+            Use '-' for stdout
+
+        trajectory: string
+            Pickle file used to store trajectory of atomic movement. 
+
+        master: boolean
+            Defaults to None, which causes only rank 0 to save files. If
+            set to True, this rank will save files.
+
+        force_consistent: boolean or None
+            Use force-consistent energy calls (as opposed to the energy
+            extrapolated to 0 K). By default (force_consistent=None) uses
+            force-consistent energies if available in the calculator, but
+            falls back to force_consistent=False if not.
+
+        Prior: Prior object or None
+            Prior for the GP regression of the PES surface
+            See ase.optimize.gpmin.prior 
+            If *Prior* is None, then it is set as the 
+            ConstantPrior with the constant being updated
+            using the update_prior_strategy specified as a parameter
+
+        noise: float
+            Regularization parameter for the Gaussian Process Regression.
+            
+        weight: float
+            Prefactor of the Squared Exponential kernel. 
+            If *update_hyperparams* is False, changing this parameter
+            has no effect on the dynamics of the algorithm.
+
+        update_prior_strategy: string
+            Strategy to update the constant from the ConstantPrior
+            when more data is collected. It does only work when 
+            Prior = None
+
+            options:
+                'maximum': update the prior to the maximum sampled energy
+                'init' : fix the prior to the initial energy
+                'average': use the average of sampled energies as prior 
+
+        scale: float
+            scale of the Squared Exponential Kernel
+
+        update_hyperparams: boolean
+            Update the scale of the Squared exponential kernel
+            every batch_size-th iteration by maximizing the 
+            marginal likelhood.
+
+        batch_size: int
+            Number of new points in the sample before updating
+            the hyperparameters.
+            Only relevant if the optimizer is executed in update
+            mode: (update = True)  
+        """
+
         self.nbatch = batch_size
-        self.prior = prior
-        self.update_hp = update
-
+        self.prior = update_prior_strategy
+        self.update_hp = update_hyperparams
         self.function_calls = 1
         self.force_calls = 0
 
@@ -29,7 +97,7 @@ class GPMin(Optimizer, GaussianProcess):
                            trajectory, master, force_consistent)
 
         if Prior is None:
-            if prior == 'init':
+            if self.prior == 'init':
                 self.update_prior = False
             else:
                 self.update_prior = True
@@ -44,8 +112,8 @@ class GPMin(Optimizer, GaussianProcess):
 
         self.x_list = []  # Training set features
         self.y_list = []  # Training set targets
-
         self.set_hyperparams(np.array([weight, scale, noise]))
+
 
     def acquisition(self, r):
         e = self.predict(r)
@@ -53,6 +121,9 @@ class GPMin(Optimizer, GaussianProcess):
         return e[0], e[1:]
 
     def update(self, r, e, f):
+        """Update the PES:
+        update the training set, the prior and the hyperparameters.
+        Finally, train the model """
 
         # update the training set
         self.x_list.append(r)
@@ -95,14 +166,10 @@ class GPMin(Optimizer, GaussianProcess):
             pass
 
     def step(self, f):
-        '''This method will be run in loop by the run method of the 
-           parent class Optimizer.'''
 
-        # Get atomic quantities
         atoms = self.atoms
         r0 = atoms.get_positions().reshape(-1)
         e0 = atoms.get_potential_energy(force_consistent=self.force_consistent)
-        #f0 = f.reshape(-1)
         self.update(r0, e0, f)
 
         r1 = self.relax_model(r0)
@@ -115,7 +182,7 @@ class GPMin(Optimizer, GaussianProcess):
         self.force_calls += 1
 
         count = 0
-        while e1 >= e0:  # Or better line search condition
+        while e1 >= e0:  
 
             self.update(r1, e1, f1)
             r1 = self.relax_model(r0)
