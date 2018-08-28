@@ -10,6 +10,7 @@ from ase.optimize.gpmin.gp import GaussianProcess
 from ase.optimize.gpmin.kernel import SquaredExponential
 from ase.optimize.gpmin.prior import ConstantPrior
 
+import pickle
 
 class GPMin(Optimizer, GaussianProcess):
     def __init__(self, atoms, restart=None, logfile='-', trajectory=None, Prior=None,
@@ -28,7 +29,9 @@ class GPMin(Optimizer, GaussianProcess):
             The Atoms object to relax.
 
         restart: string
-            TO BE DONE AFTER TEST
+            Pickle file used to store the training set. If set, file with
+            such a name will be searched and the data in the file incorporated
+            to the new training set, if the file exists.
 
         logfile: file object or str
             If *logfile* is a string, a file with that name will be opened.
@@ -92,6 +95,8 @@ class GPMin(Optimizer, GaussianProcess):
         self.update_hp = update_hyperparams
         self.function_calls = 1
         self.force_calls = 0
+        self.x_list = []      # Training set features
+        self.y_list = []      # Training set targets
 
         Optimizer.__init__(self, atoms, restart, logfile,
                            trajectory, master, force_consistent)
@@ -110,10 +115,9 @@ class GPMin(Optimizer, GaussianProcess):
         Kernel = SquaredExponential()
         GaussianProcess.__init__(self, Prior, Kernel)
 
-        self.x_list = []  # Training set features
-        self.y_list = []  # Training set targets
+        #self.x_list = []  # Training set features
+        #self.y_list = []  # Training set targets
         self.set_hyperparams(np.array([weight, scale, noise]))
-
 
     def acquisition(self, r):
         e = self.predict(r)
@@ -201,20 +205,13 @@ class GPMin(Optimizer, GaussianProcess):
             count += 1
             if count == 30:
                 raise RuntimeError('A descent model could not be built')
+        self.dump()
 
-    def dump(self, x_train, y_train):
-        '''Overwrite the method dump to be able to append data to the training set
-           as it is being generated'''
+    def dump(self):
+        '''Save the training set'''
         if rank == 0 and self.restart is not None:
-            np.savez(self.restart, X=x_train, Y=y_train, prior=self.constant,
-                     hyperparams=self.hyperparams)
-
-    def load(self):
-        '''load training set '''
-        return np.load(self.restart)
+            pickle.dump((self.x_list, self.y_list), open(self.restart, 'wb'), protocol = 2)
 
     def read(self):
-        data = self.load()
-        self.x_list = data['X']
-        self.y_list = data['Y']
+        self.x_list, self.y_list = self.load()
 
