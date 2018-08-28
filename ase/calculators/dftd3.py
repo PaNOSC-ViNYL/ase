@@ -45,6 +45,7 @@ class DFTD3(FileIOCalculator):
                  command=None,  # Command for running dftd3
                  dft=None,  # DFT calculator
                  atoms=None,
+                 comm=world,
                  **kwargs):
 
         self.dft = None
@@ -69,6 +70,8 @@ class DFTD3(FileIOCalculator):
                                'to the dftd3 executable to the D3 calculator!')
         if isinstance(self.command, str):
             self.command = self.command.split()
+
+        self.comm = comm
 
     def set(self, **kwargs):
         changed_parameters = {}
