@@ -230,7 +230,7 @@ class DFTD3(FileIOCalculator):
         # DFTD3 does not run in parallel
         # so we only need it to run on 1 core
         errorcode = None
-        if world.rank == 0:
+        if self.comm.rank == 0:
             with open(self.label + '.out', 'w') as f:
                 errorcode = subprocess.call(command,
                                             cwd=self.directory, stdout=f)
@@ -259,7 +259,7 @@ class DFTD3(FileIOCalculator):
                      'this system as 3D-periodic!')
             pbc = True
 
-        if world.rank == 0:
+        if self.comm.rank == 0:
             if pbc:
                 fname = os.path.join(self.directory,
                                      '{}.POSCAR'.format(self.label))
@@ -303,7 +303,7 @@ class DFTD3(FileIOCalculator):
                 damppars.append('6')
 
             damp_fname = os.path.join(self.directory, '.dftd3par.local')
-            if world.rank == 0:
+            if self.comm.rank == 0:
                 with open(damp_fname, 'w') as f:
                     f.write(' '.join(damppars))
 
@@ -312,7 +312,7 @@ class DFTD3(FileIOCalculator):
         outname = os.path.join(self.directory, self.label + '.out')
         self.results['energy'] = None
         self.results['free_energy'] = None
-        if world.rank == 0:
+        if self.comm.rank == 0:
             with open(outname, 'r') as f:
                 for line in f:
                     if line.startswith(' program stopped'):
@@ -362,7 +362,7 @@ class DFTD3(FileIOCalculator):
             forces = np.zeros((len(self.atoms), 3))
             forcename = os.path.join(self.directory, 'dftd3_gradient')
             self.results['forces'] = None
-            if world.rank == 0:
+            if self.comm.rank == 0:
                 with open(forcename, 'r') as f:
                     for i, line in enumerate(f):
                         forces[i] = np.array([float(x) for x in line.split()])
@@ -374,7 +374,7 @@ class DFTD3(FileIOCalculator):
                 stress = np.zeros((3, 3))
                 stressname = os.path.join(self.directory, 'dftd3_cellgradient')
                 self.results['stress'] = None
-                if world.rank == 0:
+                if self.comm.rank == 0:
                     with open(stressname, 'r') as f:
                         for i, line in enumerate(f):
                             for j, x in enumerate(line.split()):
