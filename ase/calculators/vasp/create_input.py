@@ -1128,6 +1128,12 @@ class GenerateVaspInput(object):
 
         vdw_env = 'ASE_VASP_VDW'
         kernel = 'vdw_kernel.bindat'
+        dst = os.path.join(directory, kernel)
+
+        # No need to copy the file again
+        if isfile(dst):
+            return
+
         if self.bool_params['luse_vdw']:
             src = None
             if vdw_env in os.environ:
@@ -1142,7 +1148,6 @@ class GenerateVaspInput(object):
                                ' copy the vdW kernel.').format(
                                    kernel, vdw_env))
             else:
-                dst = os.path.join(directory, kernel)
                 shutil.copyfile(src, dst)
 
     def clean(self):
