@@ -9,6 +9,10 @@ Git master branch
 
 :git:`master <>`.
 
+* New Gaussian Process (GP) regression optimizer
+  (:class:`~ase.optimize.GPMin`).  Check out this `performance test
+  <https://wiki.fysik.dtu.dk/gpaw/devel/ase_optimize/ase_optimize.html>`_.
+
 * Test suite now runs in parallel.
 
 * Socked-based interface to certain calculators through the
@@ -64,6 +68,7 @@ Git master branch
 * Positions and velocities can now be initialized from phononic
   force constant matrix; see
   :func:`~ase.md.velocitydistribution.PhononHarmonics`.
+
 
 Version 3.16.2
 ==============
