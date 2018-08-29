@@ -10,7 +10,7 @@ from ase.calculators.calculator import (Calculator,
 from ase.units import Bohr, Hartree
 from ase.io.xyz import write_xyz
 from ase.io.vasp import write_vasp
-from ase.parallel import world
+from ase.parallel import world, broadcast
 
 
 class DFTD3(FileIOCalculator):
@@ -235,7 +235,7 @@ class DFTD3(FileIOCalculator):
                 errorcode = subprocess.call(command,
                                             cwd=self.directory, stdout=f)
 
-        errorcode = self.comm.broadcast(errorcode, 0)
+        errorcode = broadcast(errorcode, 0, self.comm)
 
         if errorcode:
             raise RuntimeError('%s returned an error: %d' %
@@ -339,9 +339,11 @@ class DFTD3(FileIOCalculator):
                     raise RuntimeError('Could not parse energy from dftd3 '
                                        'output, see file {}'.format(outname))
 
-        self.results['energy'] = self.comm.broadcast(self.results['energy'], 0)
-        self.results['free_energy'] = self.comm.broadcast(
-            self.results['free_energy'], 0
+        self.results['energy'] = broadcast(
+            self.results['energy'], 0, self.comm
+        )
+        self.results['free_energy'] = broadcast(
+            self.results['free_energy'], 0, self.comm
         )
 
         # FIXME: Calculator.get_potential_energy() simply inspects
@@ -369,8 +371,9 @@ class DFTD3(FileIOCalculator):
                     for i, line in enumerate(f):
                         forces[i] = np.array([float(x) for x in line.split()])
                 self.results['forces'] = -forces * Hartree / Bohr
-            self.results['forces'] = self.comm.broadcast(
-                self.results['forces'], 0)
+            self.results['forces'] = broadcast(
+                self.results['forces'], 0, self.comm
+            )
 
             if any(self.atoms.pbc):
                 # parse the stress tensor
@@ -386,8 +389,8 @@ class DFTD3(FileIOCalculator):
                     stress *= Hartree / Bohr / self.atoms.get_volume()
                     stress = np.dot(stress, self.atoms.cell.T)
                     self.results['stress'] = stress.flat[[0, 4, 8, 5, 2, 1]]
-                self.results['stress'] = self.comm.broadcast(
-                    self.results['stress'], 0
+                self.results['stress'] = broadcast(
+                    self.results['stress'], 0, self.comm
                 )
 
     def get_property(self, name, atoms=None, allow_calculation=True):
