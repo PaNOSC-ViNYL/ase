@@ -532,8 +532,7 @@ class Database:
         if not data:
             data = None
 
-        if atoms or os.path.splitext(self.filename)[1] == '.json':
-            print('HEP!')
+        if atoms:
             oldrow = row
             row = AtomsRow(atoms)
             # Copy over data, kvp, ctime, user and id
@@ -543,9 +542,11 @@ class Database:
             row.ctime = oldrow.ctime
             row.user = oldrow.user
             row.id = id
+
+        if atoms or os.path.splitext(self.filename)[1] == '.json':
             self._write(row, kvp, data, row.id)
         else:
-            self._update(kvp, data, row.id)
+            self._update(row.id, kvp, data)
         return m, n
 
     def delete(self, ids):

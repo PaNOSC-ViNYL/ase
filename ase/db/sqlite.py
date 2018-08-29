@@ -317,13 +317,24 @@ class SQLite3Database(Database, object):
 
         return id
 
-    def _update(self, key_value_pairs, data=None, id):
+    def _update(self, id, key_value_pairs, data=None):
         """Update key_value_pairs and data for a single row """
         if self.type == 'postgresql':
             encode = functools.partial(_encode, pg=True)
         else:
             encode = _encode
 
+        con = self.connection or self._connect()
+        self._initialize(con)
+        cur = con.cursor()
+
+        mtime = now()
+
+        cur.execute("UPDATE systems SET mtime={}, key_value_pairs='{}' WHERE id={}"\
+                    .format(mtime, encode(key_value_pairs), id))
+        if data:
+            cur.execute("UPDATE systems set data='{}' where id={}"\
+                        .format(encode(data), id))
         
         self._delete(cur, [id], ['keys', 'text_key_values',
                                  'number_key_values'])
@@ -343,13 +354,6 @@ class SQLite3Database(Database, object):
                         number_key_values)
         cur.executemany('INSERT INTO keys VALUES (?, ?)',
                         [(key, id) for key in key_value_pairs])
-
-        cur.execute('UPDATE systems set key_value_pairs={} where id={}'\
-                    .format(encode(key_value_pairs), id))
-
-        if data:
-            cur.execute('UPDATE systems set data={} where id={}'\
-                    .format(encode(data), id))
 
         if self.connection is None:
             con.commit()
