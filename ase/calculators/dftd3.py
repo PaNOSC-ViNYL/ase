@@ -265,7 +265,8 @@ class DFTD3(FileIOCalculator):
                                      '{}.POSCAR'.format(self.label))
                 write_vasp(fname, atoms)
             else:
-                fname = os.path.join(self.directory, '{}.xyz'.format(self.label))
+                fname = os.path.join(
+                    self.directory, '{}.xyz'.format(self.label))
                 write_xyz(fname, atoms, plain=True)
 
         # Generate custom damping parameters file. This is kind of ugly, but
@@ -368,7 +369,8 @@ class DFTD3(FileIOCalculator):
                     for i, line in enumerate(f):
                         forces[i] = np.array([float(x) for x in line.split()])
                 self.results['forces'] = -forces * Hartree / Bohr
-            self.results['forces'] = self.comm.broadcast(self.results['forces'], 0)
+            self.results['forces'] = self.comm.broadcast(
+                self.results['forces'], 0)
 
             if any(self.atoms.pbc):
                 # parse the stress tensor
