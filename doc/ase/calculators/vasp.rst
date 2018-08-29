@@ -52,7 +52,7 @@ Set both environment variables in your shell configuration file:
   
 The following environment variable can be used to automatically copy in the
 van der Waals kernel, which is needed for vdW calculations, see `VASP vdW wiki`_,
-for more details.
+for more details. The kernel is looked for, whenever ``luse_vdw=True``.
 
 .. highlight:: bash
 
