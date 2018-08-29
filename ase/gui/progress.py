@@ -243,7 +243,7 @@ class GpawProgressIndicator(DefaultProgressIndicator):
         # if not self.active:
         #    self.begin()
         sys.stdout.write(txt)
-        versearch = re.search("\|[ |_.]+([0-9]+\.[0-9]+\.[0-9]+)", txt)
+        versearch = re.search(r"\|[ |_.]+([0-9]+\.[0-9]+\.[0-9]+)", txt)
         if versearch:
             # Starting a gpaw calculation.
             self.versionlabel.set_text(versearch.group(1))

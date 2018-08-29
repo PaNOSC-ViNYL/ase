@@ -113,8 +113,9 @@ class Table:
         N = np.max(L, axis=0)
 
         fmt = '{:{align}{width}}'
-        print('|'.join(fmt.format(c, align='<>'[a], width=w)
-                       for c, a, w in zip(self.columns, self.right, N)))
+        if self.verbosity > 0:
+            print('|'.join(fmt.format(c, align='<>'[a], width=w)
+                           for c, a, w in zip(self.columns, self.right, N)))
         for row in self.rows:
             print('|'.join(fmt.format(c, align='<>'[a], width=w)
                            for c, a, w in
@@ -135,7 +136,8 @@ class Table:
             print('Keys:', ', '.join(cutlist(self.keys, self.cut)))
 
     def write_csv(self):
-        print(', '.join(self.columns))
+        if self.verbosity > 0:
+            print(', '.join(self.columns))
         for row in self.rows:
             print(', '.join(str(val) for val in row.values))
 
