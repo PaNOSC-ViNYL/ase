@@ -15,7 +15,7 @@ import pickle
 class GPMin(Optimizer, GaussianProcess):
     def __init__(self, atoms, restart=None, logfile='-', trajectory=None, Prior=None,
                  master=None, noise=0.005, weight=1., update_prior_strategy='maximum',
-                 scale=0.4, force_consistent=None, batch_size=5, 
+                 scale=0.4, force_consistent=None, batch_size=5,
                  update_hyperparams=False):
 
 
@@ -38,7 +38,7 @@ class GPMin(Optimizer, GaussianProcess):
             Use '-' for stdout
 
         trajectory: string
-            Pickle file used to store trajectory of atomic movement. 
+            Pickle file used to store trajectory of atomic movement.
 
         master: boolean
             Defaults to None, which causes only rank 0 to save files. If
@@ -52,42 +52,42 @@ class GPMin(Optimizer, GaussianProcess):
 
         Prior: Prior object or None
             Prior for the GP regression of the PES surface
-            See ase.optimize.gpmin.prior 
-            If *Prior* is None, then it is set as the 
+            See ase.optimize.gpmin.prior
+            If *Prior* is None, then it is set as the
             ConstantPrior with the constant being updated
             using the update_prior_strategy specified as a parameter
 
         noise: float
             Regularization parameter for the Gaussian Process Regression.
-            
+
         weight: float
-            Prefactor of the Squared Exponential kernel. 
+            Prefactor of the Squared Exponential kernel.
             If *update_hyperparams* is False, changing this parameter
             has no effect on the dynamics of the algorithm.
 
         update_prior_strategy: string
             Strategy to update the constant from the ConstantPrior
-            when more data is collected. It does only work when 
+            when more data is collected. It does only work when
             Prior = None
 
             options:
                 'maximum': update the prior to the maximum sampled energy
                 'init' : fix the prior to the initial energy
-                'average': use the average of sampled energies as prior 
+                'average': use the average of sampled energies as prior
 
         scale: float
             scale of the Squared Exponential Kernel
 
         update_hyperparams: boolean
             Update the scale of the Squared exponential kernel
-            every batch_size-th iteration by maximizing the 
+            every batch_size-th iteration by maximizing the
             marginal likelhood.
 
         batch_size: int
             Number of new points in the sample before updating
             the hyperparameters.
             Only relevant if the optimizer is executed in update
-            mode: (update = True)  
+            mode: (update = True)
         """
 
         self.nbatch = batch_size
@@ -186,7 +186,7 @@ class GPMin(Optimizer, GaussianProcess):
         self.force_calls += 1
 
         count = 0
-        while e1 >= e0:  
+        while e1 >= e0:
 
             self.update(r1, e1, f1)
             r1 = self.relax_model(r0)
