@@ -5,6 +5,8 @@ from psycopg2.extras import execute_values
 from ase.db.sqlite import (init_statements, index_statements, VERSION,
                            SQLite3Database)
 
+jsonb_indices = ['CREATE INDEX idxkeys ON systems USING GIN (key_value_pairs);',
+                 'CREATE INDEX idxcalc ON systems USING GIN (calculator_parameters);']
 
 class Connection:
     def __init__(self, con):
@@ -82,6 +84,7 @@ class PostgreSQLDatabase(SQLite3Database):
             cur.execute(sql)
             if self.create_indices:
                 cur.execute(';\n'.join(index_statements))
+                cur.execute(';\n'.join(jsonb_indices))
             con.commit()
             self.version = VERSION
         else:
