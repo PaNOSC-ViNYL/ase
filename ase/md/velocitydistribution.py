@@ -72,7 +72,7 @@ def ZeroRotation(atoms):
 
 def PhononHarmonics(atoms, temp, force_constants, rng=np.random,
                     failfast=True):
-    """Excite phonon modes to specified temperature.
+    r"""Excite phonon modes to specified temperature.
 
     This excites all phonon modes randomly so that each contributes,
     on average, equally to the given temperature.  Both potential
