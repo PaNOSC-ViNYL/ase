@@ -48,9 +48,20 @@ Set both environment variables in your shell configuration file:
   $ export VASP_SCRIPT=$HOME/vasp/run_vasp.py
   $ export VASP_PP_PATH=$HOME/vasp/mypps
 
-.. highlight:: python
+.. _VASP vdW wiki: https://cms.mpi.univie.ac.at/vasp/vasp/vdW_DF_functional_Langreth_Lundqvist_et_al.html
+  
+The following environment variable can be used to automatically copy in the
+van der Waals kernel, which is needed for vdW calculations, see `VASP vdW wiki`_,
+for more details.
 
+.. highlight:: bash
 
+::
+   
+   $ export ASE_VASP_VDW=$HOME/<path-to-vdw_kernel.bindat-folder>
+
+The environment variable :envvar:`ASE_VASP_VDW` should point to the folder where
+the :file:`vdw_kernel.bindat` file is located.
 
 VASP Calculator
 ===============
