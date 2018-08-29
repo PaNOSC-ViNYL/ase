@@ -50,10 +50,20 @@ Git master branch
 * :ref:`ase convert <cli>` now provides options to execute custom code
   on each processed image.
 
-* Writing a trajectory file from a parallelize :class:`~ase.neb.NEB`
+* Writing a trajectory file from a parallelized :class:`~ase.neb.NEB`
   calculation is now much simpler.  Works the same way as for the serial
   case.
 
+* New :class:`~ase.dft.pdos.DOS` object for representing and plotting
+  densities and states.
+
+* :class:`~ase.phonons.Phonons` class now uses
+  the :class:`~ase.dft.pdos.DOS` and
+  :class:`~ase.dft.band_structure.BandStructure` machinery.
+
+* Positions and velocities can now be initialized from phononic
+  force constant matrix; see
+  :func:`~ase.md.velocitydistribution.PhononHarmonics`.
 
 Version 3.16.2
 ==============

@@ -398,6 +398,50 @@ class SQLite3Database(Database, object):
 
         return ids[-1]
 
+    def _update(self, id, key_value_pairs, data=None):
+        """Update key_value_pairs and data for a single row """
+        if self.type == 'postgresql':
+            encode = functools.partial(_encode, pg=True)
+        else:
+            encode = _encode
+
+        con = self.connection or self._connect()
+        self._initialize(con)
+        cur = con.cursor()
+
+        mtime = now()
+
+        cur.execute("UPDATE systems SET mtime={}, key_value_pairs='{}' WHERE id={}"\
+                    .format(mtime, encode(key_value_pairs), id))
+        if data:
+            cur.execute("UPDATE systems set data='{}' where id={}"\
+                        .format(encode(data), id))
+        
+        self._delete(cur, [id], ['keys', 'text_key_values',
+                                 'number_key_values'])
+
+        text_key_values = []
+        number_key_values = []
+        for key, value in key_value_pairs.items():
+            if isinstance(value, (numbers.Real, np.bool_)):
+                number_key_values.append([key, float(value), id])
+            else:
+                assert isinstance(value, basestring)
+                text_key_values.append([key, value, id])
+
+        cur.executemany('INSERT INTO text_key_values VALUES (?, ?, ?)',
+                        text_key_values)
+        cur.executemany('INSERT INTO number_key_values VALUES (?, ?, ?)',
+                        number_key_values)
+        cur.executemany('INSERT INTO keys VALUES (?, ?)',
+                        [(key, id) for key in key_value_pairs])
+
+        if self.connection is None:
+            con.commit()
+            con.close()
+
+        return id
+            
     def get_last_id(self, cur):
         cur.execute('SELECT seq FROM sqlite_sequence WHERE name="systems"')
         result = cur.fetchone()

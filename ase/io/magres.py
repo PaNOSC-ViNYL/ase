@@ -20,7 +20,7 @@ def read_magres(fd, include_unrecognised=False):
     """
 
     blocks_re = re.compile(r'[\[<](?P<block_name>.*?)[>\]](.*?)[<\[]/' +
-                           '(?P=block_name)[\]>]', re.M | re.S)
+                           r'(?P=block_name)[\]>]', re.M | re.S)
 
     """
     Here are defined the various functions required to parse
@@ -39,7 +39,7 @@ def read_magres(fd, include_unrecognised=False):
         """
 
         lines = file_contents.split('\n')
-        match = re.match('\#\$magres-abinitio-v([0-9]+).([0-9]+)', lines[0])
+        match = re.match(r'\#\$magres-abinitio-v([0-9]+).([0-9]+)', lines[0])
 
         if match:
             version = match.groups()

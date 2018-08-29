@@ -36,8 +36,8 @@ def read_v_sim(filename='demo.ascii'):
     symbols   = []
     unit      = 1.0
 
-    re_comment = re.compile('^\s*[#!]')
-    re_node    = re.compile('^\s*\S+\s+\S+\s+\S+\s+\S+')
+    re_comment = re.compile(r'^\s*[#!]')
+    re_node    = re.compile(r'^\s*\S+\s+\S+\s+\S+\s+\S+')
 
     while(True):
         line = f.readline()
