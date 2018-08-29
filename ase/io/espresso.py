@@ -1079,10 +1079,12 @@ def construct_namelist(parameters=None, warn=False, **kwargs):
             for arg_key in parameters.get(section, {}):
                 if arg_key.split('(')[0].strip().lower() == key.lower():
                     sec_list[arg_key] = parameters[section].pop(arg_key)
-            for arg_key in parameters:
+            cp_parameters = parameters.copy()
+            for arg_key in cp_parameters:
                 if arg_key.split('(')[0].strip().lower() == key.lower():
                     sec_list[arg_key] = parameters.pop(arg_key)
-            for arg_key in kwargs:
+            cp_kwargs = kwargs.copy()
+            for arg_key in cp_kwargs:
                 if arg_key.split('(')[0].strip().lower() == key.lower():
                     sec_list[arg_key] = kwargs.pop(arg_key)
 
