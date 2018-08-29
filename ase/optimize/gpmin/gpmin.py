@@ -13,7 +13,7 @@ from ase.optimize.gpmin.prior import ConstantPrior
 import pickle
 
 class GPMin(Optimizer, GaussianProcess):
-    def __init__(self, atoms, restart=None, logfile='-', trajectory=None, Prior=None,
+    def __init__(self, atoms, restart=None, logfile='-', trajectory=None, prior=None,
                  master=None, noise=0.005, weight=1., update_prior_strategy='maximum',
                  scale=0.4, force_consistent=None, batch_size=5,
                  update_hyperparams=False):
@@ -50,7 +50,7 @@ class GPMin(Optimizer, GaussianProcess):
             force-consistent energies if available in the calculator, but
             falls back to force_consistent=False if not.
 
-        Prior: Prior object or None
+        prior: Prior object or None
             Prior for the GP regression of the PES surface
             See ase.optimize.gpmin.prior
             If *Prior* is None, then it is set as the
@@ -101,19 +101,19 @@ class GPMin(Optimizer, GaussianProcess):
         Optimizer.__init__(self, atoms, restart, logfile,
                            trajectory, master, force_consistent)
 
-        if Prior is None:
+        if prior is None:
             if self.prior == 'init':
                 self.update_prior = False
             else:
                 self.update_prior = True
             constant = self.atoms.get_potential_energy(
                 force_consistent=self.force_consistent)
-            Prior = ConstantPrior(constant)
+            prior = ConstantPrior(constant)
         else:
             self.update_prior = False
 
         Kernel = SquaredExponential()
-        GaussianProcess.__init__(self, Prior, Kernel)
+        GaussianProcess.__init__(self, prior, Kernel)
 
         #self.x_list = []  # Training set features
         #self.y_list = []  # Training set targets
@@ -154,7 +154,7 @@ class GPMin(Optimizer, GaussianProcess):
 
         result = minimize(self.acquisition, r0, method='L-BFGS-B', jac=True)
 
-        if result.success == True:
+        if result.success:
             return result.x
         else:
             self.dump(np.array(self.x_list), np.array(self.y_list))
@@ -210,7 +210,8 @@ class GPMin(Optimizer, GaussianProcess):
     def dump(self):
         '''Save the training set'''
         if rank == 0 and self.restart is not None:
-            pickle.dump((self.x_list, self.y_list), open(self.restart, 'wb'), protocol = 2)
+            with open(self.restart, 'wb') as fd:
+                pickle.dump((self.x_list, self.y_list), fd, protocol = 2)
 
     def read(self):
         self.x_list, self.y_list = self.load()

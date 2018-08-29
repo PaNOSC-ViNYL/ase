@@ -39,18 +39,18 @@ class SE_kernel(Kernel):
         self.l = params[1]
         
 
-    def SquaredDistance(self, x1, x2):
+    def squared_distance(self, x1, x2):
         '''Returns the norm of x1-x2 using diag(l) as metric '''
 
         return np.sum((x1-x2) * (x1-x2))/self.l**2
 
     def kernel(self, x1, x2):
         ''' This is the squared exponential function'''
-        return self.weight**2*np.exp(-0.5 * self.SquaredDistance(x1, x2))
+        return self.weight**2*np.exp(-0.5 * self.squared_distance(x1, x2))
 
     def dK_dweight(self, x1, x2):
         '''Derivative of the kernel respect to the weight '''
-        return 2*self.weight*np.exp(-0.5 * self.SquaredDistance(x1, x2))
+        return 2*self.weight*np.exp(-0.5 * self.squared_distance(x1, x2))
 
     def dK_dl(self, x1, x2):
         '''Derivative of the kernel respect to the scale'''
@@ -102,7 +102,7 @@ class SquaredExponential(SE_kernel):
 
     def kernel_function(self, x1, x2):
         ''' This is the squared exponential function'''
-        return self.weight**2*np.exp(-0.5 * self.SquaredDistance(x1, x2))
+        return self.weight**2*np.exp(-0.5 * self.squared_distance(x1, x2))
 
     def kernel_function_gradient(self, x1, x2):
         '''Gradient of kernel_function respect to the second entry.
@@ -177,7 +177,7 @@ class SquaredExponential(SE_kernel):
     def dK_dl_j(self, x1, x2):
         '''Returns the derivative of the gradient of the kernel 
         function respect to l'''
-        prefactor = -2 * (1 - 0.5*self.SquaredDistance(x1, x2))/self.l
+        prefactor = -2 * (1 - 0.5*self.squared_distance(x1, x2))/self.l
         return self.kernel_function_gradient(x1, x2) * prefactor
 
     def dK_dl_h(self, x1, x2):
@@ -185,7 +185,7 @@ class SquaredExponential(SE_kernel):
         function respect to l'''
         I = np.identity(self.D)
         P = np.outer(x1-x2, x1-x2)/self.l**2
-        prefactor = 1-0.5*self.SquaredDistance(x1, x2)
+        prefactor = 1-0.5*self.squared_distance(x1, x2)
 
         return -2*(prefactor*(I-P) - P)/self.l**3
 

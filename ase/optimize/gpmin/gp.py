@@ -25,7 +25,7 @@ class GaussianProcess():
 
     def __init__(self, prior=None, kernel=None):
 
-        if kernel == None:
+        if kernel is None:
             self.kernel = SquaredExponential()
         else:
             self.kernel = kernel
