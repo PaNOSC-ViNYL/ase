@@ -515,22 +515,8 @@ class Database:
         check(add_key_value_pairs)
 
         row = self._get_row(id)
-
-        if atoms:
-            oldrow = row
-            row = AtomsRow(atoms)
-
-            # Copy over data, kvp, ctime, user and id
-            row._data = oldrow._data
-            kvp = oldrow.key_value_pairs
-            row.__dict__.update(kvp)
-            row._keys = list(kvp)
-            row.ctime = oldrow.ctime
-            row.user = oldrow.user
-            row.id = id
-
         kvp = row.key_value_pairs
-
+        
         n = len(kvp)
         for key in delete_keys:
             kvp.pop(key, None)
@@ -546,8 +532,20 @@ class Database:
         if not data:
             data = None
 
-        self._write(row, kvp, data, row.id)
-
+        if atoms or os.path.splitext(self.filename)[1] == '.json':
+            print('HEP!')
+            oldrow = row
+            row = AtomsRow(atoms)
+            # Copy over data, kvp, ctime, user and id
+            row._data = oldrow._data
+            row.__dict__.update(kvp)
+            row._keys = list(kvp)
+            row.ctime = oldrow.ctime
+            row.user = oldrow.user
+            row.id = id
+            self._write(row, kvp, data, row.id)
+        else:
+            self._update(kvp, data, row.id)
         return m, n
 
     def delete(self, ids):
