@@ -2253,7 +2253,7 @@ class CastepOption(object):
     @property
     def value(self):
 
-        if self._value:
+        if self._value is not None:
             if self.type.lower() in ('integer vector', 'real vector',
                                      'physical'):
                     return ' '.join(map(str, self._value))
@@ -2287,7 +2287,7 @@ class CastepOption(object):
 
     def _parse_bool(self, value):
         try:
-            value = _tf_table[str(value).title()]
+            value = _tf_table[str(value).strip().title()]
         except:
             raise ValueError()
         return value
