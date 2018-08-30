@@ -146,12 +146,12 @@ class Res(object):
         sp = []
         coords = []
         info = dict()
-        coord_patt = re.compile("""(\w+)\s+
-                                   ([0-9]+)\s+
-                                   ([0-9\-\.]+)\s+
-                                   ([0-9\-\.]+)\s+
-                                   ([0-9\-\.]+)\s+
-                                   ([0-9\-\.]+)""", re.VERBOSE)
+        coord_patt = re.compile(r"""(\w+)\s+
+                                    ([0-9]+)\s+
+                                    ([0-9\-\.]+)\s+
+                                    ([0-9\-\.]+)\s+
+                                    ([0-9\-\.]+)\s+
+                                    ([0-9\-\.]+)""", re.VERBOSE)
         lines = data.splitlines()
         line_no = 0
         while line_no < len(lines):

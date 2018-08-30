@@ -24,7 +24,7 @@ Git master branch
 * The :meth:`ase.db.core.Database.update` can now update the Atoms and the data
   parts of a row.
 
-* The :meth:`ase.db.core.Database.update` will no longer accept a list of
+* The :meth:`ase.db.core.Database.update` method will no longer accept a list of
   row ID's as the first argument.  Replace this::
 
       db.update(ids, ...)
@@ -49,6 +49,24 @@ Git master branch
 
 * :ref:`ase convert <cli>` now provides options to execute custom code
   on each processed image.
+
+* Writing a trajectory file from a parallelized :class:`~ase.neb.NEB`
+  calculation is now much simpler.  Works the same way as for the serial
+  case.
+
+* New :class:`~ase.dft.pdos.DOS` object for representing and plotting
+  densities and states.
+
+* :class:`~ase.phonons.Phonons` class now uses
+  the :class:`~ase.dft.pdos.DOS` and
+  :class:`~ase.dft.band_structure.BandStructure` machinery.
+
+* Positions and velocities can now be initialized from phononic
+  force constant matrix; see
+  :func:`~ase.md.velocitydistribution.PhononHarmonics`.
+        
+* Compare if two bulk structure are symmetrically equivalent with
+  :class:`~ase.utils.structure_comparator.SymmetryEquivalenceCheck`
 
 Version 3.16.2
 ==============

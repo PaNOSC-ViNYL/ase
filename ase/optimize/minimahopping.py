@@ -560,7 +560,7 @@ class MHPlot:
         tempax.set_ylabel('$T$, K')
         ediffax.set_ylabel(r'$E_\mathrm{diff}$, eV')
         for ax in [ax1, ax2]:
-            ax.set_ylabel('r$E_\mathrm{pot}$, eV')
+            ax.set_ylabel(r'$E_\mathrm{pot}$, eV')
         ax = CombinedAxis(ax1, ax2, tempax, ediffax)
         self._set_zoomed_range(ax)
         ax1.spines['top'].set_visible(False)

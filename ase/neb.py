@@ -87,6 +87,9 @@ class NEB:
         if parallel:
             assert world.size == 1 or world.size % (self.nimages - 2) == 0
 
+        self.real_forces = None  # ndarray of shape (nimages, natom, 3)
+        self.energies = None  # ndarray of shape (nimages,)
+
     def interpolate(self, method='linear', mic=False):
         if self.remove_rotation_and_translation:
             minimize_rotation_and_translation(self.images[0], self.images[-1])
@@ -200,6 +203,11 @@ class NEB:
                 self.world.broadcast(energies[i:i + 1], root)
                 self.world.broadcast(forces[i - 1], root)
 
+        # Save for later use in iterimages:
+        self.energies = energies
+        self.real_forces = np.zeros((self.nimages, self.natoms, 3))
+        self.real_forces[1:-1] = forces
+
         imax = 1 + np.argsort(energies[1:-1])[-1]
         self.emax = energies[imax]
 
@@ -306,9 +314,20 @@ class NEB:
 
     def iterimages(self):
         # Allows trajectory to convert NEB into several images
-        assert not self.parallel or self.world.size == 1
-        # (We could collect the atoms objects on master here!)
-        return iter(self.images)
+        if not self.parallel or self.world.size == 1:
+            for atoms in self.images:
+                yield atoms
+            return
+
+        for i, atoms in enumerate(self.images):
+            if i == 0 or i == self.nimages - 1:
+                yield atoms
+            else:
+                atoms = atoms.copy()
+                atoms.calc = SinglePointCalculator(energy=self.energies[i],
+                                                   forces=self.real_forces[i],
+                                                   atoms=atoms)
+                yield atoms
 
 
 class IDPP(Calculator):
