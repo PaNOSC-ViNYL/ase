@@ -85,6 +85,7 @@ __all__ = [
     # param write - in principle only necessary in junction with the calculator
     'write_param']
 
+
 def write_freeform(fd, outputobj):
     """
     Prints out to a given file a CastepInputFile or derived class, such as
@@ -104,14 +105,14 @@ def write_freeform(fd, outputobj):
     # This sorts only the ones in preferred_order and leaves the rest
     # untouched
     keys = sorted(keys, key=lambda x: preferred_order.index(x)
-                                      if x in preferred_order
-                                      else len(preferred_order))
-    
+                  if x in preferred_order
+                  else len(preferred_order))
+
     for kw in keys:
         opt = options[kw]
         if opt.type.lower() == 'block':
             fd.write('%BLOCK {0}\n{1}\n%ENDBLOCK {0}\n\n'.format(
-                     kw.upper(), 
+                     kw.upper(),
                      opt.value.strip('\n')))
         else:
             fd.write('{0}: {1}\n'.format(kw.upper(), opt.value))
@@ -130,9 +131,10 @@ def write_cell(filename, atoms, positions_frac=False, castep_cell=None,
     write(filename, atoms, positions_frac=positions_frac,
           castep_cell=castep_cell, force_write=force_write)
 
+
 def write_castep_cell(fd, atoms, positions_frac=False, force_write=False,
-                          precision=6, magnetic_moments=None,
-                          castep_cell=None):
+                      precision=6, magnetic_moments=None,
+                      castep_cell=None):
     """
     This CASTEP export function write minimal information to
     a .cell file. If the atoms object is a trajectory, it will
@@ -236,7 +238,7 @@ def write_castep_cell(fd, atoms, positions_frac=False, force_write=False,
 
     constraints = atoms.constraints
     if len(constraints):
-        _supported_constraints = (FixAtoms, FixedPlane, FixedLine, 
+        _supported_constraints = (FixAtoms, FixedPlane, FixedLine,
                                   FixCartesian)
 
         constr_block = []
@@ -245,7 +247,7 @@ def write_castep_cell(fd, atoms, positions_frac=False, force_write=False,
             if not isinstance(constr, _supported_constraints):
                 print('Warning: you have constraints in your atoms, that are')
                 print('         not supported by the CASTEP ase interface')
-                break            
+                break
             if isinstance(constr, FixAtoms):
                 for i in constr.index:
 
@@ -256,7 +258,7 @@ def write_castep_cell(fd, atoms, positions_frac=False, force_write=False,
                         raise UserWarning('Unrecognized index in' +
                                           ' constraint %s' % constr)
                     for j in range(3):
-                        l = '%6d %3s %3d   ' % (len(constr_block)+1, 
+                        l = '%6d %3s %3d   ' % (len(constr_block)+1,
                                                 symbol,
                                                 nis)
                         l += ['1 0 0', '0 1 0', '0 0 1'][j]
@@ -281,7 +283,7 @@ def write_castep_cell(fd, atoms, positions_frac=False, force_write=False,
 
                 l = '%6d %3s %3d   ' % (len(constr_block)+1, symbol, nis)
                 l += ' '.join(map(str, constr.dir))
-                constr_block += [l]                
+                constr_block += [l]
 
             elif isinstance(constr, FixedLine):
                 n = constr.a
@@ -342,7 +344,7 @@ def read_freeform(fd):
             continue
 
         lsplit = re.split('\s*[:=]*\s+', l, 1)
-    
+
         if read_block:
             if lsplit[0].lower() == '%endblock':
                 if len(lsplit) == 1 or lsplit[1].lower() != keyw:
@@ -355,7 +357,7 @@ def read_freeform(fd):
                 block_lines += [l]
         else:
             # Check the first word
-            
+
             # Is it a block?
             read_block = (lsplit[0].lower() == '%block')
             if read_block:
@@ -367,13 +369,14 @@ def read_freeform(fd):
             else:
                 keyw = lsplit[0].lower()
 
-            # Now save the value            
+            # Now save the value
             if read_block:
                 block_lines = []
             else:
                 inputobj.__setattr__(keyw, ' '.join(lsplit[1:]))
 
     return inputobj.get_attr_dict()
+
 
 def read_cell(filename, index=None):
     """
@@ -490,7 +493,7 @@ def read_castep_cell(fd, index=None, calculator_args={}, find_spg=False,
                           'three lattice vectors in invalid %BLOCK '
                           'LATTICE_CART')
 
-        aargs['cell'] = list(map(lambda lt: map(lambda x: float(x)*u, lt[:3]), 
+        aargs['cell'] = list(map(lambda lt: map(lambda x: float(x)*u, lt[:3]),
                                  line_tokens))
 
     # Now move on to the positions
@@ -525,7 +528,7 @@ def read_castep_cell(fd, index=None, calculator_args={}, find_spg=False,
 
     add_info = {
         'SPIN':   (float, 0.0),   # (type, default)
-        'MAGMOM': (float, 0.0), 
+        'MAGMOM': (float, 0.0),
         'LABEL':  (str, 'NULL')
     }
     add_info_arrays = dict((k, []) for k in add_info)
@@ -568,12 +571,12 @@ def read_castep_cell(fd, index=None, calculator_args={}, find_spg=False,
         for tokens in line_tokens:
             if len(tokens) == 1:
                 # It's a library
-                all_spec = (set(custom_species) if custom_species is not None 
+                all_spec = (set(custom_species) if custom_species is not None
                             else set(aargs['symbols']))
                 for s in all_spec:
                     calc.cell.species_pot = (s, tokens[0])
             else:
-                calc.cell.species_pot = tuple(tokens[:2])        
+                calc.cell.species_pot = tuple(tokens[:2])
 
     # Ionic constraints
     raw_constraints = {}
@@ -604,14 +607,14 @@ def read_castep_cell(fd, index=None, calculator_args={}, find_spg=False,
 
         # Read them in blocks of four
         blocks = np.array(line_tokens).astype(float)
-        if (len(blocks.shape) != 2 or blocks.shape[1] != 3 or 
-            blocks.shape[0]%4 != 0):
+        if (len(blocks.shape) != 2 or blocks.shape[1] != 3 or
+                blocks.shape[0] % 4 != 0):
             warnings.warn('Warning: could not parse SYMMETRY_OPS'
                           ' block properly, skipping')
-        else:             
-            blocks = blocks.reshape((-1,4,3))
-            rotations = blocks[:,:3]
-            translations = blocks[:,3]
+        else:
+            blocks = blocks.reshape((-1, 4, 3))
+            rotations = blocks[:, :3]
+            translations = blocks[:, 3]
 
             # Regardless of whether we recognize them, store these
             calc.cell.symmetry_ops = (rotations, translations)
@@ -701,6 +704,7 @@ def read_castep_cell(fd, index=None, calculator_args={}, find_spg=False,
     atoms.calc.push_oldstate()
 
     return atoms
+
 
 def read_castep(filename, index=None):
     """
@@ -1245,6 +1249,7 @@ def read_param(filename='', calc=None, fd=None, get_interface_options=False):
     else:
         return calc, int_opts
 
+
 def write_param(filename, param, check_checkfile=False,
                 force_write=False,
                 interface_options=None):
@@ -1279,19 +1284,19 @@ def write_param(filename, param, check_checkfile=False,
     out.write('#######################################################\n\n')
 
     if check_checkfile:
-        param = deepcopy(param) # To avoid modifying the parent one
+        param = deepcopy(param)  # To avoid modifying the parent one
         for checktype in ['continuation', 'reuse']:
             opt = getattr(param, checktype)
             if opt and opt.value:
                 fname = opt.value
                 if fname == 'default':
                     fname = os.path.splitext(filename)[0] + '.check'
-                if not (os.path.exists(fname) or 
+                if not (os.path.exists(fname) or
                         # CASTEP also understands relative path names, hence
                         # also check relative to the param file directory
                         os.path.exists(
-                                       os.path.join(os.path.dirname(filename),
-                                                    opt.value))):
+                    os.path.join(os.path.dirname(filename),
+                                 opt.value))):
                     opt.clear()
 
     write_freeform(out, param)
