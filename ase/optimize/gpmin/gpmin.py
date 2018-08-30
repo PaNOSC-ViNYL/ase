@@ -102,21 +102,15 @@ class GPMin(Optimizer, GaussianProcess):
                            trajectory, master, force_consistent)
 
         if prior is None:
-            if self.prior == 'init':
-                self.update_prior = False
-            else:
-                self.update_prior = True
-            constant = self.atoms.get_potential_energy(
-                force_consistent=self.force_consistent)
-            prior = ConstantPrior(constant)
+            self.update_prior = True
+            prior = ConstantPrior(constant = None) 
+
         else:
             self.update_prior = False
 
         Kernel = SquaredExponential()
         GaussianProcess.__init__(self, prior, Kernel)
 
-        #self.x_list = []  # Training set features
-        #self.y_list = []  # Training set targets
         self.set_hyperparams(np.array([weight, scale, noise]))
 
     def acquisition(self, r):
@@ -135,6 +129,7 @@ class GPMin(Optimizer, GaussianProcess):
         y = np.append(np.array(e).reshape(-1), -f)
         self.y_list.append(y)
 
+        # Set/update the constant for the prior
         if self.update_prior:
             if self.prior == 'average':
                 av_e = np.mean(np.array(self.y_list)[:, 0])
@@ -142,6 +137,9 @@ class GPMin(Optimizer, GaussianProcess):
             elif self.prior == 'maximum':
                 max_e = np.max(np.array(self.y_list)[:, 0])
                 self.Prior.set_constant(max_e)
+            elif self.prior == 'init':
+                self.Prior.set_constant(e)
+                self.update_prior = False
 
         # update hyperparams
         if self.update_hp and self.function_calls % self.nbatch == 0 and self.function_calls != 0:
