@@ -2317,28 +2317,28 @@ class CastepOption(object):
     def _parse_bool(self, value):
         try:
             value = _tf_table[str(value).strip().title()]
-        except:
+        except (KeyError, ValueError):
             raise ValueError()
         return value
 
     def _parse_str(self, value):
         try:
             value = str(value)
-        except:
+        except ValueError:
             raise ValueError()
         return value
 
     def _parse_int(self, value):
         try:
             value = int(value)
-        except:
+        except ValueError:
             raise ValueError()
         return value
 
     def _parse_float(self, value):
         try:
             value = float(value)
-        except:
+        except ValueError:
             raise ValueError()
         return value
 
@@ -2349,7 +2349,7 @@ class CastepOption(object):
                 value = value.replace(',', ' ')
             try:
                 value = list(map(int, value.split()))
-            except:
+            except ValueError:
                 raise ValueError()
 
         value = np.array(value)
@@ -2366,7 +2366,7 @@ class CastepOption(object):
                 value = value.replace(',', ' ')
             try:
                 value = list(map(float, value.split()))
-            except:
+            except ValueError:
                 raise ValueError()
 
         value = np.array(value)*1.0
@@ -2390,12 +2390,12 @@ class CastepOption(object):
         if l == 1:
             try:
                 value = (float(value[0]), '')
-            except:
+            except (TypeError, ValueError):
                 raise ValueError()
         elif l == 2:
             try:
                 value = (float(value[0]), value[1])
-            except:
+            except (TypeError, ValueError, IndexError):
                 raise ValueError()
         else:
             raise ValueError()
