@@ -155,7 +155,7 @@ class GPMin(Optimizer, GaussianProcess):
         if result.success:
             return result.x
         else:
-            self.dump(np.array(self.x_list), np.array(self.y_list))
+            self.dump()
             raise RuntimeError(
                 "The minimization of the acquisition function has not converged")
 
