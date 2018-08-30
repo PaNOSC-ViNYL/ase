@@ -31,9 +31,9 @@ class GaussianProcess():
             self.kernel = kernel
 
         if prior is None:
-            self.Prior = ZeroPrior()
+            self.prior = ZeroPrior()
         else:
-            self.Prior = prior
+            self.prior = prior
 
     def set_hyperparams(self, params):
         '''Set hyperparameters of the regression. 
@@ -72,7 +72,7 @@ class GaussianProcess():
 
         K[range(K.shape[0]), range(K.shape[0])] += regularization**2
 
-        self.m = self.Prior.prior(X)
+        self.m = self.prior.prior(X)
 
         self.L, self.lower = cho_factor(K, lower=True, check_finite=True)
         self.a = Y.flatten() - self.m
@@ -96,7 +96,7 @@ class GaussianProcess():
         n = self.X.shape[0]
         k = self.kernel.kernel_vector(x, self.X, n)
 
-        f = self.Prior.prior(x) + np.matmul(k, self.a)
+        f = self.prior.prior(x) + np.matmul(k, self.a)
         
         if get_variance:
             v = k.T.copy()

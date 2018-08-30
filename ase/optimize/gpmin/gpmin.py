@@ -91,7 +91,7 @@ class GPMin(Optimizer, GaussianProcess):
         """
 
         self.nbatch = batch_size
-        self.prior = update_prior_strategy
+        self.strategy = update_prior_strategy
         self.update_hp = update_hyperparams
         self.function_calls = 1
         self.force_calls = 0
@@ -102,21 +102,15 @@ class GPMin(Optimizer, GaussianProcess):
                            trajectory, master, force_consistent)
 
         if prior is None:
-            if self.prior == 'init':
-                self.update_prior = False
-            else:
-                self.update_prior = True
-            constant = self.atoms.get_potential_energy(
-                force_consistent=self.force_consistent)
-            prior = ConstantPrior(constant)
+            self.update_prior = True
+            prior = ConstantPrior(constant = None) 
+
         else:
             self.update_prior = False
 
         Kernel = SquaredExponential()
         GaussianProcess.__init__(self, prior, Kernel)
 
-        #self.x_list = []  # Training set features
-        #self.y_list = []  # Training set targets
         self.set_hyperparams(np.array([weight, scale, noise]))
 
     def acquisition(self, r):
@@ -135,13 +129,17 @@ class GPMin(Optimizer, GaussianProcess):
         y = np.append(np.array(e).reshape(-1), -f)
         self.y_list.append(y)
 
+        # Set/update the constant for the prior
         if self.update_prior:
-            if self.prior == 'average':
+            if self.strategy == 'average':
                 av_e = np.mean(np.array(self.y_list)[:, 0])
-                self.Prior.set_constant(av_e)
-            elif self.prior == 'maximum':
+                self.prior.set_constant(av_e)
+            elif self.strategy == 'maximum':
                 max_e = np.max(np.array(self.y_list)[:, 0])
-                self.Prior.set_constant(max_e)
+                self.prior.set_constant(max_e)
+            elif self.strategy == 'init':
+                self.prior.set_constant(e)
+                self.update_prior = False
 
         # update hyperparams
         if self.update_hp and self.function_calls % self.nbatch == 0 and self.function_calls != 0:
@@ -157,7 +155,7 @@ class GPMin(Optimizer, GaussianProcess):
         if result.success:
             return result.x
         else:
-            self.dump(np.array(self.x_list), np.array(self.y_list))
+            self.dump()
             raise RuntimeError(
                 "The minimization of the acquisition function has not converged")
 
