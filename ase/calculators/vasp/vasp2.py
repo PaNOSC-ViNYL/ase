@@ -415,7 +415,7 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
                 atoms.positions = atoms_sorted[self.resort].positions
                 atoms.cell = atoms_sorted.cell
 
-        self.atoms = atoms[self.sort].copy()
+        self.atoms = atoms.copy()
 
     def check_cell(self, atoms=None):
         """Check if there is a zero unit cell"""
