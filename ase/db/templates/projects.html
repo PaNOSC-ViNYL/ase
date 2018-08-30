@@ -1,0 +1,22 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+Projects
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <table id="rows" class="table table-striped">
+    <tr>
+      <th class="text-center">Name</th>
+      <th class="text-center">Description</th>
+    </tr>
+{% for name, description in projects -%}
+    <tr id="rowentry" class="rowentry">
+      <td class="text-center">{{ name }}</td>
+      <td class="text-center"><a href='/{{ name }}/'>{{ description }}</a></td>
+    </tr>
+{% endfor %}
+  </table>
+</div>
+{% endblock content %}

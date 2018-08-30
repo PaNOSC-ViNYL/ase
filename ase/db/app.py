@@ -48,8 +48,7 @@ from ase.calculators.calculator import kptdensity2monkhorstpack
 # Every client-connetions gets one of these tuples:
 Connection = collections.namedtuple(
     'Connection',
-    ['project',  # project name
-     'query',  # query string
+    ['query',  # query string
      'nrows',  # number of rows matched
      'page',  # page number
      'columns',  # what columns to show
@@ -108,16 +107,6 @@ else:
 SUBSCRIPT = re.compile(r'(\d+)')
 
 
-def database():
-    return databases.get(request.args.get('project', 'default'))
-
-
-def prefix():
-    if 'project' in request.args:
-        return request.args['project'] + '-'
-    return ''
-
-
 errors = 0
 
 
@@ -142,8 +131,9 @@ def error(e):
 app.register_error_handler(Exception, error)
 
 
-@app.route('/')
-def index():
+@app.route('/', defaults={'project': None})
+@app.route('/<project>/')
+def index(project):
     global next_con_id
 
     if not projects:
@@ -153,18 +143,20 @@ def index():
             db.meta = meta
             projects.append((proj, db.meta.get('title', proj)))
 
+    if project is None and len(projects) > 1:
+        return render_template('projects.html', projects=projects)
+
+    if project is None:
+        project = 'default'
+
     con_id = int(request.args.get('x', '0'))
     if con_id in connections:
-        project, query, nrows, page, columns, sort, limit = connections[con_id]
-        newproject = request.args.get('project')
-        if newproject is not None and newproject != project:
-            con_id = 0
+        query, nrows, page, columns, sort, limit = connections[con_id]
 
     if con_id not in connections:
         # Give this connetion a new id:
         con_id = next_con_id
         next_con_id += 1
-        project = request.args.get('project', projects[0][0])
         query = ['', {}, '']
         nrows = None
         page = 0
@@ -254,7 +246,7 @@ def index():
     table = Table(db)
     table.select(okquery[2], columns, sort, limit, offset=page * limit)
 
-    con = Connection(project, query, nrows, page, columns, sort, limit)
+    con = Connection(query, nrows, page, columns, sort, limit)
     connections[con_id] = con
 
     if len(connections) > 1000:
@@ -269,7 +261,6 @@ def index():
 
     return render_template('table.html',
                            project=project,
-                           projects=projects,
                            t=table,
                            md=meta,
                            con=con,
@@ -284,13 +275,13 @@ def index():
                            download_button=download_button)
 
 
-@app.route('/image/<name>')
-def image(name):
+@app.route('/<project>/image/<name>')
+def image(project, name):
     id = int(name[:-4])
-    name = prefix() + name
+    name = project + '-' + name
     path = op.join(tmpdir, name)
     if not op.isfile(path):
-        db = database()
+        db = databases[project]
         atoms = db.get_atoms(id)
         atoms2png(atoms, path)
 
@@ -324,14 +315,14 @@ def gui(id):
     return '', 204, []
 
 
-@app.route('/id/<int:id>')
-def summary(id):
-    db = database()
+@app.route('/<project>/id/<int:id>')
+def summary(project, id):
+    db = databases[project]
     if db is None:
         return ''
     if not hasattr(db, 'meta'):
         db.meta = ase.db.web.process_metadata(db)
-    prfx = prefix() + str(id) + '-'
+    prfx = project + '-' + str(id) + '-'
     row = db.get(id)
     s = Summary(row, db.meta, SUBSCRIPT, prfx, tmpdir)
     atoms = Atoms(cell=row.cell, pbc=row.pbc)
@@ -339,8 +330,7 @@ def summary(id):
                                           kptdensity=1.8,
                                           even=False)
     return render_template('summary.html',
-                           project=request.args.get('project', 'default'),
-                           projects=projects,
+                           project=project,
                            s=s,
                            n1=n1,
                            n2=n2,
