@@ -1239,7 +1239,7 @@ def read_param(filename='', calc=None, fd=None, get_interface_options=False):
 
     if calc is None:
         from ase.calculators.castep import Castep
-        calc = Castep(check_castep_version=False)
+        calc = Castep(check_castep_version=False, keyword_tolerance=2)
 
     for kw, val in data.items():
         calc.param.__setattr__(kw, val)

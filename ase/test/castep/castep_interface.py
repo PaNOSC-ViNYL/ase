@@ -52,8 +52,8 @@ assert np.isclose(float3Opt.raw_value, [1, 2, 3]).all()
 # Generate a mock keywords object
 mock_castep_keywords = CastepKeywords(make_param_dict(), make_cell_dict(),
                                       [], [], 0)
-mock_cparam = CastepParam(mock_castep_keywords)
-mock_ccell = CastepCell(mock_castep_keywords)
+mock_cparam = CastepParam(mock_castep_keywords, keyword_tolerance=2)
+mock_ccell = CastepCell(mock_castep_keywords, keyword_tolerance=2)
 
 # Test special parsers
 mock_cparam.continuation = 'default'
@@ -83,7 +83,7 @@ if castep_keywords:
 
     assert p1._options != p2._options
 
-c = Castep(directory=tmp_dir, label='test_label')
+c = Castep(directory=tmp_dir, label='test_label', keyword_tolerance=2)
 if castep_keywords:
     c.xc_functional = 'PBE'
 else:
@@ -162,7 +162,6 @@ try:
 except RuntimeError:
     pass
 
-
 # now let's see if we find all...
 atoms.calc.find_pspots(pspot = '00PBE', suffix = 'usp')
 assert atoms.calc.cell.species_pot.value.split()[-1] == 'Ag_00PBE.usp'
@@ -186,7 +185,7 @@ assert (atoms.calc.cell.species_pot.value.split()[-1] ==
 
 # testing regular workflow
 c = Castep(directory=tmp_dir, label='test_label_pspots',
-           castep_pp_path=pp_path, find_pspots=True)
+           castep_pp_path=pp_path, find_pspots=True, keyword_tolerance=2)
 c._build_missing_pspots = False
 atoms = ase.build.bulk('Ag')
 atoms.set_calculator(c)
@@ -206,7 +205,7 @@ for e in ['Ni', 'Fe', 'Cu']:
 # test writing to file
 tmp_dir = os.path.join(tmp_dir, 'input_files')
 c = Castep(directory=tmp_dir,
-           find_pspots=True, castep_pp_path=pp_path)
+           find_pspots=True, castep_pp_path=pp_path, keyword_tolerance=2)
 c._label = 'test'
 atoms = ase.build.bulk('Cu')
 atoms.set_calculator(c)

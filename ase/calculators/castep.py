@@ -438,8 +438,10 @@ End CASTEP Interface Documentation
                                                  [],
                                                  0)
         self._kw_tol = keyword_tolerance
-        self.param = CastepParam(castep_keywords)
-        self.cell = CastepCell(castep_keywords)
+        self.param = CastepParam(castep_keywords,
+                                 keyword_tolerance=keyword_tolerance)
+        self.cell = CastepCell(castep_keywords,
+                               keyword_tolerance=keyword_tolerance)
 
         ###################################
         # Calculator state variables      #
@@ -2283,7 +2285,7 @@ class CastepOption(object):
         if self._value is not None:
             if self.type.lower() in ('integer vector', 'real vector',
                                      'physical'):
-                    return ' '.join(map(str, self._value))
+                return ' '.join(map(str, self._value))
             elif self.type.lower() in ('boolean (logical)', 'defined'):
                 return str(self._value).upper()
             else:
@@ -2502,7 +2504,8 @@ class CastepInputFile(object):
             elif self._perm == 1:
                 warnings.warn(('Option "%s" is not known and will '
                                'be added as a %s') % (attr,
-                                                      ('block' if is_block else 'string')))
+                                                      ('block' if is_block else
+                                                       'string')))
             attr = attr.lower()
             opt = CastepOption(keyword=attr, level='Unknown',
                                option_type='block' if is_block else 'string')
@@ -2529,15 +2532,16 @@ class CastepInputFile(object):
 
         if self._perm == 1:
             warnings.warn('Option %s is not known, returning None' % (name))
-        
+
         return CastepOption(keyword='none', level='Unknown',
-                            option_type='string', value=None)                
+                            option_type='string', value=None)
 
     def get_attr_dict(self):
         """Settings that go into .param file in a traditional dict"""
 
         return {k: o.value
                 for k, o in self._options.items() if o.value is not None}
+
 
 class CastepParam(CastepInputFile):
 
@@ -2574,6 +2578,7 @@ class CastepParam(CastepInputFile):
         except KeyError:
             pass
         return 'default' if (value is True) else str(value)
+
 
 class CastepCell(CastepInputFile):
 
