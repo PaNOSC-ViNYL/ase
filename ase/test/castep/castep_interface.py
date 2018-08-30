@@ -6,8 +6,8 @@ import ase
 import re
 import numpy as np
 import ase.lattice.cubic
-from ase.calculators.castep import (Castep, CastepOption, CastepOptionDict,
-                                    CastepInputFile, CastepParam, CastepCell,
+from ase.calculators.castep import (Castep, CastepOption,
+                                    CastepParam, CastepCell,
                                     make_cell_dict, make_param_dict,
                                     CastepKeywords,
                                     create_castep_keywords,

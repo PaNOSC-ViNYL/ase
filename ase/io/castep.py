@@ -647,7 +647,7 @@ def read_castep_cell(fd, index=None, calculator_args={}, find_spg=False,
                 from pyspglib import spglib
             except ImportError:
                 # spglib is not present
-                warning.warn('spglib not found installed on this system - '
+                warnings.warn('spglib not found installed on this system - '
                              'automatic spacegroup detection is not possible')
                 spglib = None
 
