@@ -2626,7 +2626,7 @@ class CastepCell(CastepInputFile):
            or not value[0].shape[1:] == (3, 3) \
            or not value[1].shape[1:] == (3,) \
            or not value[0].shape[0] == value[1].shape[0]:
-            print('Invalid symmetry_ops block, skipping')
+            warnings.warn('Invalid symmetry_ops block, skipping')
             return
         # Now on to print...
         text_block = ''
