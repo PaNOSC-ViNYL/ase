@@ -233,8 +233,13 @@ class SymmetryEquivalenceCheck(object):
 
         Parameters:
 
-        s1, s2: Atoms objects.
-            Transformation matrices are calculated based on s1.
+        s1: Atoms object.
+            Transformation matrices are calculated based on this structure.
+
+        s2: Atoms or list
+            s1 can be compared to one structure or many structures supplied in
+            a list. If s2 is a list it returns True if any structure in s2
+            matches s1, False otherwise.
         """
         if self.to_primitive:
             s1 = self._reduce_to_primitive(s1)
