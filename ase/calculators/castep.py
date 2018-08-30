@@ -106,7 +106,6 @@ Note: alternatively to CASTEP_PP_PATH one can set PSPOT_DIR
 >>> export PSPOT_DIR=' ... '
 
 
-
 Running the Calculator
 ======================
 
