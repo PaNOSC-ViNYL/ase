@@ -30,7 +30,7 @@ class GaussianProcess():
         else:
             self.kernel = kernel
 
-        if prior == None:
+        if prior is None:
             self.Prior = ZeroPrior()
         else:
             self.Prior = prior
@@ -163,7 +163,7 @@ class GaussianProcess():
         result = minimize(self.neg_log_likelihood, l, args=arguments,
                           method='L-BFGS-B', jac=True)
 
-        if result.success == False:
+        if not result.success:
             print(result)
             raise NameError("The Gaussian Process could not be fitted.")
         else:
