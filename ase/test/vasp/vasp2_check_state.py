@@ -43,6 +43,8 @@ en1 = atoms.get_potential_energy()
 # Check that the symbols remain in order (non-sorted)
 s2 = calc.atoms.get_chemical_symbols()
 assert s1 == s2
+s3 = sorted(s2)
+assert s2 != s3
 
 # Check that get_atoms() doesn't reset results
 r1 = dict(calc.results)         # Force a copy
