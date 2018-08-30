@@ -173,6 +173,23 @@ where the trajectory and the restart save the trajectory of the
 optimization and the vectors needed to generate the Hessian Matrix.
 
 
+GPMin
+-----
+.. module:: ase.optimize.GPmin
+
+The GPMin (Gaussian Process minimizer) produces a model for the Potential
+Energy Surface using the information about the potential energies and
+the forces of the configurations it has already visited and uses it 
+to speed up BFGS local minimzations.
+
+Read more about this algorithm here:
+
+  | Estefanía Garijo del Río, Jens Jørgen Mortensen, Karsten W. Jacobsen
+  | `A local Bayesian optimizer for atomic structures`__
+
+__ https://arxiv.org/abs/1808.08588
+
+
 FIRE
 ----
 .. module:: ase.optimize.fire
