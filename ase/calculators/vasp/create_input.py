@@ -833,7 +833,10 @@ class GenerateVaspInput(object):
             'kpts_nintersections': None,
             # Option to write explicit k-points in units
             # of reciprocal lattice vectors:
-            'reciprocal': False}
+            'reciprocal': False,
+            # Switch to disable writing constraints to POSCAR
+            'ignore_constraints': False
+        }
 
     def set_xc_params(self, xc):
         """Set parameters corresponding to XC functional"""
@@ -1112,7 +1115,8 @@ class GenerateVaspInput(object):
         from ase.io.vasp import write_vasp
         write_vasp(join(directory, 'POSCAR'),
                    self.atoms_sorted,
-                   symbol_count=self.symbol_count)
+                   symbol_count=self.symbol_count,
+                   ignore_constraints=self.input_params['ignore_constraints'])
         self.write_incar(atoms, directory=directory)
         self.write_potcar(directory=directory)
         self.write_kpoints(directory=directory)
