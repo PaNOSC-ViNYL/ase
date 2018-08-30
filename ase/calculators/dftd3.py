@@ -235,7 +235,7 @@ class DFTD3(FileIOCalculator):
                 errorcode = subprocess.call(command,
                                             cwd=self.directory, stdout=f)
 
-        self.comm.broadcast(errorcode, 0)
+        self.comm.broadcast([errorcode], 0)
 
         if errorcode:
             raise RuntimeError('%s returned an error: %d' %
@@ -339,8 +339,8 @@ class DFTD3(FileIOCalculator):
                     raise RuntimeError('Could not parse energy from dftd3 '
                                        'output, see file {}'.format(outname))
 
-        self.comm.broadcast(self.results['energy'], 0)
-        self.comm.broadcast(self.results['free_energy'], 0)
+        self.comm.broadcast([self.results['energy']], 0)
+        self.comm.broadcast([self.results['free_energy']], 0)
 
         # FIXME: Calculator.get_potential_energy() simply inspects
         # self.results for the free energy rather than calling
