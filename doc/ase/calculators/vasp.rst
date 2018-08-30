@@ -50,9 +50,10 @@ Set both environment variables in your shell configuration file:
 
 .. _VASP vdW wiki: https://cms.mpi.univie.ac.at/vasp/vasp/vdW_DF_functional_Langreth_Lundqvist_et_al.html
   
-The following environment variable can be used to automatically copy in the
-van der Waals kernel, which is needed for vdW calculations, see `VASP vdW wiki`_,
-for more details. The kernel is looked for, whenever ``luse_vdw=True``.
+The following environment variable can be used to automatically copy the
+van der Waals kernel to the calculation directory. The kernel is needed for
+vdW calculations, see `VASP vdW wiki`_, for more details. The kernel is looked
+for, whenever ``luse_vdw=True``.
 
 .. highlight:: bash
 
