@@ -467,10 +467,9 @@ def read_castep_cell(fd, index=None, calculator_args={}, find_spg=False,
             warnings.warn('read_cell: Warning - ignoring additional '
                           'lines in invalid %BLOCK LATTICE_ABC')
 
-        a, b, c = [float(p) * u for p in line_tokens[1][:3]]
+        a, b, c = [float(p) * u for p in line_tokens[0][:3]]
         alpha, beta, gamma = [np.radians(float(phi))
-                              for phi in line_tokens[2][:3]]
-        tokens, l = get_tokens(lines, l)
+                              for phi in line_tokens[1][:3]]
 
         lat_a = [a, 0, 0]
         lat_b = [b * np.cos(gamma), b * np.sin(gamma), 0]
