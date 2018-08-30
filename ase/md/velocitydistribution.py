@@ -1,10 +1,13 @@
+# encoding: utf-8
 # VelocityDistributions.py -- set up a velocity distribution
 
-"""Module for setting up e.g. Maxwell-Boltzmann velocity distributions.
+"""Module for setting up velocity distributions such as Maxwell–Boltzmann.
 
-Currently, only one function is defined, MaxwellBoltzmannDistribution,
-which sets the momenta of a list of atoms according to a
-Maxwell-Boltzmann distribution at a given temperature.
+Currently, only a few functions are defined, such as
+MaxwellBoltzmannDistribution, which sets the momenta of a list of
+atoms according to a Maxwell-Boltzmann distribution at a given
+temperature.
+
 """
 
 import numpy as np
@@ -65,3 +68,88 @@ def ZeroRotation(atoms):
     positions -= com  # translate center of mass to origin
     velocities = atoms.get_velocities()
     atoms.set_velocities(velocities - np.cross(omega, positions))
+
+
+def PhononHarmonics(atoms, temp, force_constants, rng=np.random,
+                    failfast=True):
+    r"""Excite phonon modes to specified temperature.
+
+    This excites all phonon modes randomly so that each contributes,
+    on average, equally to the given temperature.  Both potential
+    energy and kinetic energy will be consistent with the phononic
+    vibrations characteristic of the specified temperature.
+
+    In other words the system will be equilibrated for an MD run at
+    that temperature.
+
+    force_constants should be the matrix as force constants, e.g.,
+    as computed by the ase.phonons module.
+
+    Let X_ai be the phonon modes indexed by atom and mode, w_i the
+    phonon frequencies, and let 0 < Q_i <= 1 and 0 <= R_i < 1 be
+    uniformly random numbers.  Then
+
+                   1/2
+      _     / k T \     ---  1  _             1/2
+      R  += | --- |      >  --- X   (-2 ln Q )    cos (2 pi R )
+       a    \  m  /     ---  w   ai         i                i
+                a        i    i
+
+
+                   1/2
+      _     / k T \     --- _            1/2
+      v   = | --- |      >  X  (-2 ln Q )    sin (2 pi R )
+       a    \  m  /     ---  ai        i                i
+                a        i
+
+    See e.g.:
+
+      http://ollehellman.github.io/program/canonical_configuration.html
+
+    for a derivation.
+
+    If failfast is true, a ValueError will be raised if the
+    eigenvalues of the dynamical matrix look suspicious (they should
+    be three zeros for translational modes followed by any number of
+    strictly positive eigenvalues)."""
+    mass_a = atoms.get_masses()
+
+    rminv = (mass_a**-0.5).repeat(3)
+    dynamical_matrix = force_constants.copy()
+    dynamical_matrix *= rminv[:, None]
+    dynamical_matrix *= rminv[None, :]
+
+    w2_s, X_is = np.linalg.eigh(dynamical_matrix)
+
+    if failfast:
+        zeros = w2_s[:3]
+        worst_zero = np.abs(zeros).max()
+        if worst_zero > 1e-3:
+            raise ValueError('Translational modes have suspiciously large '
+                             'energies; should be close to zero: {}'
+                             .format(w2_s[:3]))
+
+        w2min = w2_s[3:].min()
+        if w2min < 0:
+            raise ValueError('Dynamical matrix has negative eigenvalues '
+                             'such as {}'.format(w2min))
+
+    # First three modes are translational so ignore:
+    nw = len(w2_s) - 3
+    w_s = np.sqrt(w2_s[3:])
+    X_acs = X_is[:, 3:].reshape(len(atoms), 3, nw)
+
+    # We need 0 < P <= 1.0 and not 0 0 <= P < 1.0 for the logarithm
+    # to avoid (highly improbable) NaN:
+    A_s = np.sqrt(-2.0 * np.log(1.0 - rng.rand(nw)))
+    phi_s = 2.0 * np.pi * rng.rand(nw)
+
+    d_ac = (A_s * np.sin(phi_s) / w_s * X_acs).sum(axis=2)
+    v_ac = (A_s * np.cos(phi_s) * X_acs).sum(axis=2)
+
+    sqrtkTm_a = np.sqrt(temp / mass_a)
+    for quantity in [d_ac, v_ac]:
+        quantity *= sqrtkTm_a[:, None]
+
+    atoms.positions += d_ac
+    atoms.set_velocities(v_ac)
