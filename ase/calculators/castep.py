@@ -2319,7 +2319,7 @@ class CastepOption(object):
             if ',' in value:
                 value = value.replace(',', ' ')
             try:
-                value = map(int, value.split())
+                value = list(map(int, value.split()))
             except:
                 raise ValueError()
 
@@ -2336,7 +2336,7 @@ class CastepOption(object):
             if ',' in value:
                 value = value.replace(',', ' ')
             try:
-                value = map(float, value.split())
+                value = list(map(float, value.split()))
             except:
                 raise ValueError()
 
