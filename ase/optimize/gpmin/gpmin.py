@@ -91,7 +91,7 @@ class GPMin(Optimizer, GaussianProcess):
         """
 
         self.nbatch = batch_size
-        self.prior = update_prior_strategy
+        self.strategy = update_prior_strategy
         self.update_hp = update_hyperparams
         self.function_calls = 1
         self.force_calls = 0
@@ -131,13 +131,13 @@ class GPMin(Optimizer, GaussianProcess):
 
         # Set/update the constant for the prior
         if self.update_prior:
-            if self.prior == 'average':
+            if self.strategy == 'average':
                 av_e = np.mean(np.array(self.y_list)[:, 0])
                 self.Prior.set_constant(av_e)
-            elif self.prior == 'maximum':
+            elif self.strategy == 'maximum':
                 max_e = np.max(np.array(self.y_list)[:, 0])
                 self.Prior.set_constant(max_e)
-            elif self.prior == 'init':
+            elif self.strategy == 'init':
                 self.Prior.set_constant(e)
                 self.update_prior = False
 
