@@ -133,12 +133,12 @@ class GPMin(Optimizer, GaussianProcess):
         if self.update_prior:
             if self.strategy == 'average':
                 av_e = np.mean(np.array(self.y_list)[:, 0])
-                self.Prior.set_constant(av_e)
+                self.prior.set_constant(av_e)
             elif self.strategy == 'maximum':
                 max_e = np.max(np.array(self.y_list)[:, 0])
-                self.Prior.set_constant(max_e)
+                self.prior.set_constant(max_e)
             elif self.strategy == 'init':
-                self.Prior.set_constant(e)
+                self.prior.set_constant(e)
                 self.update_prior = False
 
         # update hyperparams
