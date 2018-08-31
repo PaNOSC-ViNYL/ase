@@ -315,15 +315,26 @@ def gui(project, id):
     return '', 204, []
 
 
+@app.route('/<project>/row')
+def row(project):
+    return get_summary_page(project,
+                            request.args.get('key'),
+                            request.args.get('value'))
+
+
 @app.route('/<project>/id/<int:id>')
 def summary(project, id):
+    return get_summary_page(project, 'id', id)
+
+
+def get_summary_page(project, key, value):
     db = databases[project]
     if db is None:
         return ''
     if not hasattr(db, 'meta'):
         db.meta = ase.db.web.process_metadata(db)
     prfx = project + '-' + str(id) + '-'
-    row = db.get(id)
+    row = db.get(**{key: value})
     s = Summary(row, db.meta, SUBSCRIPT, prfx, tmpdir)
     atoms = Atoms(cell=row.cell, pbc=row.pbc)
     n1, n2, n3 = kptdensity2monkhorstpack(atoms,
