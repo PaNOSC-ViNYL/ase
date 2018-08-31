@@ -9,6 +9,14 @@ Git master branch
 
 :git:`master <>`.
 
+* Optimized performance of ase db, with enhanced speed of
+  queries on key value pairs for large SQLite (.db) database files.
+  Also, The ase db server (PostgreSQL) backend now uses
+  native ARRAY and JSONB data types for storing NumPy arrays and
+  dictionaries instead of the BYTEA datatype. Note that backwards
+  compatibility is lost for the postgreSQL backend, and that
+  postgres version 9.4+ is required.
+
 * Test suite now runs in parallel.
 
 * Socked-based interface to certain calculators through the
