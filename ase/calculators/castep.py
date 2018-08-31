@@ -70,14 +70,12 @@ def _self_getter(getf):
 
 
 class Castep(Calculator):
-
     r"""
+CASTEP Interface Documentation
 
-    CASTEP Interface Documentation
 
 Introduction
 ============
-
 
 CASTEP_ [1]_ W_ is a software package which uses density functional theory to
 provide a good atomic-level description of all manner of materials and
@@ -101,7 +99,7 @@ Set the environment variables appropriately for your system.
 >>> export CASTEP_PP_PATH=' ... '
 
 Note: alternatively to CASTEP_PP_PATH one can set PSPOT_DIR
-      as CASTEP consults this by default, i.e.
+as CASTEP consults this by default, i.e.
 
 >>> export PSPOT_DIR=' ... '
 
@@ -178,11 +176,14 @@ Keyword                    Description
                            validation of any parameters set in the CastepCell
                            or CastepParam objects against the ones found in
                            castep_keywords. Levels are as following:
-                           0 - no tolerance, keywords not found in 
-                               castep_keywords will raise an exception
-                           1 - keywords not found will be accepted but produce
-                               a warning (default)
-                           2 - keywords not found will be accepted silently
+                           
+                           0 = no tolerance, keywords not found in 
+                           castep_keywords will raise an exception
+
+                           1 = keywords not found will be accepted but produce
+                           a warning (default)
+
+                           2 = keywords not found will be accepted silently
 =========================  ====================================================
 
 
