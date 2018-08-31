@@ -1,11 +1,12 @@
 {% extends 'layout.html' %}
 
 {% block title %}
-Projects
+List of databases
 {% endblock %}
 
 {% block content %}
 <div class="container">
+  List of databases:
   <table id="rows" class="table table-striped">
     <tr>
       <th class="text-center">Name</th>
@@ -13,7 +14,7 @@ Projects
     </tr>
 {% for name, description in projects -%}
     <tr id="rowentry" class="rowentry">
-      <td class="text-center">{{ name }}</td>
+      <td class="text-center"><a href='/{{ name }}/'>{{ name }}</a></td>
       <td class="text-center"><a href='/{{ name }}/'>{{ description }}</a></td>
     </tr>
 {% endfor %}

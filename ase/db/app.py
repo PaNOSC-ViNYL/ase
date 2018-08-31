@@ -133,6 +133,7 @@ app.register_error_handler(Exception, error)
 
 @app.route('/', defaults={'project': None})
 @app.route('/<project>/')
+@app.route('/<project>')
 def index(project):
     global next_con_id
 
@@ -144,7 +145,7 @@ def index(project):
             projects.append((proj, db.meta.get('title', proj)))
 
     if project is None and len(projects) > 1:
-        return render_template('projects.html', projects=projects)
+        return render_template('projects.html', projects=projects, md=None)
 
     if project is None:
         project = 'default'
