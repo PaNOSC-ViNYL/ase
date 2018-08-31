@@ -140,7 +140,8 @@ class Summary:
 
         self.constraints = row.get('constraints')
         if self.constraints:
-            self.constraints = ', '.join(d['name'] for d in self.constraints)
+            self.constraints = ', '.join(c.__class__.__name__
+                                         for c in self.constraints)
 
     def create_figures(self, row, prefix, tmpdir, functions):
         with Lock('ase.db.web.lock'):
