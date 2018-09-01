@@ -78,7 +78,7 @@ each atom; the set methods take similar arrays.
 E.g. :meth:`~Atoms.get_positions` return N * 3 numbers,
 :meth:`~Atoms.get_atomic_numbers` return N integers.
 
-*These methods return copies of the internal arrays, it is thus safe
+*These methods return copies of the internal arrays.  It is thus safe
 to modify the returned arrays.*
 
 .. list-table::
