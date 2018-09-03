@@ -16,6 +16,10 @@ Git master branch
   be read and written if higher tolerance levels are set for the functions that
   manipulate them.
 
+  * New Gaussian Process (GP) regression optimizer
+  (:class:`~ase.optimize.GPMin`).  Check out this `performance test
+  <https://wiki.fysik.dtu.dk/gpaw/devel/ase_optimize/ase_optimize.html>`_.
+
 * Test suite now runs in parallel.
 
 * Socked-based interface to certain calculators through the
@@ -71,6 +75,10 @@ Git master branch
 * Positions and velocities can now be initialized from phononic
   force constant matrix; see
   :func:`~ase.md.velocitydistribution.PhononHarmonics`.
+        
+* Compare if two bulk structure are symmetrically equivalent with
+  :class:`~ase.utils.structure_comparator.SymmetryEquivalenceCheck`
+
 
 Version 3.16.2
 ==============
@@ -638,7 +646,7 @@ Version 3.5.0
   :class:`~ase.neighborlist.NeighborList` object and is
   now ASAP_ compatible.
 
-* :mod:`BFGSLineSearch <ase.optimize.bfgslinesearch>` is now the default
+* :class:`ase.optimize.BFGSLineSearch>` is now the default
   (``QuasiNewton==BFGSLineSearch``).
 
 * There is a new interface to the LAMMPS molecular dynamics code.

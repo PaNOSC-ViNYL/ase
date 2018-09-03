@@ -3,6 +3,7 @@
 ======================
 Structure optimization
 ======================
+
 .. module:: ase.optimize
    :synopsis: Structure Optimization
 
@@ -15,9 +16,9 @@ minimum (a much harder task).
 Local optimization
 ==================
 
-The local optimization algorithms available in ASE are:
-``BFGS``, ``LBFGS``, ``BFGSLineSearch``, ``LBFGSLineSearch``,
-``MDMin``, and ``FIRE``.
+The local optimization algorithms available in ASE are: :class:`BFGS`,
+:class:`BFGSLineSearch`, :class:`LBFGS`, :class:`LBFGSLineSearch`,
+:class:`GPMin`, :class:`MDMin` and :class:`FIRE`.
 
 .. seealso::
 
@@ -49,8 +50,8 @@ should be less than *fmax*:
 
 BFGS
 ----
-.. module:: ase.optimize.qn
-   :synopsis: Quasi-Newton
+
+.. class:: BFGS
 
 The ``BFGS`` object is one of the minimizers in the ASE package. The below
 script uses ``BFGS`` to optimize the structure of a water molecule, starting
@@ -152,7 +153,9 @@ retained by replaying the trajectory as above.
 
 LBFGS
 -----
-.. module:: ase.optimize.lbfgs
+
+.. class:: LBFGS
+.. class:: LBFGSLineSearch
 
 LBFGS is the limited memory version of the BFGS algorithm, where
 the inverse of Hessian matrix is updated instead of the Hessian
@@ -173,9 +176,28 @@ where the trajectory and the restart save the trajectory of the
 optimization and the vectors needed to generate the Hessian Matrix.
 
 
+GPMin
+-----
+
+.. class:: GPMin
+
+The GPMin (Gaussian Process minimizer) produces a model for the Potential
+Energy Surface using the information about the potential energies and
+the forces of the configurations it has already visited and uses it
+to speed up BFGS local minimzations.
+
+Read more about this algorithm here:
+
+  | Estefanía Garijo del Río, Jens Jørgen Mortensen, Karsten W. Jacobsen
+  | `A local Bayesian optimizer for atomic structures`__
+
+__ https://arxiv.org/abs/1808.08588
+
+
 FIRE
 ----
-.. module:: ase.optimize.fire
+
+.. class:: FIRE
 
 Read about this algorithm here:
 
@@ -188,7 +210,8 @@ __ http://dx.doi.org/10.1103/PhysRevLett.97.170201
 
 MDMin
 -----
-.. module:: ase.optimize.mdmin
+
+.. class:: MDMin
 
 The MDmin algorithm is a modification of the usual velocity-Verlet
 molecular dynamics algorithm.  Newtons second law is solved
@@ -215,7 +238,6 @@ Newton*.
 
 SciPy optimizers
 ----------------
-.. module:: ase.optimize.sciopt
 
 SciPy provides a number of optimizers. An interface module for a couple of
 these have been written for ASE. Most notable are the optimizers SciPyFminBFGS
@@ -230,7 +252,9 @@ as::
 
 BFGSLineSearch
 --------------
-.. module:: ase.optimize.bfgslinesearch
+
+.. class:: BFGSLineSearch
+.. class:: QuasiNewton
 
 BFGSLineSearch is the BFGS algorithm with a line search mechanism
 that enforces the step taken fulfills the Wolfe conditions, so that
@@ -404,6 +428,7 @@ a convenient tool for plotting convergence and walltime.
 
   .. image:: precon.png
 
+
 Global optimization
 ===================
 
@@ -412,6 +437,7 @@ There are currently two global optimisation algorithms available.
 
 Basin hopping
 -------------
+
 .. module:: ase.optimize.basin
 
 The global optimization algorithm can be used quite similar as a
