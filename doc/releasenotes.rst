@@ -9,6 +9,13 @@ Git master branch
 
 :git:`master <>`.
 
+* Updated the :class: `~ase.calculators.castep.Castep` calculator as well as 
+  the related I/O methods in order to be more forgiving and less reliant on 
+  the presence of a CASTEP binary. The ``castep_keywords.py`` file has been 
+  replaced by a JSON file, and if its generation fails CASTEP files can still
+  be read and written if higher tolerance levels are set for the functions that
+  manipulate them.
+
 * Test suite now runs in parallel.
 
 * Socked-based interface to certain calculators through the
