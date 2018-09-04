@@ -91,6 +91,7 @@ gaussian                                  Gaussian based electronic structure co
 :mod:`~ase.calculators.nwchem`            Gaussian based electronic structure code
 :mod:`~ase.calculators.octopus`           Real-space pseudopotential code
 :mod:`~ase.calculators.onetep`            Linear-scaling pseudopotential code
+:mod:`~ase.calculators.openmx`            LCAO pseudopotential code
 :mod:`~ase.calculators.siesta`            LCAO pseudopotential code
 :mod:`~ase.calculators.turbomole`         Fast atom orbital code
 :mod:`~ase.calculators.vasp`              Plane-wave PAW code
@@ -222,6 +223,7 @@ the :meth:`set` method:
    nwchem
    octopus
    onetep
+   openmx
    siesta
    turbomole
    vasp
