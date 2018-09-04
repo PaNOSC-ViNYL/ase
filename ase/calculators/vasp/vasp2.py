@@ -459,6 +459,11 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
                                  dipole=dipole,
                                  nbands=nbands))
 
+        # Stress is not always present.
+        # Prevent calculation from going into a loop
+        if 'stress' not in self.results:
+            self.results.update(dict(stress=None))
+
         # Store keywords for backwards compatiblity
         self.spinpol = self.get_spin_polarized()
         self.version = self.get_version()
@@ -467,7 +472,8 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
         self.forces = self.get_forces()
         self.fermi = self.get_fermi_level()
         self.dipole = self.get_dipole_moment()
-        self.stress = self.get_stress()
+        # Prevent calculation from going into a loop
+        self.stress = self.get_property('stress', allow_calculation=False)
         self.nbands = self.get_number_of_bands()
 
         # Store the parameters used for this calculation
