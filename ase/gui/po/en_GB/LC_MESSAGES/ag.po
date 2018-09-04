@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ase-3.5.2\n"
 "Report-Msgid-Bugs-To: ase-users@listserv.fysik.dtu.dk\n"
-"POT-Creation-Date: 2018-04-03 15:59+0200\n"
-"PO-Revision-Date: 2018-03-28 20:53+0200\n"
+"POT-Creation-Date: 2018-09-01 18:48+0200\n"
+"PO-Revision-Date: 2018-09-01 19:07+0200\n"
 "Last-Translator: Ask Hjorth Larsen <asklarsen@gmail.com>\n"
 "Language-Team: English (British) <ase-users@listserv.fysik.dtu.dk>\n"
 "Language: en_GB\n"
@@ -286,7 +286,7 @@ msgstr ""
 msgid " %(natoms)i atoms: %(symbols)s, Volume: %(volume).3f A<sup>3</sup>"
 msgstr " %(natoms)i atoms: %(symbols)s, Volume: %(volume).3f A<sup>3</sup>"
 
-#: ../graphene.py:38 ../gui.py:524
+#: ../graphene.py:38 ../gui.py:527
 msgid "Graphene"
 msgstr "Graphene"
 
@@ -431,343 +431,343 @@ msgstr "Clear"
 msgid "Save data to file ... "
 msgstr "Save data to file ... "
 
-#: ../gui.py:335
+#: ../gui.py:337
 msgid "Quick Info"
 msgstr "Quick Info"
 
-#: ../gui.py:427
+#: ../gui.py:429
 msgid "_File"
 msgstr "_File"
 
-#: ../gui.py:428
+#: ../gui.py:430
 msgid "_Open"
 msgstr "_Open"
 
-#: ../gui.py:429
+#: ../gui.py:431
 msgid "_New"
 msgstr "_New"
 
-#: ../gui.py:430
+#: ../gui.py:432
 msgid "_Save"
 msgstr "_Save"
 
-#: ../gui.py:432
+#: ../gui.py:434
 msgid "_Quit"
 msgstr "_Quit"
 
-#: ../gui.py:434
+#: ../gui.py:436
 msgid "_Edit"
 msgstr "_Edit"
 
-#: ../gui.py:435
+#: ../gui.py:437
 msgid "Select _all"
 msgstr "Select _all"
 
-#: ../gui.py:436
+#: ../gui.py:438
 msgid "_Invert selection"
 msgstr "_Invert selection"
 
-#: ../gui.py:437
+#: ../gui.py:439
 msgid "Select _constrained atoms"
 msgstr "Select _constrained atoms"
 
-#: ../gui.py:438
+#: ../gui.py:440
 msgid "Select _immobile atoms"
 msgstr "Select _immobile atoms"
 
-#: ../gui.py:443
+#: ../gui.py:445
 msgid "Hide selected atoms"
 msgstr "Hide selected atoms"
 
-#: ../gui.py:444
+#: ../gui.py:446
 msgid "Show selected atoms"
 msgstr "Show selected atoms"
 
-#: ../gui.py:446
+#: ../gui.py:448
 msgid "_Modify"
 msgstr "_Modify"
 
-#: ../gui.py:447
+#: ../gui.py:449
 msgid "_Add atoms"
 msgstr "_Add atoms"
 
-#: ../gui.py:448
+#: ../gui.py:450
 msgid "_Delete selected atoms"
 msgstr "_Delete selected atoms"
 
-#: ../gui.py:450
+#: ../gui.py:452
 msgid "Edit _cell"
 msgstr "Edit _cell"
 
-#: ../gui.py:452
+#: ../gui.py:454
 msgid "_First image"
 msgstr "_First image"
 
-#: ../gui.py:453
+#: ../gui.py:455
 msgid "_Previous image"
 msgstr "_Previous image"
 
-#: ../gui.py:454
+#: ../gui.py:456
 msgid "_Next image"
 msgstr "_Next image"
 
-#: ../gui.py:455
+#: ../gui.py:457
 msgid "_Last image"
 msgstr "_Last image"
 
-#: ../gui.py:457
+#: ../gui.py:459
 msgid "_View"
 msgstr "_View"
 
-#: ../gui.py:458
+#: ../gui.py:460
 msgid "Show _unit cell"
 msgstr "Show _unit cell"
 
-#: ../gui.py:460
+#: ../gui.py:462
 msgid "Show _axes"
 msgstr "Show _axes"
 
-#: ../gui.py:461
+#: ../gui.py:464
 msgid "Show _bonds"
 msgstr "Show _bonds"
 
-#: ../gui.py:463
+#: ../gui.py:466
 msgid "Show _velocities"
 msgstr "Show _velocities"
 
-#: ../gui.py:465
+#: ../gui.py:468
 msgid "Show _forces"
 msgstr "Show _forces"
 
-#: ../gui.py:467
+#: ../gui.py:470
 msgid "Show _Labels"
 msgstr "Show _Labels"
 
-#: ../gui.py:468
+#: ../gui.py:471
 msgid "_None"
 msgstr "_None"
 
-#: ../gui.py:469
+#: ../gui.py:472
 msgid "Atom _Index"
 msgstr "Atom _Index"
 
-#: ../gui.py:470
+#: ../gui.py:473
 msgid "_Magnetic Moments"
 msgstr "_Magnetic Moments"
 
 #. XXX check if exist
-#: ../gui.py:471
+#: ../gui.py:474
 msgid "_Element Symbol"
 msgstr "_Element Symbol"
 
-#: ../gui.py:472
+#: ../gui.py:475
 msgid "_Initial Charges"
 msgstr "_Initial Charges"
 
-#: ../gui.py:475
+#: ../gui.py:478
 msgid "Quick Info ..."
 msgstr "Quick Info ..."
 
-#: ../gui.py:476
+#: ../gui.py:479
 msgid "Repeat ..."
 msgstr "Repeat ..."
 
-#: ../gui.py:477
+#: ../gui.py:480
 msgid "Rotate ..."
 msgstr "Rotate ..."
 
-#: ../gui.py:478
+#: ../gui.py:481
 msgid "Colors ..."
 msgstr "Colours ..."
 
 #. TRANSLATORS: verb
-#: ../gui.py:480
+#: ../gui.py:483
 msgid "Focus"
 msgstr "Focus"
 
-#: ../gui.py:481
+#: ../gui.py:484
 msgid "Zoom in"
 msgstr "Zoom in"
 
-#: ../gui.py:482
+#: ../gui.py:485
 msgid "Zoom out"
 msgstr "Zoom out"
 
-#: ../gui.py:483
+#: ../gui.py:486
 msgid "Change View"
 msgstr "Change View"
 
-#: ../gui.py:485
+#: ../gui.py:488
 msgid "Reset View"
 msgstr "Reset View"
 
-#: ../gui.py:486
+#: ../gui.py:489
 msgid "xy-plane"
 msgstr "xy-plane"
 
-#: ../gui.py:487
+#: ../gui.py:490
 msgid "yz-plane"
 msgstr "yz-plane"
 
-#: ../gui.py:488
+#: ../gui.py:491
 msgid "zx-plane"
 msgstr "zx-plane"
 
-#: ../gui.py:489
+#: ../gui.py:492
 msgid "yx-plane"
 msgstr "yx-plane"
 
-#: ../gui.py:490
+#: ../gui.py:493
 msgid "zy-plane"
 msgstr "zy-plane"
 
-#: ../gui.py:491
+#: ../gui.py:494
 msgid "xz-plane"
 msgstr "xz-plane"
 
-#: ../gui.py:492
+#: ../gui.py:495
 msgid "a2,a3-plane"
 msgstr "a2,a3-plane"
 
-#: ../gui.py:493
+#: ../gui.py:496
 msgid "a3,a1-plane"
 msgstr "a3,a1-plane"
 
-#: ../gui.py:494
+#: ../gui.py:497
 msgid "a1,a2-plane"
 msgstr "a1,a2-plane"
 
-#: ../gui.py:495
+#: ../gui.py:498
 msgid "a3,a2-plane"
 msgstr "a3,a2-plane"
 
-#: ../gui.py:496
+#: ../gui.py:499
 msgid "a1,a3-plane"
 msgstr "a1,a3-plane"
 
-#: ../gui.py:497
+#: ../gui.py:500
 msgid "a2,a1-plane"
 msgstr "a2,a1-plane"
 
-#: ../gui.py:498
+#: ../gui.py:501
 msgid "Settings ..."
 msgstr "Settings ..."
 
-#: ../gui.py:500
+#: ../gui.py:503
 msgid "VMD"
 msgstr "VMD"
 
-#: ../gui.py:501
+#: ../gui.py:504
 msgid "RasMol"
 msgstr "RasMol"
 
-#: ../gui.py:502
+#: ../gui.py:505
 msgid "xmakemol"
 msgstr "xmakemol"
 
-#: ../gui.py:503
+#: ../gui.py:506
 msgid "avogadro"
 msgstr "avogadro"
 
-#: ../gui.py:505
+#: ../gui.py:508
 msgid "_Tools"
 msgstr "_Tools"
 
-#: ../gui.py:506
+#: ../gui.py:509
 msgid "Graphs ..."
 msgstr "Graphs ..."
 
-#: ../gui.py:507
+#: ../gui.py:510
 msgid "Movie ..."
 msgstr "Film ..."
 
-#: ../gui.py:508
+#: ../gui.py:511
 msgid "Expert mode ..."
 msgstr "Expert mode ..."
 
-#: ../gui.py:509
+#: ../gui.py:512
 msgid "Constraints ..."
 msgstr "Constraints ..."
 
-#: ../gui.py:510
+#: ../gui.py:513
 msgid "Render scene ..."
 msgstr "Render scene ..."
 
-#: ../gui.py:511
+#: ../gui.py:514
 msgid "_Move atoms"
 msgstr "_Move atoms"
 
-#: ../gui.py:512
+#: ../gui.py:515
 msgid "_Rotate atoms"
 msgstr "_Rotate atoms"
 
-#: ../gui.py:513
+#: ../gui.py:516
 msgid "NE_B"
 msgstr "NE_B"
 
-#: ../gui.py:514
+#: ../gui.py:517
 msgid "B_ulk Modulus"
 msgstr "B_ulk Modulus"
 
-#: ../gui.py:515
+#: ../gui.py:518
 msgid "Reciprocal space ..."
 msgstr "Reciprocal space ..."
 
 #. TRANSLATORS: Set up (i.e. build) surfaces, nanoparticles, ...
-#: ../gui.py:518
+#: ../gui.py:521
 msgid "_Setup"
 msgstr "_Setup"
 
-#: ../gui.py:519
+#: ../gui.py:522
 msgid "_Bulk Crystal"
 msgstr "_Bulk Crystal"
 
-#: ../gui.py:520
+#: ../gui.py:523
 msgid "_Surface slab"
 msgstr "_Surface slab"
 
-#: ../gui.py:521
+#: ../gui.py:524
 msgid "_Nanoparticle"
 msgstr "_Nanoparticle"
 
-#: ../gui.py:523
+#: ../gui.py:526
 msgid "Nano_tube"
 msgstr "Nano_tube"
 
-#: ../gui.py:526
+#: ../gui.py:529
 msgid "_Calculate"
 msgstr "_Calculate"
 
-#: ../gui.py:527
+#: ../gui.py:530
 msgid "Set _Calculator"
 msgstr "Set _Calculator"
 
-#: ../gui.py:528
+#: ../gui.py:531
 msgid "_Energy and Forces"
 msgstr "_Energy and Forces"
 
-#: ../gui.py:529
+#: ../gui.py:532
 msgid "Energy Minimization"
 msgstr "Energy Minimization"
 
-#: ../gui.py:532
+#: ../gui.py:535
 msgid "_Help"
 msgstr "_Help"
 
-#: ../gui.py:533
+#: ../gui.py:536
 msgid "_About"
 msgstr "_About"
 
-#: ../gui.py:537
+#: ../gui.py:540
 msgid "Webpage ..."
 msgstr "Webpage ..."
 
 #. Host window will never be shown
-#: ../images.py:300
+#: ../images.py:288
 msgid "Constraints discarded"
 msgstr "Constraints discarded"
 
-#: ../images.py:301
+#: ../images.py:289
 msgid "Constraints other than FixAtoms have been discarded."
 msgstr "Constraints other than FixAtoms have been discarded."
 
@@ -1429,6 +1429,10 @@ msgstr ""
 msgid "Save ..."
 msgstr "Save ..."
 
+#: ../save.py:78 ../ui.py:46
+msgid "Error"
+msgstr "Error"
+
 #: ../settings.py:10
 msgid "Settings"
 msgstr "Settings"
@@ -1480,52 +1484,13 @@ msgstr "Miscellaneous:"
 msgid "Scale atomic radii:"
 msgstr "Scale atomic radii:"
 
-#: ../simulation.py:30
-msgid " (rerun simulation)"
-msgstr " (rerun simulation)"
+#: ../settings.py:40
+msgid "Scale force vectors:"
+msgstr "Scale force vectors:"
 
-#: ../simulation.py:31
-msgid " (continue simulation)"
-msgstr " (continue simulation)"
-
-#: ../simulation.py:33
-msgid "Select starting configuration:"
-msgstr "Select starting configuration:"
-
-#: ../simulation.py:38
-#, python-format
-msgid "There are currently %i configurations loaded."
-msgstr "There are currently %i configurations loaded."
-
-#: ../simulation.py:43
-msgid "Choose which one to use as the initial configuration"
-msgstr "Choose which one to use as the initial configuration"
-
-#: ../simulation.py:47
-#, python-format
-msgid "The first configuration %s."
-msgstr "The first configuration %s."
-
-#: ../simulation.py:50
-msgid "Configuration number "
-msgstr "Configuration number "
-
-#: ../simulation.py:56
-#, python-format
-msgid "The last configuration %s."
-msgstr "The last configuration %s."
-
-#: ../simulation.py:92
-msgid "Run"
-msgstr "Run"
-
-#: ../simulation.py:112
-msgid "No calculator: Use Calculate/Set Calculator on the menu."
-msgstr "No calculator: Use Calculate/Set Calculator on the menu."
-
-#: ../simulation.py:123
-msgid "No atoms present"
-msgstr "No atoms present"
+#: ../settings.py:47
+msgid "Scale velocity vectors:"
+msgstr "Scale velocity vectors:"
 
 #: ../status.py:58
 #, python-format
@@ -1707,10 +1672,6 @@ msgid_plural "{symbol} {surf} surface with {natoms} atoms.{vacuum}"
 msgstr[0] "{symbol} {surf} surface with {natoms} atom.{vacuum}"
 msgstr[1] "{symbol} {surf} surface with {natoms} atoms.{vacuum}"
 
-#: ../ui.py:46
-msgid "Error"
-msgstr "Error"
-
 #: ../ui.py:53
 msgid "Version"
 msgstr "Version"
@@ -1772,6 +1733,39 @@ msgstr "ERROR: Invalid element!"
 #: ../widgets.py:107
 msgid "No Python code"
 msgstr "No Python code"
+
+#~ msgid " (rerun simulation)"
+#~ msgstr " (rerun simulation)"
+
+#~ msgid " (continue simulation)"
+#~ msgstr " (continue simulation)"
+
+#~ msgid "Select starting configuration:"
+#~ msgstr "Select starting configuration:"
+
+#~ msgid "There are currently %i configurations loaded."
+#~ msgstr "There are currently %i configurations loaded."
+
+#~ msgid "Choose which one to use as the initial configuration"
+#~ msgstr "Choose which one to use as the initial configuration"
+
+#~ msgid "The first configuration %s."
+#~ msgstr "The first configuration %s."
+
+#~ msgid "Configuration number "
+#~ msgstr "Configuration number "
+
+#~ msgid "The last configuration %s."
+#~ msgstr "The last configuration %s."
+
+#~ msgid "Run"
+#~ msgstr "Run"
+
+#~ msgid "No calculator: Use Calculate/Set Calculator on the menu."
+#~ msgstr "No calculator: Use Calculate/Set Calculator on the menu."
+
+#~ msgid "No atoms present"
+#~ msgstr "No atoms present"
 
 #~ msgid ""
 #~ "  Use this dialog to create crystal lattices. First select the "

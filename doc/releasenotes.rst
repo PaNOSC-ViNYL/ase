@@ -16,6 +16,10 @@ Git master branch
   dictionaries instead of the BYTEA datatype. Note that backwards
   compatibility is lost for the postgreSQL backend, and that
   postgres version 9.4+ is required.
+  
+* New Gaussian Process (GP) regression optimizer
+  (:class:`~ase.optimize.GPMin`).  Check out this `performance test
+  <https://wiki.fysik.dtu.dk/gpaw/devel/ase_optimize/ase_optimize.html>`_.
 
 * Test suite now runs in parallel.
 
@@ -75,6 +79,7 @@ Git master branch
         
 * Compare if two bulk structure are symmetrically equivalent with
   :class:`~ase.utils.structure_comparator.SymmetryEquivalenceCheck`
+
 
 Version 3.16.2
 ==============
@@ -642,7 +647,7 @@ Version 3.5.0
   :class:`~ase.neighborlist.NeighborList` object and is
   now ASAP_ compatible.
 
-* :mod:`BFGSLineSearch <ase.optimize.bfgslinesearch>` is now the default
+* :class:`ase.optimize.BFGSLineSearch>` is now the default
   (``QuasiNewton==BFGSLineSearch``).
 
 * There is a new interface to the LAMMPS molecular dynamics code.
