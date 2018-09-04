@@ -234,7 +234,7 @@ def write_castep_cell(fd, atoms, positions_frac=False, force_write=False,
             line += ' LABEL={0} '.format(labels[i])
         pos_block.append(line)
 
-    cell.__setattr__(pos_keyword, pos_block)
+    setattr(cell, pos_keyword, pos_block)
 
     constraints = atoms.constraints
     if len(constraints):
@@ -343,7 +343,7 @@ def read_freeform(fd):
             # Empty line... skip
             continue
 
-        lsplit = re.split('\s*[:=]*\s+', l, 1)
+        lsplit = re.split(r'\s*[:=]*\s+', l, 1)
 
         if read_block:
             if lsplit[0].lower() == '%endblock':
