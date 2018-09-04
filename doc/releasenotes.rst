@@ -16,7 +16,15 @@ Git master branch
   be read and written if higher tolerance levels are set for the functions that
   manipulate them.
 
-  * New Gaussian Process (GP) regression optimizer
+* Optimized performance of ase db, with enhanced speed of
+  queries on key value pairs for large SQLite (.db) database files.
+  Also, The ase db server (PostgreSQL) backend now uses
+  native ARRAY and JSONB data types for storing NumPy arrays and
+  dictionaries instead of the BYTEA datatype. Note that backwards
+  compatibility is lost for the postgreSQL backend, and that
+  postgres version 9.4+ is required.
+  
+* New Gaussian Process (GP) regression optimizer
   (:class:`~ase.optimize.GPMin`).  Check out this `performance test
   <https://wiki.fysik.dtu.dk/gpaw/devel/ase_optimize/ase_optimize.html>`_.
 
