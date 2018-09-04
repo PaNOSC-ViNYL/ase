@@ -286,8 +286,9 @@ def read_lammps_data(fileobj, Z_of_type=None, style='full', sort_by_id=False,
             masses[ind] = mass_in[type]
     # convert units
     positions *= unit_convert("distance", units)
-    masses *= unit_convert("mass", units)
     cell *= unit_convert("distance", units)
+    if masses is not None:
+        masses *= unit_convert("mass", units)
     if velocities is not None:
         velocities *= unit_convert("velocity", units)
 
