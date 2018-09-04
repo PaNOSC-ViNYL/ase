@@ -98,7 +98,7 @@ class NPT(MolecularDynamics):
       bulk copper with 15000-200000 atoms.  But this is not well
       tested, it is IMPORTANT to monitor the temperature and
       stress/pressure fluctuations.
-    
+
     It has the following methods:
 
     run(n)
@@ -118,9 +118,9 @@ class NPT(MolecularDynamics):
         Gibbs free energy is supposed to be preserved by this
         dynamics.  This is mainly intended as a diagnostic
         tool.
-    
+
     References:
-    
+
     1) S. Melchionna, G. Ciccotti and B. L. Holian, Molecular
        Physics 78, p. 533 (1993).
 
@@ -132,12 +132,12 @@ class NPT(MolecularDynamics):
 
     4) F. D. Di Tolla and M. Ronchetti, Physical
        Review E 48, p. 1726 (1993).
-    
+
     '''
 
     classname = "NPT"  # Used by the trajectory.
     _npt_version = 2   # Version number, used for Asap compatibility.
-    
+
     def __init__(self, atoms,
                  timestep, temperature, externalstress, ttime, pfactor,
                  mask=None, trajectory=None, logfile=None, loginterval=1):
@@ -162,24 +162,27 @@ class NPT(MolecularDynamics):
     def set_temperature(self, temperature):
         self.temperature = temperature
         self._calculateconstants()
-        
+
     def set_stress(self, stress):
         """Set the applied stress.
 
         Must be a symmetric 3x3 tensor, a 6-vector representing a symmetric
         3x3 tensor, or a number representing the pressure.
         """
-        if isinstance(stress, type(1.0)) or isinstance(stress, type(1)):
-            stress = np.array((-stress, -stress, -stress, 0.0, 0.0, 0.0))
-        elif stress.shape == (3, 3):
-            if not self._issymmetric(stress):
-                raise ValueError(
-                    "The external stress must be a symmetric tensor.")
-            stress = np.array((stress[0, 0], stress[1, 1],
-                               stress[2, 2], stress[1, 2],
-                               stress[0, 2], stress[0, 1]))
-        elif stress.shape != (6,):
-            raise ValueError("The external stress has the wrong shape.")
+
+        if np.isscalar(stress):
+            stress = np.array([-stress, -stress, -stress, 0.0, 0.0, 0.0])
+        else:
+            stress = np.array(stress)
+            if stress.shape == (3, 3):
+                if not self._issymmetric(stress):
+                    raise ValueError(
+                        "The external stress must be a symmetric tensor.")
+                stress = np.array((stress[0, 0], stress[1, 1],
+                                   stress[2, 2], stress[1, 2],
+                                   stress[0, 2], stress[0, 1]))
+            elif stress.shape != (6,):
+                raise ValueError("The external stress has the wrong shape.")
         self.externalstress = stress
 
     def set_mask(self, mask):
@@ -207,7 +210,7 @@ class NPT(MolecularDynamics):
             self.mask = np.outer(mask, mask)
         else:
             self.mask = mask
-        
+
     def set_fraction_traceless(self, fracTraceless):
         """set what fraction of the traceless part of the force
         on eta is kept.
@@ -232,7 +235,7 @@ class NPT(MolecularDynamics):
     def get_time(self):
         "Get the elapsed time."
         return self.timeelapsed
-    
+
     def run(self, steps):
         """Perform a number of time steps."""
         if not self.initialized:
@@ -261,15 +264,15 @@ class NPT(MolecularDynamics):
                           str(err))
             return 1
         return 0
-    
+
     def step(self):
         """Perform a single time step.
-        
+
         Assumes that the forces and stresses are up to date, and that
         the positions and momenta have not been changed since last
         timestep.
         """
-        
+
         # Assumes the following variables are OK
         # q_past, q, q_future, p, eta, eta_past, zeta, zeta_past, h, h_past
         #
@@ -286,7 +289,7 @@ class NPT(MolecularDynamics):
             stress = self.stresscalculator()
             deltaeta = -2 * dt * (self.pfact * linalg.det(self.h) *
                                   (stress - self.externalstress))
-        
+
         if self.frac_traceless == 1:
             eta_future = self.eta_past + self.mask * self._makeuppertriangular(deltaeta)
         else:
@@ -317,10 +320,10 @@ class NPT(MolecularDynamics):
         self.atoms.set_momenta(np.dot(self.q_future-self.q_past, self.h/(2*dt)) *
                                self._getmasses())
         # self.stresscalculator()
-        
+
     def forcecalculator(self):
         return self.atoms.get_forces()
-    
+
     def stresscalculator(self):
         return self.atoms.get_stress()
 
@@ -399,7 +402,7 @@ class NPT(MolecularDynamics):
                 "(was %.6g %.6g %.6g)" % tuple(cm))
         self.atoms.set_momenta(self.atoms.get_momenta() -
                                cm / self._getnatoms())
-        
+
     def attach_atoms(self, atoms):
         """Assign atoms to a restored dynamics object.
 
@@ -423,13 +426,13 @@ class NPT(MolecularDynamics):
         self.q = np.dot(self.atoms.get_positions(), self.inv_h) - 0.5
         self._calculate_q_past_and_future()
         self.initialized = 1
-        
+
     def attach(self, function, interval=1, *args, **kwargs):
         """Attach callback function or trajectory.
 
         At every *interval* steps, call *function* with arguments
         *args* and keyword arguments *kwargs*.
-        
+
         If *function* is a trajectory object, its write() method is
         attached, but if *function* is a BundleTrajectory (or another
         trajectory supporting set_extra_data(), said method is first
@@ -457,7 +460,7 @@ class NPT(MolecularDynamics):
                 'pfactor_given': self.pfactor_given,
                 'pfact': self.pfact,
                 'frac_traceless': self.frac_traceless}
-        
+
     def get_data(self):
         "Return data needed to restore the state."
         return {'eta': self.eta,
@@ -468,23 +471,23 @@ class NPT(MolecularDynamics):
                 'h': self.h,
                 'h_past': self.h_past,
                 'timeelapsed': self.timeelapsed}
-        
+
     @classmethod
     def read_from_trajectory(cls, trajectory, frame=-1, atoms=None):
         """Read dynamics and atoms from trajectory (Class method).
-        
+
         Simultaneously reads the atoms and the dynamics from a BundleTrajectory,
         including the internal data of the NPT dynamics object (automatically
         saved when attaching a BundleTrajectory to an NPT object).
-        
+
         Arguments:
-        
+
         trajectory
             The filename or an open BundleTrajectory object.
-        
+
         frame (optional)
             Which frame to read.  Default: the last.
-            
+
         atoms (optional, internal use only)
             Pre-read atoms.  Do not use.
         """
@@ -514,7 +517,7 @@ class NPT(MolecularDynamics):
         for k, v in frame_data.items():
             setattr(dyn, k, v)
         return (dyn, atoms)
-        
+
     def _getbox(self):
         "Get the computational box."
         return self.atoms.get_cell()
@@ -522,11 +525,11 @@ class NPT(MolecularDynamics):
     def _getmasses(self):
         "Get the masses as an Nx1 array."
         return np.reshape(self.atoms.get_masses(), (-1,1))
-    
+
 #    def _getcartesianpositions(self):
 #        "Get the cartesian positions of the atoms"
 #        return self.atoms.get_positions()
-    
+
 #    def _getmomenta(self):
 #        "Get the (cartesian) momenta of the atoms"
 #        return self.atoms.GetCartesianMomenta()
@@ -538,7 +541,7 @@ class NPT(MolecularDynamics):
 #    def _setmomenta(self, momenta):
 #        "Set the (cartesian) momenta of the atoms"
 #        self.atoms.SetCartesianMomenta(momenta)
-        
+
     def _separatetrace(self, mat):
         """return two matrices, one proportional to the identity
         the other traceless, which sum to the given matrix
@@ -551,7 +554,7 @@ class NPT(MolecularDynamics):
         "Emit a warning."
         sys.stderr.write("WARNING: "+text+"\n")
         sys.stderr.flush()
-    
+
     def _calculate_q_future(self, force):
         "Calculate future q.  Needed in Timestep and Initialization."
         dt = self.dt
@@ -594,8 +597,8 @@ class NPT(MolecularDynamics):
         else:
             trace_part, traceless_part = self._separatetrace(self._makeuppertriangular(deltaeta))
             self.eta_past = self.eta - trace_part - self.frac_traceless * traceless_part
-        
-    
+
+
     def _makeuppertriangular(self, sixvector):
         "Make an upper triangular matrix from a 6-vector."
         return np.array(((sixvector[0], sixvector[5], sixvector[4]),
@@ -605,7 +608,7 @@ class NPT(MolecularDynamics):
     def _isuppertriangular(self, m):
         "Check that a matrix is on upper triangular form."
         return m[1,0] == m[2,0] == m[2,1] == 0.0
-    
+
     def _calculateconstants(self):
         "(Re)calculate some constants when pfactor, ttime or temperature have been changed."
         n = self._getnatoms()
@@ -639,7 +642,7 @@ class NPT(MolecularDynamics):
         In a serial simulation, do nothing.
         """
         pass  # This is a serial simulation object.  Do nothing.
-    
+
     def _getnatoms(self):
         """Get the number of atoms.
 
@@ -647,7 +650,7 @@ class NPT(MolecularDynamics):
         processors.
         """
         return len(self.atoms)
-    
+
     def _make_special_q_arrays(self):
         """Make the arrays used to store data about the atoms.
 
@@ -661,17 +664,17 @@ class NPT(MolecularDynamics):
 
 class WeakMethodWrapper:
     """A weak reference to a method.
-    
+
     Create an object storing a weak reference to an instance and
     the name of the method to call.  When called, calls the method.
-    
+
     Just storing a weak reference to a bound method would not work,
     as the bound method object would go away immediately.
     """
     def __init__(self, obj, method):
         self.obj = weakref.proxy(obj)
         self.method = method
-        
+
     def __call__(self, *args, **kwargs):
         m = getattr(self.obj, self.method)
         return m(*args, **kwargs)
@@ -704,7 +707,7 @@ class WeakMethodWrapper:
 #             def getdata(atoms=self.atoms, name=d):
 #                 return getattr(atoms, name)
 #             self.Add(d, data = getdata)
-                     
+
 #     known_names = {
 #         #    name                 shape        typecode  once    units
 #         # ----------------------------------------------------------------
@@ -785,6 +788,3 @@ class WeakMethodWrapper:
 #         NetCDFTrajectory.__init__(self, filename,
 #                                   atoms=dynamics,
 #                                   mode=mode, interval=interval)
-
-    
-
