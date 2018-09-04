@@ -425,10 +425,6 @@ def read_castep_cell(fd, index=None, calculator_args={}, find_spg=False,
 
     celldict = read_freeform(fd)
 
-    # Utility functions
-    def tokenize(l):
-        return [x.strip() for x in l.split()]
-
     def parse_blockunit(line_tokens, blockname):
         u = 1.0
         if len(line_tokens[0]) == 1:
@@ -459,7 +455,7 @@ def read_castep_cell(fd, index=None, calculator_args={}, find_spg=False,
     if 'lattice_abc' in celldict:
 
         lines = celldict.pop('lattice_abc').split('\n')
-        line_tokens = map(tokenize, lines)
+        line_tokens = [l.split() for l in lines]
 
         u, line_tokens = parse_blockunit(line_tokens, 'lattice_abc')
 
@@ -483,7 +479,7 @@ def read_castep_cell(fd, index=None, calculator_args={}, find_spg=False,
     if 'lattice_cart' in celldict:
 
         lines = celldict.pop('lattice_cart').split('\n')
-        line_tokens = map(tokenize, lines)
+        line_tokens = [l.split() for l in lines]
 
         u, line_tokens = parse_blockunit(line_tokens, 'lattice_cart')
 
@@ -515,7 +511,7 @@ def read_castep_cell(fd, index=None, calculator_args={}, find_spg=False,
     aargs[pos_type] = []
 
     lines = pos_block.split('\n')
-    line_tokens = map(tokenize, lines)
+    line_tokens = [l.split() for l in lines]
 
     if not 'scaled' in pos_type:
         u, line_tokens = parse_blockunit(line_tokens, 'positions_abs')
@@ -565,7 +561,7 @@ def read_castep_cell(fd, index=None, calculator_args={}, find_spg=False,
     # Now on to the species potentials...
     if 'species_pot' in celldict:
         lines = celldict.pop('species_pot').split('\n')
-        line_tokens = map(tokenize, lines)
+        line_tokens = [l.split() for l in lines]
 
         for tokens in line_tokens:
             if len(tokens) == 1:
@@ -582,7 +578,7 @@ def read_castep_cell(fd, index=None, calculator_args={}, find_spg=False,
 
     if 'ionic_constraints' in celldict:
         lines = celldict.pop('ionic_constraints').split('\n')
-        line_tokens = map(tokenize, lines)
+        line_tokens = [l.split() for l in lines]
 
         for tokens in line_tokens:
             if not len(tokens) == 6:
@@ -602,7 +598,7 @@ def read_castep_cell(fd, index=None, calculator_args={}, find_spg=False,
     # Symmetry operations
     if 'symmetry_ops' in celldict:
         lines = celldict.pop('symmetry_ops').split('\n')
-        line_tokens = map(tokenize, lines)
+        line_tokens = [l.split() for l in lines]
 
         # Read them in blocks of four
         blocks = np.array(line_tokens).astype(float)
