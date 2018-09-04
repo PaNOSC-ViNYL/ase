@@ -181,7 +181,7 @@ def write_castep_cell(fd, atoms, positions_frac=False, force_write=False,
 
     try:
         has_cell = isinstance(atoms.calc.cell, CastepCell)
-    except:
+    except AttributeError:
         has_cell = False
 
     if has_cell:

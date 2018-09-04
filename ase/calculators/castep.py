@@ -176,7 +176,7 @@ Keyword                    Description
                            validation of any parameters set in the CastepCell
                            or CastepParam objects against the ones found in
                            castep_keywords. Levels are as following:
-                           
+
                            0 = no tolerance, keywords not found in 
                            castep_keywords will raise an exception
 
@@ -2653,7 +2653,7 @@ class CastepCell(CastepInputFile):
                                                             pos[0],
                                                             pos[1],
                                                             pos[2]))
-        return text_block    
+        return text_block
 
     def _parse_positions_frac_product(self, value):
         return self._positions_frac_intermediate(self, value)
@@ -2666,7 +2666,9 @@ CastepKeywords = namedtuple('CastepKeywords',
 # We keep this just for naming consistency with older versions
 
 
-def make_cell_dict(data={}):
+def make_cell_dict(data=None):
+
+    data = data if data is not None else {}
 
     class CastepCellDict(CastepOptionDict):
         def __init__(self):
@@ -2675,7 +2677,9 @@ def make_cell_dict(data={}):
     return CastepCellDict
 
 
-def make_param_dict(data={}):
+def make_param_dict(data=None):
+
+    data = data if data is not None else {}
 
     class CastepParamDict(CastepOptionDict):
         def __init__(self):
