@@ -611,7 +611,7 @@ def read_castep_cell(fd, index=None, calculator_args={}, find_spg=False,
     for k, val in celldict.items():
         try:
             calc.cell.__setattr__(k, val)
-        except:
+        except Exception:
             raise RuntimeError('Problem setting calc.cell.%s = %s' % (k, val))
 
     # Get the relevant additional info
