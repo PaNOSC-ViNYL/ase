@@ -464,10 +464,12 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
         self.version = self.get_version()
         self.energy_free = self.get_potential_energy(force_consistent=True)
         self.energy_zero = self.get_potential_energy(force_consistent=False)
-        self.forces = self.get_forces()
+        self.forces = self.get_property('forces', allow_calculation=False)
         self.fermi = self.get_fermi_level()
         self.dipole = self.get_dipole_moment()
-        self.stress = self.get_stress()
+        # Stress is not always present.
+        # Prevent calculation from going into a loop
+        self.stress = self.get_property('stress', allow_calculation=False)
         self.nbands = self.get_number_of_bands()
 
         # Store the parameters used for this calculation
