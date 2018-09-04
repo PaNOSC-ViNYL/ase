@@ -338,7 +338,7 @@ def read_freeform(fd):
     for i, l in enumerate(filelines):
 
         # Strip all comments, aka anything after a hash
-        l = re.split('[#!;]', l, 1)[0].strip()
+        l = re.split(r'[#!;]', l, 1)[0].strip()
 
         if l == '':
             # Empty line... skip
@@ -523,8 +523,8 @@ def read_castep_cell(fd, index=None, calculator_args={}, find_spg=False,
 
     def parse_info(raw_info):
 
-        re_keys = ('({0})\s*[=:\s]{{1}}\s'
-                   '*([^\s]*)').format('|'.join(add_info.keys()))
+        re_keys = (r'({0})\s*[=:\s]{{1}}\s'
+                   r'*([^\s]*)').format('|'.join(add_info.keys()))
         # Capture all info groups
         info = re.findall(re_keys, raw_info)
         info = {g[0]: add_info[g[0]][0](g[1]) for g in info}
@@ -1213,7 +1213,7 @@ def read_param(filename='', calc=None, fd=None, get_interface_options=False):
     # If necessary, get the interface options
     if get_interface_options:
         int_opts = {}
-        optre = re.compile('# ASE_INTERFACE ([^\s]+) : ([^\s]+)')
+        optre = re.compile(r'# ASE_INTERFACE ([^\s]+) : ([^\s]+)')
 
         lines = fd.readlines()
         fd.seek(0)
