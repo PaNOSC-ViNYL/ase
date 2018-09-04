@@ -2322,24 +2322,15 @@ class CastepOption(object):
         return value
 
     def _parse_str(self, value):
-        try:
-            value = str(value)
-        except ValueError:
-            raise ValueError()
+        value = str(value)
         return value
 
     def _parse_int(self, value):
-        try:
-            value = int(value)
-        except ValueError:
-            raise ValueError()
+        value = int(value)
         return value
 
     def _parse_float(self, value):
-        try:
-            value = float(value)
-        except ValueError:
-            raise ValueError()
+        value = float(value)
         return value
 
     def _parse_int_vector(self, value):
@@ -2347,10 +2338,7 @@ class CastepOption(object):
         if isinstance(value, basestring):
             if ',' in value:
                 value = value.replace(',', ' ')
-            try:
-                value = list(map(int, value.split()))
-            except ValueError:
-                raise ValueError()
+            value = list(map(int, value.split()))
 
         value = np.array(value)
 
@@ -2364,10 +2352,7 @@ class CastepOption(object):
         if isinstance(value, basestring):
             if ',' in value:
                 value = value.replace(',', ' ')
-            try:
-                value = list(map(float, value.split()))
-            except ValueError:
-                raise ValueError()
+            value = list(map(float, value.split()))
 
         value = np.array(value)*1.0
 
