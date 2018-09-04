@@ -282,7 +282,7 @@ def write_castep_cell(fd, atoms, positions_frac=False, force_write=False,
                 nis = atoms.calc._get_number_in_species(n)
 
                 l = '%6d %3s %3d   ' % (len(constr_block)+1, symbol, nis)
-                l += ' '.join(map(str, constr.dir))
+                l += ' '.join([str(d) for d in constr.dir])
                 constr_block += [l]
 
             elif isinstance(constr, FixedLine):
@@ -444,7 +444,7 @@ def read_castep_cell(fd, index=None, calculator_args={}, find_spg=False,
     }
 
     # Start by looking for the lattice
-    lat_keywords = map(celldict.__contains__, ('lattice_cart', 'lattice_abc'))
+    lat_keywords = [w in celldict for w in ('lattice_cart', 'lattice_abc')]
     if all(lat_keywords):
         warnings.warn('read_cell: Warning - two lattice blocks present in the'
                       ' same file. LATTICE_ABC will be ignored')
@@ -488,12 +488,12 @@ def read_castep_cell(fd, index=None, calculator_args={}, find_spg=False,
                           'three lattice vectors in invalid %BLOCK '
                           'LATTICE_CART')
 
-        aargs['cell'] = list(map(lambda lt: map(lambda x: float(x)*u, lt[:3]),
-                                 line_tokens))
+        aargs['cell'] = [[float(x)*u for x in lt[:3]] for lt in line_tokens]
 
     # Now move on to the positions
-    pos_keywords = map(celldict.__contains__,
-                       ('positions_abs', 'positions_frac'))
+    pos_keywords = [w in celldict
+                    for w in ('positions_abs', 'positions_frac')]
+
     if all(pos_keywords):
         warnings.warn('read_cell: Warning - two lattice blocks present in the'
                       ' same file. POSITIONS_FRAC will be ignored')
@@ -644,7 +644,7 @@ def read_castep_cell(fd, index=None, calculator_args={}, find_spg=False,
             except ImportError:
                 # spglib is not present
                 warnings.warn('spglib not found installed on this system - '
-                             'automatic spacegroup detection is not possible')
+                              'automatic spacegroup detection is not possible')
                 spglib = None
 
         if spglib is not None:
