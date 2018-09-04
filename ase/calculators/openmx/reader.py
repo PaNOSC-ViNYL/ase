@@ -23,7 +23,6 @@ import struct
 import numpy as np
 from ase.units import Ha, Bohr, Debye
 from ase.utils import basestring
-from ase.calculators.calculator import ReadError
 
 
 def read_openmx(filename=None, debug=False):

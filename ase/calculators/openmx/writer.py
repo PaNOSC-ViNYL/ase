@@ -19,7 +19,7 @@ functional theories.
 """
 import os
 import numpy as np
-from ase.units import Bohr, Ha, Ry
+from ase.units import Ha, Ry
 from ase.calculators.calculator import kpts2sizeandoffsets
 from ase.calculators.openmx.reader import (read_electron_valency, get_file_name
                                            , get_standard_key)

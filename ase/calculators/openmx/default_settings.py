@@ -17,7 +17,6 @@ functional theories.
     You should have received a copy of the GNU Lesser General Public License
     along with ASE.  If not, see <http://www.gnu.org/licenses/>.
 """
-from ase.units import Bohr
 
 # Dictionary containing information about the LCAO datasets
 # The keys are the chemical symbol of the atom. The value of 'orbitals used'
