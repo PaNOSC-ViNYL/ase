@@ -2626,8 +2626,8 @@ class CastepCell(CastepInputFile):
 
     def _parse_positions_abs_intermediate(self, value):
         if not isinstance(value, ase.atoms.Atoms):
-            raise UserWarning('castep.cell.positions_abs_intermediate/product '
-                              'expect Atoms object')
+            raise TypeError('castep.cell.positions_abs_intermediate/product '
+                            'expect Atoms object')
 
         text_block = 'ang\n'
         for elem, pos in zip(value.get_chemical_symbols(),
