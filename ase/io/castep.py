@@ -15,6 +15,7 @@ import ase
 
 from ase.parallel import paropen
 from ase.spacegroup import Spacegroup
+from ase.geometry.cell import cellpar_to_cell
 from ase.constraints import FixAtoms, FixedPlane, FixedLine, FixCartesian
 
 # independent unit management included here:
@@ -463,18 +464,10 @@ def read_castep_cell(fd, index=None, calculator_args={}, find_spg=False,
             warnings.warn('read_cell: Warning - ignoring additional '
                           'lines in invalid %BLOCK LATTICE_ABC')
 
-        a, b, c = [float(p) * u for p in line_tokens[0][:3]]
-        alpha, beta, gamma = [np.radians(float(phi))
-                              for phi in line_tokens[1][:3]]
+        abc = [float(p) * u for p in line_tokens[0][:3]]
+        angles = [float(phi) for phi in line_tokens[1][:3]]
 
-        lat_a = [a, 0, 0]
-        lat_b = [b * np.cos(gamma), b * np.sin(gamma), 0]
-        lat_c1 = c * np.cos(beta)
-        lat_c2 = c * ((np.cos(alpha) - np.cos(beta) * np.cos(gamma)) /
-                      np.sin(gamma))
-        lat_c3 = np.sqrt(c * c - lat_c1 * lat_c1 - lat_c2 * lat_c2)
-        lat_c = [lat_c1, lat_c2, lat_c3]
-        aargs['cell'] = [lat_a, lat_b, lat_c]
+        aargs['cell'] = cellpar_to_cell(abc + angles)
 
     if 'lattice_cart' in celldict:
 
