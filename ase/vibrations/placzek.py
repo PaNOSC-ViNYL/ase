@@ -134,17 +134,17 @@ class Profeta(ResonantRaman):
     def electronic_me_Qcc(self, omega, gamma):
         self.read()
         Vel_rcc = np.zeros((self.ndof, 3, 3), dtype=complex)
-        if self.approximation == 'profeta':
+        approximation = self.approximation.lower()
+        if approximation == 'profeta':
             Vel_rcc += self.electronic_me_profeta_rcc(omega, gamma)
-        elif self.approximation == 'placzek':
+        elif approximation == 'placzek':
             Vel_rcc += self.electronic_me_profeta_rcc(omega, gamma, True)
-        elif self.approximation == 'p-p':
+        elif approximation == 'p-p':
             Vel_rcc += self.electronic_me_profeta_rcc(omega, gamma, -1)
         else:
-            raise NotImplementedError(
-                'Approximation {0} not implemented. '.format(
-                    self.approximation) +
-                'Please use "Profeta" or "Placzek".')
+            raise RuntimeError(
+                'Bug: call with {0} should not happen!'.format(
+                    self.approximation))
 
         # map to modes
         self.timer.start('map R2Q')
