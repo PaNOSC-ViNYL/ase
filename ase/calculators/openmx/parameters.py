@@ -299,9 +299,9 @@ class OpenMXParameters(Parameters):
         ]
 
     def __init__(self, **kwargs):
-        Parameters.__init__(self, **kwargs)
         kw = omx_parameter_defaults.copy()
         kw.update(kwargs)
+        Parameters.__init__(self, **kw)
 
         if self.kpts == (1, 1, 1):
             print("When only the gamma point is considered, the eigenvalue \
@@ -310,21 +310,6 @@ class OpenMXParameters(Parameters):
             self.eigensolver = 'Cluster'
             self.mpi = None
             self.pbs = None
-
-        if dft_data_dict is None:
-            dft_data_dict = default_dictionary
-        else:
-            dict_dict = dft_data_dict
-            dft_data_dict = default_dictionary
-            for symbol in dict_dict.keys():
-                for key in dict_dict[symbol].keys():
-                    dft_data_dict[symbol][key] = dict_dict[symbol][key]
-
-        if self.data_path is None:
-            if 'OPENMX_DFT_DATA_PATH' not in os.environ:
-                warnings.warn('Please either set OPENMX_DFT_DATA_PATH as an'
-                              'enviroment variable or specify dft_data_path as'
-                              'a keyword argument')
 
         from copy import deepcopy
         dft_data_dict = deepcopy(default_dictionary)
