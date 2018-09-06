@@ -158,6 +158,119 @@ unit_dat_keywords = {
                      }
 
 
+omx_parameter_defaults = dict(
+    scf_ngrid=None,
+    scf_kgrid=None,
+    dos_kgrid=None,
+    scf_electric_field=None,
+    level_of_stdout=None,
+    level_of_fileout=None,
+    species_number=None,
+    atoms_number=None,
+    scf_maxiter=None,
+    scf_mixing_history=None,
+    scf_mixing_startpulay=None,
+    scf_mixing_everypulay=None,
+    onedfft_numgridk=None,  # 1Dfft
+    onedfft_numgridr=None,  # 1Dfft
+    orbitalopt_scf_maxiter=None,
+    orbitalopt_opt_maxiter=None,
+    orbitalopt_opt_method=None,
+    orbitalopt_historypulay=None,
+    num_cntorb_atoms=None,
+    ordern_krylovh_order=None,
+    ordern_krylovs_order=None,
+    md_maxiter=None,
+    md_opt_diis_history=None,
+    md_opt_startdiis=None,
+    band_nkpath=None,
+    num_homos=None,
+    num_lumos=None,
+    mo_nkpoint=None,
+    md_current_iter=None,
+    scf_constraint_nc_spin_v=None,
+    scf_electronictemperature=None,
+    scf_fixed_grid=None,
+    scf_energycutoff=None,
+    scf_init_mixing_weight=None,
+    scf_min_mixing_weight=None,
+    scf_max_mixing_weight=None,
+    scf_kerker_factor=None,
+    scf_criterion=None,
+    scf_system_charge=None,
+    onedfft_energycutoff=None,  # 1Dfft
+    orbitalopt_sd_step=None,
+    orbitalopt_criterion=None,
+    ordern_hoppingranges=None,
+    md_timestep=None,
+    md_opt_criterion=None,
+    nh_mass_heatbath=None,
+    scf_nc_mag_field_spin=None,
+    scf_nc_mag_field_orbital=None,
+    system_currentdirectory=None,
+    system_name=None,
+    data_path=None,
+    atoms_speciesandcoordinates_unit=None,
+    atoms_unitvectors_unit=None,
+    scf_xctype=None,
+    scf_spinpolarization=None,
+    scf_hubbard_occupation=None,
+    scf_eigenvaluesolver=None,
+    scf_mixing_type=None,
+    orbitalopt_method=None,
+    orbitalopt_startpulay=None,
+    md_type=None,
+    wannier_initial_projectors_unit=None,
+    scf_partialcorecorrection=None,
+    scf_hubbard_u=None,
+    scf_constraint_nc_spin=None,
+    scf_proexpn_vna=None,
+    scf_spinorbit_coupling=None,
+    cntorb_fileout=None,
+    ordern_exact_inverse_s=None,
+    ordern_recalc_buffer=None,
+    ordern_expand_core=None,
+    band_dispersion=None,
+    scf_restart=None,
+    mo_fileout=None,
+    dos_fileout=None,
+    hs_fileout=None,
+    voronoi_charge=None,
+    scf_nc_zeeman_spin=None,
+    scf_stress_tensor=None,
+    dos_erange=None,
+    definition_of_atomic_species=None,
+    atoms_speciesandcoordinates=None,
+    atoms_unitvectors=None,
+    hubbard_u_values=None,
+    atoms_cont_orbitals=None,
+    md_fixed_xyz=None,
+    md_tempcontrol=None,
+    md_init_velocity=None,
+    band_kpath_unitcell=None,
+    band_kpath=None,
+    mo_kpoint=None,
+    wannier_initial_projectors=None,
+    xc='LDA',  # Begining of standard parameters
+    maxiter=200,
+    energy_cutoff=150 * Ry,
+    kpts=(4, 4, 4),
+    band_kpts=tuple(),  # To seperate monkhorst and band kpts
+    eigensolver='Band',
+    spinpol=None,
+    convergence=1e-6 * Ha,
+    external=None,
+    mixer='Rmm-Diis',
+    charge=None,
+    smearing=None,
+    restart=None,  # Begining of calculator parameters
+    mpi=None,
+    pbs=None,
+    debug=False,
+    nohup=True,
+    dft_data_dict=None)
+
+
 class OpenMXParameters(Parameters):
     """
     Parameters class for the OpenMX calculator. OpenMX parameters are defined
@@ -185,127 +298,18 @@ class OpenMXParameters(Parameters):
             'PW',
         ]
 
-    def __init__(
-        self,
-        scf_ngrid=None,
-        scf_kgrid=None,
-        dos_kgrid=None,
-        scf_electric_field=None,
-        level_of_stdout=None,
-        level_of_fileout=None,
-        species_number=None,
-        atoms_number=None,
-        scf_maxiter=None,
-        scf_mixing_history=None,
-        scf_mixing_startpulay=None,
-        scf_mixing_everypulay=None,
-        onedfft_numgridk=None,  # 1Dfft
-        onedfft_numgridr=None,  # 1Dfft
-        orbitalopt_scf_maxiter=None,
-        orbitalopt_opt_maxiter=None,
-        orbitalopt_opt_method=None,
-        orbitalopt_historypulay=None,
-        num_cntorb_atoms=None,
-        ordern_krylovh_order=None,
-        ordern_krylovs_order=None,
-        md_maxiter=None,
-        md_opt_diis_history=None,
-        md_opt_startdiis=None,
-        band_nkpath=None,
-        num_homos=None,
-        num_lumos=None,
-        mo_nkpoint=None,
-        md_current_iter=None,
-        scf_constraint_nc_spin_v=None,
-        scf_electronictemperature=None,
-        scf_fixed_grid=None,
-        scf_energycutoff=None,
-        scf_init_mixing_weight=None,
-        scf_min_mixing_weight=None,
-        scf_max_mixing_weight=None,
-        scf_kerker_factor=None,
-        scf_criterion=None,
-        scf_system_charge=None,
-        onedfft_energycutoff=None,  # 1Dfft
-        orbitalopt_sd_step=None,
-        orbitalopt_criterion=None,
-        ordern_hoppingranges=None,
-        md_timestep=None,
-        md_opt_criterion=None,
-        nh_mass_heatbath=None,
-        scf_nc_mag_field_spin=None,
-        scf_nc_mag_field_orbital=None,
-        system_currentdirectory=None,
-        system_name=None,
-        data_path=None,
-        atoms_speciesandcoordinates_unit=None,
-        atoms_unitvectors_unit=None,
-        scf_xctype=None,
-        scf_spinpolarization=None,
-        scf_hubbard_occupation=None,
-        scf_eigenvaluesolver=None,
-        scf_mixing_type=None,
-        orbitalopt_method=None,
-        orbitalopt_startpulay=None,
-        md_type=None,
-        wannier_initial_projectors_unit=None,
-        scf_partialcorecorrection=None,
-        scf_hubbard_u=None,
-        scf_constraint_nc_spin=None,
-        scf_proexpn_vna=None,
-        scf_spinorbit_coupling=None,
-        cntorb_fileout=None,
-        ordern_exact_inverse_s=None,
-        ordern_recalc_buffer=None,
-        ordern_expand_core=None,
-        band_dispersion=None,
-        scf_restart=None,
-        mo_fileout=None,
-        dos_fileout=None,
-        hs_fileout=None,
-        voronoi_charge=None,
-        scf_nc_zeeman_spin=None,
-        scf_stress_tensor=None,
-        dos_erange=None,
-        definition_of_atomic_species=None,
-        atoms_speciesandcoordinates=None,
-        atoms_unitvectors=None,
-        hubbard_u_values=None,
-        atoms_cont_orbitals=None,
-        md_fixed_xyz=None,
-        md_tempcontrol=None,
-        md_init_velocity=None,
-        band_kpath_unitcell=None,
-        band_kpath=None,
-        mo_kpoint=None,
-        wannier_initial_projectors=None,
-        xc='LDA',  # Begining of standard parameters
-        maxiter=200,
-        energy_cutoff=150*Ry,
-        kpts=(4, 4, 4),
-        band_kpts=[],  # To sperate monkhorst and band kpts
-        eigensolver='Band',
-        spinpol=None,
-        convergence=1e-6 * Ha,
-        external=None,
-        mixer='Rmm-Diis',
-        charge=None,
-        smearing=None,
-        restart=None,  # Begining of calculator parameters
-        mpi=None,
-        pbs=None,
-        debug=False,
-        nohup=True,
-        dft_data_dict=None,
-    ):
+    def __init__(self, **kwargs):
+        Parameters.__init__(self, **kwargs)
+        kw = omx_parameter_defaults.copy()
+        kw.update(kwargs)
 
-        if kpts == (1, 1, 1):
+        if self.kpts == (1, 1, 1):
             print("When only the gamma point is considered, the eigenvalue \
                   solver is changed to 'Cluster' with the periodic boundary \
                   condition.")
-            eigensolver = 'Cluster'
-            mpi = None
-            pbs = None
+            self.eigensolver = 'Cluster'
+            self.mpi = None
+            self.pbs = None
 
         if dft_data_dict is None:
             dft_data_dict = default_dictionary
@@ -316,7 +320,16 @@ class OpenMXParameters(Parameters):
                 for key in dict_dict[symbol].keys():
                     dft_data_dict[symbol][key] = dict_dict[symbol][key]
 
-        kwargs = locals()
-        kwargs.pop('self')
+        if self.data_path is None:
+            if 'OPENMX_DFT_DATA_PATH' not in os.environ:
+                warnings.warn('Please either set OPENMX_DFT_DATA_PATH as an'
+                              'enviroment variable or specify dft_data_path as'
+                              'a keyword argument')
+
+        from copy import deepcopy
+        dft_data_dict = deepcopy(default_dictionary)
+        if self.dft_data_dict is not None:
+            dft_data_dict.update(self.dft_data_dict)
+        self.dft_data_dict = dft_data_dict
+
         # keys = {k: v for k, v in kwargs.items() if not(v is None or v == [])}
-        Parameters.__init__(self, **kwargs)
