@@ -630,9 +630,10 @@ class SocketIOCalculator(Calculator):
         self.atoms = atoms.copy()
         results = self.server.calculate(atoms)
         virial = results.pop('virial')
-        vol = atoms.get_volume()
-        from ase.constraints import full_3x3_to_voigt_6_stress
-        results['stress'] = -full_3x3_to_voigt_6_stress(virial) / vol
+        if self.atoms.number_of_lattice_vectors == 3 and any(self.atoms.pbc):
+            from ase.constraints import full_3x3_to_voigt_6_stress
+            vol = atoms.get_volume()
+            results['stress'] = -full_3x3_to_voigt_6_stress(virial) / vol
         self.results.update(results)
 
     def close(self):
