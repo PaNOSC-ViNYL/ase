@@ -298,6 +298,14 @@ class OpenMX(FileIOCalculator):
         and  add a little debug information from the OpenMX output.
         See base FileIOCalculator for documentation.
         """
+        if self.parameters.data_path is None:
+            try:
+                dft_data_path = os.environ['OPENMX_DFT_DATA_PATH']
+            except KeyError:
+                warnings.warn('Please either set OPENMX_DFT_DATA_PATH as an'
+                              'enviroment variable or specify dft_data_path as'
+                              'a keyword argument')
+
         self.prind("Start Calculation")
         if properties is None:
             properties = self.implemented_properties

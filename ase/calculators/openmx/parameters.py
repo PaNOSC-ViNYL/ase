@@ -307,13 +307,6 @@ class OpenMXParameters(Parameters):
             mpi = None
             pbs = None
 
-        if data_path is None:
-            try:
-                dft_data_path = os.environ['OPENMX_DFT_DATA_PATH']
-            except KeyError:
-                warnings.warn('Please either set OPENMX_DFT_DATA_PATH as an'
-                              'enviroment variable or specify dft_data_path as'
-                              'a keyword argument')
         if dft_data_dict is None:
             dft_data_dict = default_dictionary
         else:
