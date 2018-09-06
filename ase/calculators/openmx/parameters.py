@@ -18,8 +18,6 @@ functional theories.
     along with ASE.  If not, see <http://www.gnu.org/licenses/>.
 """
 from __future__ import print_function
-import os
-import warnings
 from ase.calculators.calculator import Parameters
 from ase.calculators.openmx.default_settings import default_dictionary
 from ase.units import Ha, Ry
