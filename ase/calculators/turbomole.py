@@ -175,7 +175,7 @@ class Turbomole(FileIOCalculator):
             'updateable': True
         },
         'basis set definition': {
-            'comment': 'not implemented',
+            'comment': 'used only in restart',
             'default': None,
             'group': 'basis',
             'key': None,
@@ -206,7 +206,7 @@ class Turbomole(FileIOCalculator):
             'updateable': True
         },
         'damping adjustment step': {
-            'comment': 'not implemented',
+            'comment': None,
             'default': None,
             'group': 'scfdamp',
             'key': 'step',
@@ -249,15 +249,6 @@ class Turbomole(FileIOCalculator):
             'type': float,
             'units': 'eV',
             'updateable': True
-        },
-        'excited state': {
-            'comment': 'not implemented',
-            'default': False,
-            'group': None,
-            'key': None,
-            'type': bool,
-            'units': None,
-            'updateable': False
         },
         'fermi annealing factor': {
             'comment': None,
@@ -353,7 +344,7 @@ class Turbomole(FileIOCalculator):
             'updateable': False
         },
         'initial damping': {
-            'comment': 'not implemented',
+            'comment': None,
             'default': None,
             'group': 'scfdamp',
             'key': 'start',
@@ -371,7 +362,7 @@ class Turbomole(FileIOCalculator):
             'updateable': False
         },
         'minimal damping': {
-            'comment': 'not implemented',
+            'comment': None,
             'default': None,
             'group': 'scfdamp',
             'key': 'min',
@@ -397,24 +388,6 @@ class Turbomole(FileIOCalculator):
             'units': None,
             'updateable': True
         },
-        'number of excited states': {
-            'comment': 'not implemented',
-            'default': None,
-            'group': None,
-            'key': None,
-            'type': int,
-            'units': None,
-            'updateable': False
-        },
-        'optimized excited state': {
-            'comment': 'not implemented',
-            'default': None,
-            'group': None,
-            'key': None,
-            'type': int,
-            'units': None,
-            'updateable': False
-        },
         'point group': {
             'comment': 'only c1 supported',
             'default': 'c1',
@@ -434,7 +407,7 @@ class Turbomole(FileIOCalculator):
             'updateable': True
         },
         'rohf': {
-            'comment': 'not implemented',
+            'comment': 'used only in restart',
             'default': None,
             'group': None,
             'key': None,
@@ -772,6 +745,9 @@ class Turbomole(FileIOCalculator):
             assert len(self.define_str) != 0
             return
 
+        for par in self.parameters:
+            assert par in self.parameter_spec, 'invalid parameter: ' + par
+
         if self.parameters['use dft']:
             func_list = [x.lower() for x in self.available_functionals]
             func = self.parameters['density functional']
@@ -791,8 +767,6 @@ class Turbomole(FileIOCalculator):
             raise NotImplementedError('Explicit basis set definition')
         if self.parameters['point group'] != 'c1':
             raise NotImplementedError('Point group not impemeneted')
-        if self.parameters['excited state']:
-            raise NotImplementedError('Excited state not implemented')
 
     def reset(self):
         """removes all turbomole input, output and scratch files,
