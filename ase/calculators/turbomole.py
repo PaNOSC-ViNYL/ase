@@ -47,7 +47,8 @@ def execute(args, input_str=None, error_test=True,
         args = args.split()
 
     if stdout_tofile:
-        stdout = open('ASE.TM.' + args[0] + '.out', 'w')
+        stdout_file = 'ASE.TM.' + args[0] + '.out'
+        stdout = open(stdout_file, 'w')
     else:
         stdout = PIPE
 
@@ -56,19 +57,16 @@ def execute(args, input_str=None, error_test=True,
     else:
         stdin = None
 
-    message = 'TM command: "' + args[0] + '" execution failed'
+    message = 'TM command "' + args[0] + '" execution failed'
     try:
-        # the sub process gets started here
         proc = Popen(args, stdin=PIPE, stderr=PIPE, stdout=stdout)
         res = proc.communicate(input=stdin)
-        # check some general errors
         if error_test:
             error = res[1].decode()
-            # check the error output of the command
-            if 'abnormally' in error:
-                raise RuntimeError(message + error)
-            if 'ended normally' not in error:
-                raise RuntimeError(message + error)
+            if 'abnormally' in error or 'ended normally' not in error:
+                message += ' with error:\n' + error
+                message += '\nSee file ' + stdout_file + ' for details.\n'
+                raise RuntimeError(message)
     except RuntimeError as err:
         raise err
     except OSError as err:
@@ -119,10 +117,6 @@ class Turbomole(FileIOCalculator):
     implemented_properties = ['energy', 'forces', 'dipole', 'free_energy',
                               'charges']
 
-    available_basis_sets = [
-        'sto-3g hondo', 'def-SV(P)', 'def2-SV(P)', 'def-TZV(P)',
-        'def2-TZV(P)', 'def-SVP', 'def2-SVP', 'def-TZVP', 'def2-TZVP'
-    ]
     available_functionals = [
         'slater-dirac-exchange', 's-vwn', 'vwn', 's-vwn_Gaussian', 'pwlda',
         'becke-exchange', 'b-lyp', 'b-vwn', 'lyp', 'b-p', 'pbe', 'tpss',
@@ -785,11 +779,6 @@ class Turbomole(FileIOCalculator):
                 'density functional not available / not supported'
             )
 
-        bas_list = [x.lower() for x in self.available_basis_sets]
-        assert self.parameters['basis set name'].lower() in bas_list, (
-            'basis set ', self.parameters['basis set name'],
-            ' not available / not supported'
-        )
         assert self.parameters['multiplicity'], 'multiplicity not defined'
 
         if self.parameters['rohf']:
