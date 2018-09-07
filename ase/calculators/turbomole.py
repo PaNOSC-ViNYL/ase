@@ -821,7 +821,7 @@ class Turbomole(FileIOCalculator):
             '\n__title__\na coord\n__inter__\n'
             'bb all __basis_set__\n*\neht\ny\n__charge_str____occ_str__'
             '__single_atom_str____norb_str____dft_str____ri_str__'
-            '__scfiterlimit____fermi_str__q\n'
+            '__scfiterlimit____fermi_str____damp_str__q\n'
         )
 
         params = self.parameters
@@ -883,6 +883,7 @@ class Turbomole(FileIOCalculator):
             conv = floor(-log10(params['scf energy convergence'] / Ha))
             scfiter_str += 'scf\nconv\n' + str(int(conv)) + '\n\n'
 
+        fermi_str = ''
         if params['use fermi smearing']:
             fermi_str = 'scf\nfermi\n'
             if params['fermi initial temperature']:
@@ -901,8 +902,17 @@ class Turbomole(FileIOCalculator):
                 par = str(params['fermi stopping criterion'])
                 fermi_str += '5\n' + par + '\n'
             fermi_str += '\n\n'
-        else:
-            fermi_str = ''
+
+        damp_str = ''
+        damp_keys = ('initial damping', 'damping adjustment step',
+                     'minimal damping')
+        damp_pars = [params[k] for k in damp_keys]
+        if any(damp_pars):
+            damp_str = 'scf\ndamp\n'
+            for par in damp_pars:
+                par_str = str(par) if par else ''
+                damp_str +=  par_str + '\n'
+            damp_str += '\n'
 
         define_str = define_str_tpl
         define_str = re.sub('__title__', params['title'], define_str)
@@ -918,6 +928,7 @@ class Turbomole(FileIOCalculator):
         define_str = re.sub('__inter__', internals_str, define_str)
         define_str = re.sub('__scfiterlimit__', scfiter_str, define_str)
         define_str = re.sub('__fermi_str__', fermi_str, define_str)
+        define_str = re.sub('__damp_str__', damp_str, define_str)
 
         return define_str
 
