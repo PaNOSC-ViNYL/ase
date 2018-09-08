@@ -39,4 +39,6 @@ check('mclc', bravais['mclc'](3., 5., 4., 70.))
 check('tri', bravais['tri'](7., 6., 5., 34., 55., 80.))
 rng = np.random.RandomState(17)
 for i in range(3):
-    check('tri', rng.rand(3, 3))
+    tmpcell = rng.rand(3, 3)
+    tmpcell *= np.sign(np.linalg.det(tmpcell))
+    check('tri', tmpcell)
