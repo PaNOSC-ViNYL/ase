@@ -96,7 +96,7 @@ class XrDebye(object):
         self.damping = damping
 
     def get(self, s):
-        """Get the powder x-ray (XRD) scattering intensity
+        r"""Get the powder x-ray (XRD) scattering intensity
         using the Debye-Formula at single point.
 
         Parameters:
@@ -146,7 +146,7 @@ class XrDebye(object):
         return pre * I
 
     def get_waasmaier(self, symbol, s):
-        """Scattering factor for free atoms.
+        r"""Scattering factor for free atoms.
 
         Parameters:
 

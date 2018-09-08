@@ -39,7 +39,7 @@ Supported :mod:`Calculators <ase.calculators>`:
 |elk| |exciting| |EMT|
 |fhi-aims| |fleur| |gpaw| |gromacs|
 |hotbit| |jacapo| |jdftx| |lammps| |nwchem|
-|octopus| |onetep| |q_espresso| |siesta| |turbomole| |vasp|
+|octopus| |onetep| |openmx| |q_espresso| |siesta| |turbomole| |vasp|
 :mod:`~ase.calculators.amber`
 :mod:`DMol³ <ase.calculators.dmol>`
 Gaussian_
@@ -229,6 +229,9 @@ Contents
    :align: middle
 .. |onetep| image:: static/onetep.png
    :target: ase/calculators/onetep.html
+   :align: middle
+.. |openmx| image:: static/openmx.png
+   :target: ase/calculators/openmx.html
    :align: middle
 .. |q_espresso| image:: static/espresso.png
    :target: ase/calculators/espresso.html

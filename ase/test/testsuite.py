@@ -301,7 +301,7 @@ def test(calculators=[], jobs=0,
         sys.exit(1)
 
     if jobs == -1:  # -1 == auto
-        jobs = min(cpu_count(), len(tests))
+        jobs = min(cpu_count(), len(tests), 32)
 
     print_info()
 
@@ -397,9 +397,10 @@ class CLICommand:
                             help='print all calculator names and exit')
         parser.add_argument('-j', '--jobs', type=int, default=-1,
                             metavar='N',
-                            help='number of worker processes '
-                            '[default: number of available processors].  '
-                            'Use 0 to disable multiprocessing.')
+                            help='number of worker processes.  '
+                            'By default use all available processors '
+                            'up to a maximum of 32.  '
+                            '0 disables multiprocessing.')
         parser.add_argument('tests', nargs='*',
                             help='Specify particular test files.  '
                             'Glob patterns are accepted.')

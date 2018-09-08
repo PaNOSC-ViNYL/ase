@@ -419,8 +419,7 @@ class SQLite3Database(Database, object):
         tables = ['systems']
         where = []
         args = []
-
-        for n, key in enumerate(keys):
+        for key in keys:
             if key == 'forces':
                 where.append('systems.fmax IS NOT NULL')
             elif key == 'strain':
@@ -430,12 +429,10 @@ class SQLite3Database(Database, object):
                 where.append('systems.{} IS NOT NULL'.format(key))
             else:
                 if '-' not in key:
-                    tables.append('keys AS keys{}'.format(n))
-                    q = 'systems.id=keys{0}.id AND keys{0}.key=?'.format(n)
+                    q = 'systems.id in (select id from keys where key=?)'
                 else:
                     key = key.replace('-', '')
-                    q = 'systems.id=keys.id AND keys.key=?'
-                    q = 'NOT EXISTS (SELECT id FROM keys WHERE {})'.format(q)
+                    q = 'systems.id not in (select id from keys where key=?)'
                 where.append(q)
                 args.append(key)
 
@@ -445,10 +442,6 @@ class SQLite3Database(Database, object):
             if isinstance(key, int):
                 bad[key] = bad.get(key, True) and ops[op](0, value)
 
-        found_sort_table = False
-        nspecies = 0
-        ntext = 0
-        nnumber = 0
         for key, op, value in cmps:
             if key in ['id', 'energy', 'magmom', 'ctime', 'user',
                        'calculator', 'natoms', 'pbc', 'unique_id',
@@ -470,18 +463,13 @@ class SQLite3Database(Database, object):
                     args += [key, value]
                 else:
                     if bad[key]:
-                        where.append(
-                            'NOT EXISTS (SELECT id FROM species WHERE\n' +
-                            '  species.id=systems.id AND species.Z=? AND ' +
-                            'species.n{}?)'.format(invop[op]))
+                        where.append('systems.id not in (select id from species ' +
+                                     'where Z=? and n{}?)'.format(invop[op]))
                         args += [key, value]
                     else:
-                        tables.append('species AS specie{}'.format(nspecies))
-                        where.append(('systems.id=specie{0}.id AND ' +
-                                      'specie{0}.Z=? AND ' +
-                                      'specie{0}.n{1}?').format(nspecies, op))
+                        where.append('systems.id in (select id from species ' +
+                                     'where Z=? and n{}?)'.format(op))
                         args += [key, value]
-                        nspecies += 1
 
             elif self.type == 'postgresql':
                 jsonop = '->'
@@ -492,34 +480,21 @@ class SQLite3Database(Database, object):
                 args.append(str(value))
 
             elif isinstance(value, basestring):
-                tables.append('text_key_values AS text{0}'.format(ntext))
-                where.append(('systems.id=text{0}.id AND ' +
-                              'text{0}.key=? AND ' +
-                              'text{0}.value{1}?').format(ntext, op))
+                where.append('systems.id in (select id from text_key_values ' +
+                             'where key=? and value{}?)'.format(op))
                 args += [key, value]
-                if sort_table == 'text_key_values' and sort == key:
-                    sort_table = 'text{0}'.format(ntext)
-                    found_sort_table = True
-                ntext += 1
             else:
-                tables.append('number_key_values AS number{}'.format(nnumber))
-                where.append(('systems.id=number{0}.id AND ' +
-                              'number{0}.key=? AND ' +
-                              'number{0}.value{1}?').format(nnumber, op))
+                where.append('systems.id in (select id from number_key_values ' +
+                             'where key=? and value{}?)'.format(op))
                 args += [key, float(value)]
-                if sort_table == 'number_key_values' and sort == key:
-                    sort_table = 'number{}'.format(nnumber)
-                    found_sort_table = True
-                nnumber += 1
 
         if sort:
             if sort_table != 'systems':
-                if not found_sort_table:
-                    tables.append('{} AS sort_table'.format(sort_table))
-                    where.append('systems.id=sort_table.id AND '
-                                 'sort_table.key=?')
-                    args.append(sort)
-                    sort_table = 'sort_table'
+                tables.append('{} AS sort_table'.format(sort_table))
+                where.append('systems.id=sort_table.id AND '
+                             'sort_table.key=?')
+                args.append(sort)
+                sort_table = 'sort_table'
                 sort = 'value'
 
         sql = 'SELECT {} FROM\n  '.format(what) + ', '.join(tables)
@@ -561,7 +536,7 @@ class SQLite3Database(Database, object):
                         'fmax', 'smax', 'volume', 'mass', 'charge', 'natoms']:
                 sort_table = 'systems'
             else:
-                for dct in self._select(keys + [sort], cmps, limit=1,
+                for dct in self._select(keys + [sort], cmps=[], limit=1,
                                         include_data=False,
                                         columns=['key_value_pairs']):
                     if isinstance(dct['key_value_pairs'][sort], basestring):
@@ -614,7 +589,6 @@ class SQLite3Database(Database, object):
                     if n == limit:
                         return
                     limit -= n
-
                 for row in self._select(keys + ['-' + sort], cmps,
                                         limit=limit, offset=offset,
                                         include_data=include_data,
