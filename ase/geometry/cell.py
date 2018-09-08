@@ -6,7 +6,9 @@ import numpy as np
 from numpy import pi, sin, cos, arccos, sqrt, dot
 from numpy.linalg import norm
 
+from ase.utils.arraywrapper import arraylike
 
+@arraylike
 class Cell:
     """Parallel epipedal unit cell of up to three dimensions.
 
@@ -59,6 +61,7 @@ class Cell:
 
     @property
     def ndim(self):
+        # XXX clashes with ndarray.ndim
         return self.cell.any(1).sum()
 
     @property
@@ -67,6 +70,20 @@ class Cell:
 
     def box(self):
         return orthorhombic(self.cell)
+
+    def __getitem__(self, item):
+        return self.cell.__getitem__(item)
+
+    def __array__(self):
+        return self.cell
+
+    def __getattr__(self, name):
+        return getattr(self.cell, name)
+
+    def __bool__(self):
+        return bool(self.cell.any())
+
+    __nonzero__ = __bool__
 
     @property
     def volume(self):
