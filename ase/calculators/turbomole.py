@@ -175,7 +175,7 @@ class Turbomole(FileIOCalculator):
             'updateable': True
         },
         'basis set definition': {
-            'comment': 'not implemented',
+            'comment': 'used only in restart',
             'default': None,
             'group': 'basis',
             'key': None,
@@ -206,7 +206,7 @@ class Turbomole(FileIOCalculator):
             'updateable': True
         },
         'damping adjustment step': {
-            'comment': 'not implemented',
+            'comment': None,
             'default': None,
             'group': 'scfdamp',
             'key': 'step',
@@ -249,15 +249,6 @@ class Turbomole(FileIOCalculator):
             'type': float,
             'units': 'eV',
             'updateable': True
-        },
-        'excited state': {
-            'comment': 'not implemented',
-            'default': False,
-            'group': None,
-            'key': None,
-            'type': bool,
-            'units': None,
-            'updateable': False
         },
         'fermi annealing factor': {
             'comment': None,
@@ -353,7 +344,7 @@ class Turbomole(FileIOCalculator):
             'updateable': False
         },
         'initial damping': {
-            'comment': 'not implemented',
+            'comment': None,
             'default': None,
             'group': 'scfdamp',
             'key': 'start',
@@ -371,7 +362,7 @@ class Turbomole(FileIOCalculator):
             'updateable': False
         },
         'minimal damping': {
-            'comment': 'not implemented',
+            'comment': None,
             'default': None,
             'group': 'scfdamp',
             'key': 'min',
@@ -397,24 +388,6 @@ class Turbomole(FileIOCalculator):
             'units': None,
             'updateable': True
         },
-        'number of excited states': {
-            'comment': 'not implemented',
-            'default': None,
-            'group': None,
-            'key': None,
-            'type': int,
-            'units': None,
-            'updateable': False
-        },
-        'optimized excited state': {
-            'comment': 'not implemented',
-            'default': None,
-            'group': None,
-            'key': None,
-            'type': int,
-            'units': None,
-            'updateable': False
-        },
         'point group': {
             'comment': 'only c1 supported',
             'default': 'c1',
@@ -434,7 +407,7 @@ class Turbomole(FileIOCalculator):
             'updateable': True
         },
         'rohf': {
-            'comment': 'not implemented',
+            'comment': 'used only in restart',
             'default': None,
             'group': None,
             'key': None,
@@ -772,6 +745,9 @@ class Turbomole(FileIOCalculator):
             assert len(self.define_str) != 0
             return
 
+        for par in self.parameters:
+            assert par in self.parameter_spec, 'invalid parameter: ' + par
+
         if self.parameters['use dft']:
             func_list = [x.lower() for x in self.available_functionals]
             func = self.parameters['density functional']
@@ -791,8 +767,6 @@ class Turbomole(FileIOCalculator):
             raise NotImplementedError('Explicit basis set definition')
         if self.parameters['point group'] != 'c1':
             raise NotImplementedError('Point group not impemeneted')
-        if self.parameters['excited state']:
-            raise NotImplementedError('Excited state not implemented')
 
     def reset(self):
         """removes all turbomole input, output and scratch files,
@@ -847,7 +821,7 @@ class Turbomole(FileIOCalculator):
             '\n__title__\na coord\n__inter__\n'
             'bb all __basis_set__\n*\neht\ny\n__charge_str____occ_str__'
             '__single_atom_str____norb_str____dft_str____ri_str__'
-            '__scfiterlimit____fermi_str__q\n'
+            '__scfiterlimit____fermi_str____damp_str__q\n'
         )
 
         params = self.parameters
@@ -909,6 +883,7 @@ class Turbomole(FileIOCalculator):
             conv = floor(-log10(params['scf energy convergence'] / Ha))
             scfiter_str += 'scf\nconv\n' + str(int(conv)) + '\n\n'
 
+        fermi_str = ''
         if params['use fermi smearing']:
             fermi_str = 'scf\nfermi\n'
             if params['fermi initial temperature']:
@@ -927,8 +902,17 @@ class Turbomole(FileIOCalculator):
                 par = str(params['fermi stopping criterion'])
                 fermi_str += '5\n' + par + '\n'
             fermi_str += '\n\n'
-        else:
-            fermi_str = ''
+
+        damp_str = ''
+        damp_keys = ('initial damping', 'damping adjustment step',
+                     'minimal damping')
+        damp_pars = [params[k] for k in damp_keys]
+        if any(damp_pars):
+            damp_str = 'scf\ndamp\n'
+            for par in damp_pars:
+                par_str = str(par) if par else ''
+                damp_str +=  par_str + '\n'
+            damp_str += '\n'
 
         define_str = define_str_tpl
         define_str = re.sub('__title__', params['title'], define_str)
@@ -944,6 +928,7 @@ class Turbomole(FileIOCalculator):
         define_str = re.sub('__inter__', internals_str, define_str)
         define_str = re.sub('__scfiterlimit__', scfiter_str, define_str)
         define_str = re.sub('__fermi_str__', fermi_str, define_str)
+        define_str = re.sub('__damp_str__', damp_str, define_str)
 
         return define_str
 
