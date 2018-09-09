@@ -1882,7 +1882,7 @@ class Atoms(object):
 
     def _get_cell(self):
         """Return reference to unit cell for in-place manipulations."""
-        return self._cellobj.cell
+        return self._cellobj
 
     cell = property(_get_cell, set_cell, doc='Attribute for direct ' +
                     'manipulation of the unit cell.')

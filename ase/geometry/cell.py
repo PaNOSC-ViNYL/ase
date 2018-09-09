@@ -74,14 +74,22 @@ class Cell:
     def __getitem__(self, item):
         return self.cell.__getitem__(item)
 
+    def __setitem__(self, item, value):
+        return self.cell.__setitem__(item, value)
+
     def __array__(self):
         return self.cell
 
     def __getattr__(self, name):
+        if name == '__setstate__':
+            raise AttributeError(name)
         return getattr(self.cell, name)
 
     def __bool__(self):
         return bool(self.cell.any())
+
+    def __eq__(self, other):
+        return self.cell.__eq__(other)
 
     __nonzero__ = __bool__
 

@@ -1,10 +1,11 @@
-import functools
 import numpy as np
+
 
 inplace_methods = ['__iadd__', '__iand__', '__ifloordiv__', '__ilshift__',
                    '__imatmul__', '__imod__', '__imul__',
                    '__ior__', '__ipow__', '__irshift__', '__isub__',
                    '__itruediv__', '__ixor__']
+
 
 forward_methods = ['__abs__', '__add__', '__and__',
                    '__bool__', '__complex__',

@@ -7,7 +7,11 @@ from ase.utils import basestring
 
 class MyEncoder(json.JSONEncoder):
     def default(self, obj):
-        if isinstance(obj, np.ndarray):
+        if isinstance(obj, np.ndarray) or hasattr(obj, '__array__'):
+            # XXX the __array__ check will save cells as numpy arrays.
+            # In the future we should perhaps save it as a Cell, so that
+            # it can be restored as a Cell.  We should allow this with
+            # other objects as well through todict().
             if obj.dtype == complex:
                 return {'__complex_ndarray__': (obj.real.tolist(),
                                                 obj.imag.tolist())}
