@@ -71,17 +71,16 @@ class Cell:
     def box(self):
         return orthorhombic(self.cell)
 
-    def __getitem__(self, item):
-        return self.cell.__getitem__(item)
-
-    def __setitem__(self, item, value):
-        return self.cell.__setitem__(item, value)
-
     def __array__(self):
         return self.cell
 
     def __getattr__(self, name):
         if name == '__setstate__':
+            # XXX This is voodoo
+            # We want pickle to work normally on this class and not
+            # to inherit this from ndarray.  For that we need to avoid
+            # forwarding to ndarray's __setstate__, but ndarray apparently
+            # does not have __getstate__.
             raise AttributeError(name)
         return getattr(self.cell, name)
 
