@@ -1,5 +1,6 @@
 from __future__ import division, print_function
 from math import sqrt
+from warnings import warn
 from ase.geometry import find_mic
 from ase.calculators.calculator import PropertyNotImplementedError
 
@@ -7,7 +8,7 @@ import numpy as np
 from scipy.linalg import expm
 
 __all__ = ['FixCartesian', 'FixBondLength', 'FixedMode', 'FixConstraintSingle',
-           'FixAtoms', 'UnitCellFilter', 'ExpCellFilter, ''FixScaled', 'StrainFilter',
+           'FixAtoms', 'UnitCellFilter', 'ExpCellFilter', 'FixScaled', 'StrainFilter',
            'FixedPlane', 'Filter', 'FixConstraint', 'FixedLine',
            'FixBondLengths', 'FixInternals', 'Hookean', 'ExternalForce']
 
