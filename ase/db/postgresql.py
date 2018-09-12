@@ -1,5 +1,4 @@
 import json
-import math
 
 import numpy as np
 from psycopg2 import connect
@@ -15,7 +14,7 @@ jsonb_indices = [
 
 
 def remove_nan_and_inf(obj):
-    if isinstance(obj, float) and not math.isfinite(obj):
+    if isinstance(obj, float) and not np.isfinite(obj):
         return {'__special_number__': str(obj)}
     if isinstance(obj, list):
         return [remove_nan_and_inf(x) for x in obj]
