@@ -108,13 +108,20 @@ class Dftb(FileIOCalculator):
         self.kpts = kpts
         # kpoint stuff by ase
         if self.kpts is not None:
-            mpgrid = kpts2mp(atoms, self.kpts)
-            mp = monkhorst_pack(mpgrid)
-            initkey = 'Hamiltonian_KPointsAndWeights'
-            self.parameters[initkey + '_'] = ''
-            for i, imp in enumerate(mp):
-                key = initkey + '_empty' + str(i)
-                self.parameters[key] = str(mp[i]).strip('[]') + ' 1.0'
+            initkey = 'Hamiltonian_KPointsAndWeights' 
+            if isinstance(self.kpts, dict):
+                self.parameters[initkey + '_'] = 'Klines'
+                for i, point in enumerate(self.kpts['path']):
+                    key = initkey + '_empty' + str(i) 
+                    line = ' '.join(map(str, self.kpts[point]))
+                    self.parameters[key] = line
+            else:
+                self.parameters[initkey + '_'] = ''
+                mpgrid = kpts2mp(atoms, self.kpts)
+                mp = monkhorst_pack(mpgrid)
+                for i, imp in enumerate(mp):
+                    key = initkey + '_empty' + str(i)
+                    self.parameters[key] = str(mp[i]).strip('[]') + ' 1.0'
 
     def write_dftb_in(self, filename):
         """ Write the innput file for the dftb+ calculation.
