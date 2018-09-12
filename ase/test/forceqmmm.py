@@ -82,7 +82,6 @@ for R_QM in R_QMs:
 def strain_error(at0, u_ref, u, cutoff, mask):
     I, J = neighbor_list('ij', at0, cutoff)
     I, J = np.array([(i,j) for i, j in zip(I, J) if mask[i]]).T
-    r = at.get_distances(0, np.arange(len(at)), mic=True)
     v = u_ref - u
     dv = np.linalg.norm(v[I, :] - v[J, :], axis=1)
     return np.linalg.norm(dv)
