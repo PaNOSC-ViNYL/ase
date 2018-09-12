@@ -82,7 +82,8 @@ for name in ['testase.json', 'testase.db', 'postgresql']:
                  b=np.bool_(True),
                  i=np.int64(42),
                  n=np.nan,
-                 x=np.inf)
+                 x=np.inf,
+                 s='NaN2')
     row = c[id]
     assert isinstance(row.b, bool)
     assert isinstance(row.i, int)
@@ -96,8 +97,3 @@ for name in ['testase.json', 'testase.db', 'postgresql']:
 
     e = [row.get('energy') for row in c.select(sort='energy')]
     assert len(e) == 5 and abs(e[0] - 1.991) < 0.0005
-
-    # Test NaN and Inf handling:
-    id = c.write(Atoms(), f3=-np.inf, f4='NaN2')
-    #id = c.write(Atoms(), f1=np.nan, f2=np.inf, f3=-np.inf, f4='NaN2')
-    print(c[id].f4)

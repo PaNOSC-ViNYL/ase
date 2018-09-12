@@ -7,28 +7,31 @@ from psycopg2.extras import execute_values
 
 from ase.db.sqlite import (init_statements, index_statements, VERSION,
                            SQLite3Database)
-from ase.io.jsonio import MyEncoder, object_hook, numpyfy
+import ase.io.jsonio
 
 jsonb_indices = [
     'CREATE INDEX idxkeys ON systems USING GIN (key_value_pairs);',
     'CREATE INDEX idxcalc ON systems USING GIN (calculator_parameters);']
 
 
-class PGEncoder(MyEncoder):
-    def default(self, obj):
-        if isinstance(obj, float) and not math.isfinite(obj):
-            return {'__special_number__': str(obj)}
-        return MyEncoder.default(self, obj)
+def remove_nan_and_inf(obj):
+    if isinstance(obj, float) and not math.isfinite(obj):
+        return {'__special_number__': str(obj)}
+    if isinstance(obj, list):
+        return [remove_nan_and_inf(x) for x in obj]
+    if isinstance(obj, dict):
+        return {key: remove_nan_and_inf(value) for key, value in obj.items()}
+    return obj
 
 
-def pg_object_hook(dct):
-    if '__special_number__' in dct:
-        return float(dct['__special_number__'])
-    return object_hook(dct)
-
-
-pgencode = PGEncoder().encode
-pgdecode = json.JSONDecoder(object_hook=pg_object_hook).decode
+def insert_nan_and_inf(obj):
+    if isinstance(obj, dict) and '__special_number__' in obj:
+        return float(obj['__special_number__'])
+    if isinstance(obj, list):
+        return [insert_nan_and_inf(x) for x in obj]
+    if isinstance(obj, dict):
+        return {key: insert_nan_and_inf(value) for key, value in obj.items()}
+    return obj
 
 
 class Connection:
@@ -79,10 +82,10 @@ class PostgreSQLDatabase(SQLite3Database):
     default = 'DEFAULT'
 
     def encode(self, obj):
-        return pgencode(obj)
+        return ase.io.jsonio.encode(remove_nan_and_inf(obj))
 
     def decode(self, obj):
-        return numpyfy(obj)
+        return insert_nan_and_inf(ase.io.jsonio.numpyfy(obj))
 
     def blob(self, array):
         """Convert array to blob/buffer object."""
