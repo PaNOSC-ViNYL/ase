@@ -144,7 +144,7 @@ def forces(lattice, inv_lattice, forces, rot, trans, symm_map):
 def stress(lattice, lattice_inv, stress_3_3, rot):
     """
     Return symmetrized stress
-    
+
     lattice vectors expected as row vectors (same as ASE get_cell() convention),
     inv_lattice is its matrix inverse (get_reciprocal_cell().T)
     """
@@ -167,7 +167,7 @@ class SymmetrizedCalculator(Calculator):
     implemented_properties = ['energy','forces','stress']
     def __init__(self, calc, atoms, *args, **kwargs):
         if not has_spglib:
-            raise RuntimeError("SymmeterizedCalculator requires `spglib`.")
+            import spglib # generate ImportError to skip tests
 
         Calculator.__init__(self, *args, **kwargs)
         self.calc = calc
