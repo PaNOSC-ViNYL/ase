@@ -571,7 +571,7 @@ class Atoms(object):
             return np.zeros((len(self), 3))
 
     def set_masses(self, masses='defaults'):
-        """Set atomic masses.
+        """Set atomic masses in atomic mass units.
 
         The array masses should contain a list of masses.  In case
         the masses argument is not given or for those elements of the
@@ -590,7 +590,7 @@ class Atoms(object):
         self.set_array('masses', masses, float, ())
 
     def get_masses(self):
-        """Get array of masses."""
+        """Get array of masses in atomic mass units."""
         if 'masses' in self.arrays:
             return self.arrays['masses'].copy()
         else:

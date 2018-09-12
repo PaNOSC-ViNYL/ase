@@ -85,8 +85,6 @@ Terr = abs(Tmean - T / u.kB)
 relative_imbalance = abs(Epotmean - Ekinmean) / (Epotmean + Ekinmean)
 
 
-assert Epotmean - Ekinmean
-
 print('epotmean', Epotmean)
 print('ekinmean', Ekinmean)
 print('rel imbalance', relative_imbalance)

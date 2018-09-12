@@ -23,7 +23,7 @@ params = {
     'fermi homo-lumo gap criterion': 0.09,
     'fermi stopping criterion': 0.002,
     'scf energy convergence': 1.e-4,
-    'maximum number of scf iterations': 250
+    'scf iterations': 250
 }
 
 calc = Turbomole(**params)
@@ -48,4 +48,3 @@ calc.calculate()
 print(calc.get_property('energy'))
 print(calc.get_property('forces'))
 print(calc.get_property('dipole'))
-

@@ -88,7 +88,7 @@ the :meth:`~ase.Atoms.get_potential_energy` method from the
 Structure relaxation
 --------------------
 
-Let's use the :mod:`QuasiNewton <ase.optimize.qn>` minimizer to optimize the
+Let's use the :class:`~ase.optimize.QuasiNewton` minimizer to optimize the
 structure of the N2 molecule adsorbed on the Cu surface. First add the
 adsorbate to the Cu slab, for example in the on-top position::
 
@@ -104,7 +104,7 @@ to relax to the equilibrium structure::
 >>> constraint = FixAtoms(mask=[a.symbol != 'N' for a in slab])
 >>> slab.set_constraint(constraint)
 
-Now attach the :mod:`QuasiNewton <ase.optimize.qn>` minimizer to the
+Now attach the :class:`~ase.optimize.QuasiNewton` minimizer to the
 system and save the trajectory file. Run the minimizer with the
 convergence criteria that the force on all atoms should be less than
 some ``fmax``::
