@@ -96,3 +96,7 @@ for name in ['testase.json', 'testase.db', 'postgresql']:
 
     e = [row.get('energy') for row in c.select(sort='energy')]
     assert len(e) == 5 and abs(e[0] - 1.991) < 0.0005
+
+    # Test NaN and Inf handling:
+    id = c.write(Atoms(), f1=np.nan, f2=np.inf, f3=-np.inf, f4='NaN2')
+    print(c[id].f4)
