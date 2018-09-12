@@ -82,7 +82,8 @@ for name in ['testase.json', 'testase.db', 'postgresql']:
                  b=np.bool_(True),
                  i=np.int64(42),
                  n=np.nan,
-                 x=np.inf)
+                 x=np.inf,
+                 s='NaN2')
     row = c[id]
     assert isinstance(row.b, bool)
     assert isinstance(row.i, int)
