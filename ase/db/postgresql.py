@@ -1,12 +1,35 @@
 import json
+import math
+
+import numpy as np
 from psycopg2 import connect
 from psycopg2.extras import execute_values
 
 from ase.db.sqlite import (init_statements, index_statements, VERSION,
                            SQLite3Database)
+from ase.io.jsonio import MyEncoder, object_hook, numpyfy
 
-jsonb_indices = ['CREATE INDEX idxkeys ON systems USING GIN (key_value_pairs);',
-                 'CREATE INDEX idxcalc ON systems USING GIN (calculator_parameters);']
+jsonb_indices = [
+    'CREATE INDEX idxkeys ON systems USING GIN (key_value_pairs);',
+    'CREATE INDEX idxcalc ON systems USING GIN (calculator_parameters);']
+
+
+class PGEncoder(MyEncoder):
+    def default(self, obj):
+        if isinstance(obj, float) and not math.isfinite(obj):
+            return {'__special_number__': str(obj)}
+        return MyEncoder.default(self, obj)
+
+
+def pg_object_hook(dct):
+    if '__special_number__' in dct:
+        return float(dct['__special_number__'])
+    return object_hook(dct)
+
+
+pgencode = PGEncoder().encode
+pgdecode = json.JSONDecoder(object_hook=pg_object_hook).decode
+
 
 class Connection:
     def __init__(self, con):
@@ -54,6 +77,31 @@ class Cursor:
 class PostgreSQLDatabase(SQLite3Database):
     type = 'postgresql'
     default = 'DEFAULT'
+
+    def encode(self, obj):
+        return pgencode(obj)
+
+    def decode(self, txt):
+        return numpyfy(pgdecode(txt))
+
+    def blob(self, array):
+        """Convert array to blob/buffer object."""
+
+        if array is None:
+            return None
+        if len(array) == 0:
+            array = np.zeros(0)
+        if array.dtype == np.int64:
+            array = array.astype(np.int32)
+        return array.tolist()
+
+    def deblob(self, buf, dtype=float, shape=None):
+        """Convert blob/buffer object to ndarray of correct dtype and shape.
+
+        (without creating an extra view)."""
+        if buf is None:
+            return None
+        return np.array(buf, dtype=dtype)
 
     def _connect(self):
         return Connection(connect(self.filename))
