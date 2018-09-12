@@ -81,8 +81,8 @@ class PostgreSQLDatabase(SQLite3Database):
     def encode(self, obj):
         return pgencode(obj)
 
-    def decode(self, txt):
-        return numpyfy(pgdecode(txt))
+    def decode(self, obj):
+        return numpyfy(obj)
 
     def blob(self, array):
         """Convert array to blob/buffer object."""
