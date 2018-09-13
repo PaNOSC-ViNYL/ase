@@ -284,7 +284,7 @@ class Atoms(object):
     constraints = property(_get_constraints, set_constraint, _del_constraints,
                            'Constraints of the atoms.')
 
-    def set_cell(self, cell, scale_atoms=False):
+    def set_cell(self, cell, scale_atoms=False, apply_constraint=True):
         """Set unit cell vectors.
 
         Parameters:
@@ -333,6 +333,12 @@ class Atoms(object):
         elif cell.shape != (3, 3):
             raise ValueError('Cell must be length 3 sequence, length 6 '
                              'sequence or 3x3 matrix!')
+
+        # XXX not working well during initialize due to missing _constraints
+        if apply_constraint and hasattr(self, '_constraints'):
+            for constraint in self.constraints:
+                if hasattr(constraint, 'adjust_cell'):
+                    constraint.adjust_cell(self, cell)
 
         if scale_atoms:
             M = np.linalg.solve(self.get_cell(complete=True),
@@ -752,7 +758,7 @@ class Atoms(object):
                     constraint.adjust_forces(self, forces)
         return forces
 
-    def get_stress(self, voigt=True):
+    def get_stress(self, voigt=True, apply_constraint=True):
         """Calculate stress tensor.
 
         Returns an array of the six independent components of the
@@ -775,6 +781,11 @@ class Atoms(object):
                                stress[1, 2], stress[0, 2], stress[0, 1]])
         else:
             assert shape == (6,)
+
+        if apply_constraint:
+            for constraint in self.constraints:
+                if hasattr(constraint, 'adjust_stress'):
+                    constraint.adjust_stress(self, stress)
 
         if voigt:
             return stress
