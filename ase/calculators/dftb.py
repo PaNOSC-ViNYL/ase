@@ -305,14 +305,13 @@ class Dftb(FileIOCalculator):
                 index_force_end = iline + 1 + \
                     int(line1.split(',')[-1])
                 break
-        try:
-            gradients = []
-            for j in range(index_force_begin, index_force_end):
-                word = self.lines[j].split()
-                gradients.append([float(word[k]) for k in range(0, 3)])
-            return np.array(gradients) * Hartree / Bohr
-        except:
-            raise RuntimeError('Problem in reading forces')
+
+        gradients = []
+        for j in range(index_force_begin, index_force_end):
+            word = self.lines[j].split()
+            gradients.append([float(word[k]) for k in range(0, 3)])
+
+        return np.array(gradients) * Hartree / Bohr
 
     def read_charges_and_energy(self):
         """Get partial charges on atoms
@@ -336,6 +335,7 @@ class Dftb(FileIOCalculator):
             # print('Warning: did not find DFTB-charges')
             # print('This is ok if flag SCC=NO')
             return None, energy
+
         lines1 = lines[chargestart:(chargestart + len(self.atoms))]
         for line in lines1:
             qm_charges.append(float(line.split()[-1]))
@@ -366,19 +366,17 @@ class Dftb(FileIOCalculator):
         else:
             return None
 
-        try:
-            index = index_eigval_begin
-            eigval = np.zeros((nkpt, nspin, nband)) 
-            for i in range(nspin):
-                for j in range(nkpt):
-                    eigenvalues = []
-                    for k in range(rows_per_kpt):
-                        eigenvalues += map(float, self.lines[index].split())
-                        index += 1
-                    eigval[j, i] = eigenvalues
-            return eigval * Hartree
-        except:
-            raise RuntimeError('Problem in reading eigenvalues')
+        index = index_eigval_begin
+        eigval = np.zeros((nkpt, nspin, nband)) 
+        for i in range(nspin):
+            for j in range(nkpt):
+                eigenvalues = []
+                for k in range(rows_per_kpt):
+                    eigenvalues += map(float, self.lines[index].split())
+                    index += 1
+                eigval[j, i] = eigenvalues
+
+        return eigval * Hartree
 
     def read_fermi_levels(self):
         """ Read Fermi level(s) from dftb output file (results.tag). """
@@ -391,19 +389,18 @@ class Dftb(FileIOCalculator):
         else:
             return None
 
-        try:
-            fermi_levels = []
-            words = self.lines[index_fermi].split()
-            assert len(words) == 2
-            for word in words:
-                e = float(word)
-                if abs(e) > 1e-8:
-                    # Without spin polarization, one of the Fermi 
-                    # levels is equal to 0.000000000000000E+000    
-                    fermi_levels.append(e)
-            return np.array(fermi_levels) * Hartree
-        except:
-            raise RuntimeError('Problem in reading Fermi levels')
+        fermi_levels = []
+        words = self.lines[index_fermi].split()
+        assert len(words) == 2
+
+        for word in words:
+            e = float(word)
+            if abs(e) > 1e-8:
+                # Without spin polarization, one of the Fermi 
+                # levels is equal to 0.000000000000000E+000    
+                fermi_levels.append(e)
+
+        return np.array(fermi_levels) * Hartree
 
     def get_ibz_k_points(self):
         return self.kpts_coord.copy()
