@@ -58,6 +58,19 @@ class Dftb(FileIOCalculator):
         run_manyDftb_steps:  Logical
             True: many steps are run by DFTB+,
             False:a single force&energy calculation at given positions
+
+        kpts: list/tuple or dict
+            When a list or tuple of 3 integers is given, 
+            k-points will be set according to a Monkhorst-Pack mesh 
+            with dimensions given by kpts.
+
+            This keyword can also be a dictionary, for the purpose of 
+            band structure calculations. The dict should contain a 'path'
+            key with the special k-points list (as specified in 
+            ase.dft.kpoints.special_points) and a 'npoints' key 
+            with the total number of k-points along the path, e.g.
+            for an FCC lattice: kpts={'path':'GKLGX', 'npoints':100}  
+
         ---------
         Additional object (to be set by function embed)
         pcpot: PointCharge object
