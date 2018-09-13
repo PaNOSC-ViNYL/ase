@@ -114,10 +114,19 @@ def bandpath(path, cell, npoints=50):
     Return list of k-points, list of x-coordinates and list of
     x-coordinates of special points."""
 
+
     if isinstance(path, basestring):
-        special = get_special_points(cell)
+        cellinfo = get_cellinfo(cell)
+        special = cellinfo.special_points
         paths = []
         for names in parse_path_string(path):
+            for name in names:
+                if name not in special:
+                    msg = ('Invalid k-point label {} for {} cell.  '
+                           'Valid labels are {}.'
+                           .format(name, cellinfo.lattice,
+                                   ', '.join(sorted(special))))
+                    raise ValueError(msg)
             paths.append([special[name] for name in names])
     elif np.array(path[0]).ndim == 1:
         paths = [path]
@@ -177,7 +186,6 @@ def labels_from_kpts(kpts, cell, eps=1e-5):
     the third is the special points as strings.
     """
     special_points = get_special_points(cell)
-
     points = np.asarray(kpts)
     diffs = points[1:] - points[:-1]
     kinks = abs(diffs[1:] - diffs[:-1]).sum(1) > eps
@@ -192,7 +200,12 @@ def labels_from_kpts(kpts, cell, eps=1e-5):
             if abs(kpt - k).sum() < eps:
                 break
         else:
-            label = '?'
+            # No exact match.  Try modulus 1:
+            for label, k in special_points.items():
+                if abs((kpt - k) % 1).sum() < eps:
+                    break
+            else:
+                label = '?'
         labels.append(label)
 
     jump = False  # marks a discontinuity in the path
@@ -260,28 +273,14 @@ special_paths = {
     'rhombohedral type 2': 'GPZQGFP1Q1LZ'}
 
 
-def get_special_points(cell, lattice=None, eps=2e-4):
-    """Return dict of special points.
+class CellInfo:
+    def __init__(self, rcell, lattice, special_points):
+        self.rcell = rcell
+        self.lattice = lattice
+        self.special_points = special_points
 
-    The definitions are from a paper by Wahyu Setyawana and Stefano
-    Curtarolo::
 
-        http://dx.doi.org/10.1016/j.commatsci.2010.05.010
-
-    cell: 3x3 ndarray
-        Unit cell.
-    lattice: str
-        Optionally check that the cell is one of the following: cubic, fcc,
-        bcc, orthorhombic, tetragonal, hexagonal or monoclinic.
-    eps: float
-        Tolerance for cell-check.
-    """
-
-    if isinstance(cell, str):
-        warnings.warn('Please call this function with cell as the first '
-                      'argument')
-        lattice, cell = cell, lattice
-
+def get_cellinfo(cell, lattice=None, eps=2e-4):
     from ase.build.tools import niggli_reduce_cell
     rcell, M = niggli_reduce_cell(cell)
     latt = crystal_structure_from_cell(rcell, niggli_reduce=False)
@@ -348,7 +347,36 @@ def get_special_points(cell, lattice=None, eps=2e-4):
     else:
         points = special_points[latt]
 
-    return {label: np.dot(M, kpt) for label, kpt in points.items()}
+    myspecial_points = {label: np.dot(M, kpt) for label, kpt in points.items()}
+    return CellInfo(rcell=rcell, lattice=latt,
+                    special_points=myspecial_points)
+
+
+
+def get_special_points(cell, lattice=None, eps=2e-4):
+    """Return dict of special points.
+
+    The definitions are from a paper by Wahyu Setyawana and Stefano
+    Curtarolo::
+
+        http://dx.doi.org/10.1016/j.commatsci.2010.05.010
+
+    cell: 3x3 ndarray
+        Unit cell.
+    lattice: str
+        Optionally check that the cell is one of the following: cubic, fcc,
+        bcc, orthorhombic, tetragonal, hexagonal or monoclinic.
+    eps: float
+        Tolerance for cell-check.
+    """
+
+    if isinstance(cell, str):
+        warnings.warn('Please call this function with cell as the first '
+                      'argument')
+        lattice, cell = cell, lattice
+
+    cellinfo = get_cellinfo(cell=cell, lattice=lattice, eps=eps)
+    return cellinfo.special_points
 
 
 def monkhorst_pack_interpolate(path, values, icell, bz2ibz,

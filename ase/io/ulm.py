@@ -20,10 +20,10 @@ Writing:
 
 >>> import numpy as np
 >>> import ase.io.ulm as ulm
->>> w = ulm.open('x.ulm', 'w')
->>> w.write(a=np.ones(7), b=42, c='abc')
->>> w.write(d=3.14)
->>> w.close()
+>>> with ulm.open('x.ulm', 'w') as w:
+...     w.write(a=np.ones(7), b=42, c='abc')
+...     w.write(d=3.14)
+
 
 Reading:
 
@@ -106,7 +106,7 @@ def writeint(fd, n, pos=None):
 
 
 def readints(fd, n):
-    a = np.fromstring(string=fd.read(int(n * 8)), dtype=np.int64, count=n)
+    a = np.frombuffer(fd.read(int(n * 8)), dtype=np.int64, count=n)
     if not np.little_endian:
         a.byteswap(True)
     return a
@@ -192,6 +192,12 @@ class Writer:
         self.nmissing = 0  # number of missing numbers
         self.shape = None
         self.dtype = None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, tb):
+        self.close()
 
     def add_array(self, name, shape, dtype=float):
         """Add ndarray object.
@@ -391,6 +397,12 @@ class Reader:
 
         self._parse_data(data)
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, tb):
+        self.close()
+
     def _parse_data(self, data):
         self._data = {}
         for name, value in data.items():
@@ -535,7 +547,7 @@ class NDArrayReader:
             a = np.fromfile(self.fd, self.dtype, count)
         else:
             # Not as fast, but works for reading from tar-files:
-            a = np.fromstring(self.fd.read(int(count * self.itemsize)),
+            a = np.frombuffer(self.fd.read(int(count * self.itemsize)),
                               self.dtype)
         a.shape = (stop - start,) + self.shape[1:]
         if step != 1:

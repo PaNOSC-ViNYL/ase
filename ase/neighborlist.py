@@ -1,6 +1,7 @@
 from math import sqrt
 
 import numpy as np
+from scipy import sparse as sp
 
 from ase.data import atomic_numbers
 from ase.geometry import complete_cell
@@ -30,7 +31,7 @@ def mic(dr, cell, pbc=None):
     # periodic boundaries then and need to be unwrapped.
     icell = np.linalg.pinv(cell)
     if pbc is not None:
-        icell *= np.array(pbc, dtype=int).reshape(3,1)
+        icell *= np.array(pbc, dtype=int).reshape(3, 1)
     cell_shift_vectors = np.round(np.dot(dr, icell))
 
     # Unwrap
@@ -82,7 +83,8 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
               Example: {(1, 6): 1.1, (1, 1): 1.0, ('C', 'C'): 1.85}
             * A list/array with a per atom value: This specifies the radius of
               an atomic sphere for each atoms. If spheres overlap, atoms are
-              within each others neighborhood.
+              within each others neighborhood. See :func:`~ase.utils.natural_cutoffs`
+              for an example on how to get such a list.
     self_interaction: bool
         Return the atom itself as its own neighbor if set to true.
         Default: False
@@ -108,16 +110,26 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
     #     xyz: Bin index, three values identifying x-, y- and z-component of a
     #          spatial bin that is used to make neighbor search O(n)
     #     b: Linearized version of the 'xyz' bin index
-    #     a: Bin-local atom index, i.e. index identifying an atom *within* a bin
+    #     a: Bin-local atom index, i.e. index identifying an atom *within* a
+    #        bin
     #     p: Pair index, can have value 0 or 1
     #     n: (Linear) neighbor index
 
     # Return empty neighbor list if no atoms are passed here
     if len(positions) == 0:
+        empty_types = dict(i=(np.int, (0, )),
+                           j=(np.int, (0, )),
+                           D=(np.float, (0, 3)),
+                           d=(np.float, (0, )),
+                           S=(np.int, (0, 3)))
         retvals = []
         for i in quantities:
-            retvals += [np.array([])]
-        return retvals
+            dtype, shape = empty_types[i]
+            retvals += [np.array([], dtype=dtype).reshape(shape)]
+        if len(retvals) == 1:
+            return retvals[0]
+        else:
+            return tuple(retvals)
 
     # Compute reciprocal lattice vectors.
     b1_c, b2_c, b3_c = np.linalg.pinv(cell).T
@@ -163,17 +175,19 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
                                               positions.T).T
     bin_index_ic = np.floor(scaled_positions_ic*nbins_c).astype(int)
     cell_shift_ic = np.zeros_like(bin_index_ic)
+
     for c in range(3):
         if pbc[c]:
+            # (Note: np.divmod does not exist in older numpies)
             cell_shift_ic[:, c], bin_index_ic[:, c] = \
-                np.divmod(bin_index_ic[:, c], nbins_c[c])
+                divmod(bin_index_ic[:, c], nbins_c[c])
         else:
             bin_index_ic[:, c] = np.clip(bin_index_ic[:, c], 0, nbins_c[c]-1)
 
     # Convert Cartesian bin index to unique scalar bin index.
-    bin_index_i = bin_index_ic[:, 0] + \
-                  nbins_c[0] * (bin_index_ic[:, 1] + \
-                                nbins_c[1] * bin_index_ic[:, 2])
+    bin_index_i = (bin_index_ic[:, 0] +
+                   nbins_c[0] * (bin_index_ic[:, 1] +
+                                 nbins_c[1] * bin_index_ic[:, 2]))
 
     # atom_i contains atom index in new sort order.
     atom_i = np.argsort(bin_index_i)
@@ -229,7 +243,8 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
     # The memory layout of binx_xyz, biny_xyz, binz_xyz is such that computing
     # the respective bin index leads to a linearly increasing consecutive list.
     # The following assert statement succeeds:
-    #     b_b = (binx_xyz + nbins_c[0] * (biny_xyz + nbins_c[1] * binz_xyz)).ravel()
+    #     b_b = (binx_xyz + nbins_c[0] * (biny_xyz + nbins_c[1] *
+    #                                     binz_xyz)).ravel()
     #     assert (b_b == np.arange(np.prod(nbins_c))).all()
 
     # First atoms in pair.
@@ -238,11 +253,12 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
         for dy in range(-neigh_search_y, neigh_search_y+1):
             for dx in range(-neigh_search_x, neigh_search_x+1):
                 # Bin index of neighboring bin and shift vector.
-                shiftx_xyz, neighbinx_xyz = np.divmod(binx_xyz + dx, nbins_c[0])
-                shifty_xyz, neighbiny_xyz = np.divmod(biny_xyz + dy, nbins_c[1])
-                shiftz_xyz, neighbinz_xyz = np.divmod(binz_xyz + dz, nbins_c[2])
+                shiftx_xyz, neighbinx_xyz = divmod(binx_xyz + dx, nbins_c[0])
+                shifty_xyz, neighbiny_xyz = divmod(biny_xyz + dy, nbins_c[1])
+                shiftz_xyz, neighbinz_xyz = divmod(binz_xyz + dz, nbins_c[2])
                 neighbin_b = (neighbinx_xyz + nbins_c[0] *
-                    (neighbiny_xyz + nbins_c[1] * neighbinz_xyz)).ravel()
+                              (neighbiny_xyz + nbins_c[1] * neighbinz_xyz)
+                              ).ravel()
 
                 # Second atom in pair.
                 _secnd_at_neightuple_n = \
@@ -275,8 +291,8 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
     first_at_neightuple_n = np.concatenate(first_at_neightuple_nn)
     secnd_at_neightuple_n = np.concatenate(secnd_at_neightuple_nn)
     cell_shift_vector_n = np.transpose([np.concatenate(cell_shift_vector_x_n),
-                        np.concatenate(cell_shift_vector_y_n),
-                        np.concatenate(cell_shift_vector_z_n)])
+                                        np.concatenate(cell_shift_vector_y_n),
+                                        np.concatenate(cell_shift_vector_z_n)])
 
     # Add global cell shift to shift vectors
     cell_shift_vector_n += cell_shift_ic[first_at_neightuple_n] - \
@@ -387,7 +403,8 @@ def primitive_neighbor_list(quantities, pbc, cell, positions, cutoff,
         return tuple(retvals)
 
 
-def neighbor_list(quantities, a, cutoff, self_interaction=False, max_nbins=1e6):
+def neighbor_list(quantities, a, cutoff, self_interaction=False,
+                  max_nbins=1e6):
     """Compute a neighbor list for an atomic configuration.
 
     Atoms outside periodic boundaries are mapped into the box. Atoms
@@ -412,7 +429,7 @@ def neighbor_list(quantities, a, cutoff, self_interaction=False, max_nbins=1e6):
              between atom i and j). With the shift vector S, the
              distances D between atoms can be computed from:
              D = a.positions[j]-a.positions[i]+S.dot(a.cell)
-    a: ase.Atoms
+    a: :class:`ase.Atoms`
         Atomic configuration.
     cutoff: float or dict
         Cutoff for neighbor search. It can be:
@@ -423,7 +440,8 @@ def neighbor_list(quantities, a, cutoff, self_interaction=False, max_nbins=1e6):
               Example: {(1, 6): 1.1, (1, 1): 1.0, ('C', 'C'): 1.85}
             * A list/array with a per atom value: This specifies the radius of
               an atomic sphere for each atoms. If spheres overlap, atoms are
-              within each others neighborhood.
+              within each others neighborhood. See :func:`~ase.utils.natural_cutoffs`
+              for an example on how to get such a list.
 
     self_interaction: bool
         Return the atom itself as its own neighbor if set to true.
@@ -492,10 +510,12 @@ def neighbor_list(quantities, a, cutoff, self_interaction=False, max_nbins=1e6):
                                  shape=(3 * len(a), 3 * len(a)))
 
     """
-    return primitive_neighbor_list(quantities, a.pbc, a.get_cell(complete=True),
+    return primitive_neighbor_list(quantities, a.pbc,
+                                   a.get_cell(complete=True),
                                    a.positions, cutoff, numbers=a.numbers,
                                    self_interaction=self_interaction,
                                    max_nbins=max_nbins)
+
 
 def first_neighbors(natoms, first_atom):
     """
@@ -513,9 +533,9 @@ def first_neighbors(natoms, first_atom):
     Returns
     -------
     seed : array
-        Array containing pointers to the start and end location of the neighbors
-        of a certain atom. Neighbors of atom k have indices from s[k] to
-        s[k+1]-1.
+        Array containing pointers to the start and end location of the
+        neighbors of a certain atom. Neighbors of atom k have indices from s[k]
+        to s[k+1]-1.
     """
     if len(first_atom) == 0:
         return np.zeros(natoms+1, dtype=int)
@@ -546,6 +566,59 @@ def first_neighbors(natoms, first_atom):
         mask = seed == -1
     return seed
 
+def get_connectivity_matrix(nl, sparse=True):
+    """Return connectivity matrix for a given NeighborList (dtype=numpy.int8).
+
+    A matrix of shape (nAtoms, nAtoms) will be returned.
+    Connected atoms i and j will have matrix[i,j] == 1, unconnected
+    matrix[i,j] == 0. If bothways=True the matrix will be symmetric,
+    otherwise not!
+
+    If *sparse* is True, a scipy csr matrix is returned.
+    If *sparse* is False, a numpy matrix is returned.
+
+    Note that the old and new neighborlists might give different results
+    for periodic systems if bothways=False.
+
+    Example:
+
+    Determine which molecule in a system atom 1 belongs to.
+
+    >>> from ase import neighborlist
+    >>> from ase.build import molecule
+    >>> from ase.utils import natural_cutoffs
+    >>> from scipy import sparse
+    >>> mol = molecule('CH3CH2OH')
+    >>> cutOff = natural_cutoffs(mol)
+    >>> neighborList = neighborlist.NeighborList(cutOff, self_interaction=False, bothways=True)
+    >>> neighborList.update(mol)
+    >>> matrix = neighborList.get_connectivity_matrix()
+    >>> #or: matrix = neighborlist.get_connectivity_matrix(neighborList.nl)
+    >>> n_components, component_list = sparse.csgraph.connected_components(matrix)
+    >>> idx = 1
+    >>> molIdx = component_list[idx]
+    >>> print("There are {} molecules in the system".format(n_components))
+    >>> print("Atom {} is part of molecule {}".format(idx, molIdx))
+    >>> molIdxs = [ i for i in range(len(component_list)) if component_list[i] == molIdx ]
+    >>> print("The following atoms are part of molecule {}: {}".format(molIdx, molIdxs))
+    """
+
+    nAtoms = len(nl.cutoffs)
+
+    if nl.nupdates <= 0:
+        raise RuntimeError('Must call update(atoms) on your neighborlist first!')
+
+    if sparse:
+        matrix = sp.dok_matrix((nAtoms, nAtoms), dtype=np.int8)
+    else:
+        matrix = np.zeros((nAtoms, nAtoms), dtype=np.int8)
+
+    for i in range(nAtoms):
+        for idx in nl.get_neighbors(i)[0]:
+            matrix[i, idx] = 1
+
+    return matrix
+
 
 class NewPrimitiveNeighborList:
     """Neighbor list object. Wrapper around neighbor_list and first_neighbors.
@@ -556,10 +629,10 @@ class NewPrimitiveNeighborList:
         neighbors.
     skin: float
         If no atom has moved more than the skin-distance since the
-        last call to the ``update()`` method, then the neighbor list
-        can be reused.  This will save some expensive rebuilds of
-        the list, but extra neighbors outside the cutoff will be
-        returned.
+        last call to the :meth:`~ase.neighborlist.NewPrimitiveNeighborList.update()`
+        method, then the neighbor list can be reused. This will save
+        some expensive rebuilds of the list, but extra neighbors outside
+        the cutoff will be returned.
     sorted: bool
         Sort neighbor list.
     self_interaction: bool
@@ -594,10 +667,8 @@ class NewPrimitiveNeighborList:
             self.build(pbc, cell, positions, numbers=numbers)
             return True
 
-        if ((self.pbc != pbc).any() or
-            (self.cell != cell).any() or
-            ((self.positions - positions)**2).sum(1).max() >
-            self.skin**2):
+        if ((self.pbc != pbc).any() or (self.cell != cell).any() or
+            ((self.positions - positions)**2).sum(1).max() > self.skin**2):
             self.build(pbc, cell, positions, numbers=numbers)
             return True
 
@@ -618,13 +689,23 @@ class NewPrimitiveNeighborList:
 
         if len(positions) > 0 and not self.bothways:
             mask = np.logical_or(
-                       np.logical_and(self.pair_first <= self.pair_second,
-                                      (self.offset_vec == 0).all(axis=1)),
-                       np.logical_or(self.offset_vec[:, 0] > 0,
-                           np.logical_and(self.offset_vec[:, 0] == 0,
-                               np.logical_or(self.offset_vec[:, 1] > 0,
-                                   np.logical_and(self.offset_vec[:, 1] == 0,
-                                                  self.offset_vec[:, 2] > 0)))))
+                np.logical_and(
+                    self.pair_first <= self.pair_second,
+                    (self.offset_vec == 0).all(axis=1)
+                    ),
+                np.logical_or(
+                    self.offset_vec[:, 0] > 0,
+                    np.logical_and(
+                        self.offset_vec[:, 0] == 0,
+                        np.logical_or(
+                            self.offset_vec[:, 1] > 0,
+                            np.logical_and(
+                                self.offset_vec[:, 1] == 0,
+                                self.offset_vec[:, 2] > 0)
+                            )
+                        )
+                    )
+                )
             self.pair_first = self.pair_first[mask]
             self.pair_second = self.pair_second[mask]
             self.offset_vec = self.offset_vec[mask]
@@ -648,9 +729,9 @@ class NewPrimitiveNeighborList:
         returned.  The positions of the neighbor atoms can be
         calculated like this:
 
-          indices, offsets = nl.get_neighbors(42)
-          for i, offset in zip(indices, offsets):
-              print(atoms.positions[i] + dot(offset, atoms.get_cell()))
+        >>>  indices, offsets = nl.get_neighbors(42)
+        >>>  for i, offset in zip(indices, offsets):
+        >>>      print(atoms.positions[i] + dot(offset, atoms.get_cell()))
 
         Notice that if get_neighbors(a) gives atom b as a neighbor,
         then get_neighbors(b) will not return a as a neighbor - unless
@@ -658,6 +739,7 @@ class NewPrimitiveNeighborList:
 
         return (self.pair_second[self.first_neigh[a]:self.first_neigh[a+1]],
                 self.offset_vec[self.first_neigh[a]:self.first_neigh[a+1]])
+
 
 
 class PrimitiveNeighborList:
@@ -686,10 +768,8 @@ class PrimitiveNeighborList:
             self.build(pbc, cell, coordinates)
             return True
 
-        if ((self.pbc != pbc).any() or
-            (self.cell != cell).any() or
-            ((self.coordinates - coordinates)**2).sum(1).max() >
-            self.skin**2):
+        if ((self.pbc != pbc).any() or (self.cell != cell).any() or
+            ((self.coordinates - coordinates)**2).sum(1).max() > self.skin**2):
             self.build(pbc, cell, coordinates)
             return True
 
@@ -826,18 +906,23 @@ class NeighborList:
     cutoffs: list of float
         List of cutoff radii - one for each atom. If the spheres (defined by
         their cutoff radii) of two atoms overlap, they will be counted as
-        neighbors.
+        neighbors. See :func:`~ase.utils.natural_cutoffs` for an example on how to
+        get such a list.
+
     skin: float
         If no atom has moved more than the skin-distance since the
-        last call to the ``update()`` method, then the neighbor list
-        can be reused.  This will save some expensive rebuilds of
-        the list, but extra neighbors outside the cutoff will be
-        returned.
+        last call to the :meth:`~ase.neighborlist.NeighborList.update()` method,
+        then the neighbor list can be reused.  This will save some expensive rebuilds
+        of the list, but extra neighbors outside the cutoff will be returned.
     self_interaction: bool
         Should an atom return itself as a neighbor?
     bothways: bool
         Return all neighbors.  Default is to return only "half" of
         the neighbors.
+    primitive: :class:`~ase.neighborlist.PrimitiveNeighborList` or :class:`~ase.neighborlist.NewPrimitiveNeighborList` class
+        Define which implementation to use. Older and quadratically-scaling
+        :class:`~ase.neighborlist.PrimitiveNeighborList` or newer and
+        linearly-scaling :class:`~ase.neighborlist.NewPrimitiveNeighborList`.
 
     Example::
 
@@ -853,20 +938,37 @@ class NeighborList:
                             bothways=bothways)
 
     def update(self, atoms):
+        """
+        See :meth:`ase.neighborlist.PrimitiveNeighborList.update` or
+        :meth:`ase.neighborlist.PrimitiveNeighborList.update`.
+        """
         return self.nl.update(atoms.pbc, atoms.get_cell(complete=True),
                               atoms.positions)
 
     def get_neighbors(self, a):
+        """
+        See :meth:`ase.neighborlist.PrimitiveNeighborList.get_neighbors` or
+        :meth:`ase.neighborlist.PrimitiveNeighborList.get_neighbors`.
+        """
         return self.nl.get_neighbors(a)
+
+    def get_connectivity_matrix(self, sparse=True):
+        """
+        See :func:`~ase.neighborlist.get_connectivity_matrix`.
+        """
+        return get_connectivity_matrix(self.nl, sparse)
 
     @property
     def nupdates(self):
+        """Get number of updates."""
         return self.nl.nupdates
 
     @property
     def nneighbors(self):
+        """Get number of neighbors."""
         return self.nl.nneighbors
 
     @property
     def npbcneighbors(self):
+        """Get number of pbc neighbors."""
         return self.nl.npbcneighbors

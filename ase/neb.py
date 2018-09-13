@@ -87,6 +87,9 @@ class NEB:
         if parallel:
             assert world.size == 1 or world.size % (self.nimages - 2) == 0
 
+        self.real_forces = None  # ndarray of shape (nimages, natom, 3)
+        self.energies = None  # ndarray of shape (nimages,)
+
     def interpolate(self, method='linear', mic=False):
         if self.remove_rotation_and_translation:
             minimize_rotation_and_translation(self.images[0], self.images[-1])
@@ -186,7 +189,7 @@ class NEB:
             try:
                 energies[i] = images[i].get_potential_energy()
                 forces[i - 1] = images[i].get_forces()
-            except:
+            except Exception:
                 # Make sure other images also fail:
                 error = self.world.sum(1.0)
                 raise
@@ -199,6 +202,11 @@ class NEB:
                 root = (i - 1) * self.world.size // (self.nimages - 2)
                 self.world.broadcast(energies[i:i + 1], root)
                 self.world.broadcast(forces[i - 1], root)
+
+        # Save for later use in iterimages:
+        self.energies = energies
+        self.real_forces = np.zeros((self.nimages, self.natoms, 3))
+        self.real_forces[1:-1] = forces
 
         imax = 1 + np.argsort(energies[1:-1])[-1]
         self.emax = energies[imax]
@@ -306,9 +314,20 @@ class NEB:
 
     def iterimages(self):
         # Allows trajectory to convert NEB into several images
-        assert not self.parallel or self.world.size == 1
-        # (We could collect the atoms objects on master here!)
-        return iter(self.images)
+        if not self.parallel or self.world.size == 1:
+            for atoms in self.images:
+                yield atoms
+            return
+
+        for i, atoms in enumerate(self.images):
+            if i == 0 or i == self.nimages - 1:
+                yield atoms
+            else:
+                atoms = atoms.copy()
+                atoms.calc = SinglePointCalculator(energy=self.energies[i],
+                                                   forces=self.real_forces[i],
+                                                   atoms=atoms)
+                yield atoms
 
 
 class IDPP(Calculator):
@@ -583,13 +602,13 @@ class NEBTools:
         for x, y in lines:
             ax.plot(x, y, '-g')
         ax.plot(Sfit, Efit, 'k-')
-        ax.set_xlabel('path [$\AA$]')
+        ax.set_xlabel(r'path [$\AA$]')
         ax.set_ylabel('energy [eV]')
         Ef = max(Efit) - E[0]
         Er = max(Efit) - E[-1]
         dE = E[-1] - E[0]
-        ax.set_title('$E_\mathrm{f} \\approx$ %.3f eV; '
-                     '$E_\mathrm{r} \\approx$ %.3f eV; '
+        ax.set_title('$E_\\mathrm{f} \\approx$ %.3f eV; '
+                     '$E_\\mathrm{r} \\approx$ %.3f eV; '
                      '$\\Delta E$ = %.3f eV'
                      % (Ef, Er, dE))
         return fig
@@ -626,6 +645,7 @@ def interpolate(images, mic=False):
     d /= (len(images) - 1.0)
     for i in range(1, len(images) - 1):
         images[i].set_positions(pos1 + i * d)
+
 
 if __name__ == '__main__':
     # This stuff is used by ASE's GUI

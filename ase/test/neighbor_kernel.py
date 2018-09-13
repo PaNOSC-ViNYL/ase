@@ -171,10 +171,10 @@ for p1 in range(2):
         for p3 in range(2):
             atoms.set_pbc((p1, p2, p3))
             i, j, d, D, S = neighbor_list("ijdDS", atoms, atoms.numbers * 0.2 + 0.5)
-            c = np.bincount(i)
+            c = np.bincount(i, minlength=len(atoms))
             atoms2 = atoms.repeat((p1 + 1, p2 + 1, p3 + 1))
             i2, j2, d2, D2, S2 = neighbor_list("ijdDS", atoms2, atoms2.numbers * 0.2 + 0.5)
-            c2 = np.bincount(i2)
+            c2 = np.bincount(i2, minlength=len(atoms))
             c2.shape = (-1, nat)
             dd = d.sum() * (p1 + 1) * (p2 + 1) * (p3 + 1) - d2.sum()
             dr = np.linalg.solve(atoms.cell.T, (atoms.positions[1]-atoms.positions[0]).T).T+np.array([0,0,3])
@@ -193,3 +193,22 @@ i, j, d = primitive_neighbor_list('ijd',
 assert np.all(i == [0, 1])
 assert np.all(j == [1, 0])
 assert np.allclose(d, [0.00945, 0.00945])
+
+# Empty atoms object
+i, D, d, j, S = neighbor_list("iDdjS", ase.Atoms(), 1.0)
+assert i.dtype == np.int
+assert j.dtype == np.int
+assert d.dtype == np.float
+assert D.dtype == np.float
+assert S.dtype == np.int
+assert i.shape == (0,)
+assert j.shape == (0,)
+assert d.shape == (0,)
+assert D.shape == (0, 3)
+assert S.shape == (0, 3)
+
+# Check that only a scalar (not a tuple) is returned if we request a single
+# argument.
+i = neighbor_list("i", ase.Atoms(), 1.0)
+assert i.dtype == np.int
+assert i.shape == (0,)

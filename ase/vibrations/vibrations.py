@@ -13,7 +13,9 @@ import numpy as np
 import ase.units as units
 from ase.io.trajectory import Trajectory
 from ase.parallel import rank, paropen
+
 from ase.utils import opencew, pickleload, basestring
+from ase.calculators.singlepoint import SinglePointCalculator
 
 
 class Vibrations:
@@ -91,6 +93,7 @@ class Vibrations:
     def __init__(self, atoms, indices=None, name='vib', delta=0.01, nfree=2):
         assert nfree in [2, 4]
         self.atoms = atoms
+        self.calc = atoms.get_calculator()
         if indices is None:
             indices = range(len(atoms))
         self.indices = np.asarray(indices)
@@ -115,36 +118,56 @@ class Vibrations:
         simultaneously by several independent processes. This feature relies
         on the existence of files and the subsequent creation of the file in
         case it is not found.
+
+        If the program you want to use does not have a calculator in ASE, use
+        ``iterdisplace`` to get all displaced structures and calculate the forces
+        on your own.
         """
 
-        filename = self.name + '.eq.pckl'
-        fd = opencew(filename)
-        if fd is not None:
-            self.calculate(filename, fd)
-
-        p = self.atoms.positions.copy()
-        for filename, a, i, disp in self.displacements():
+        for dispName, atoms in self.iterdisplace(inplace=True):
+            filename = dispName + '.pckl'
             fd = opencew(filename)
             if fd is not None:
-                self.atoms.positions[a, i] = p[a, i] + disp
-                self.calculate(filename, fd)
-                self.atoms.positions[a, i] = p[a, i]
+                self.calculate(atoms, filename, fd)
+
+    def iterdisplace(self, inplace=False):
+        """Yield name and atoms object for initial and displaced structures.
+
+        Use this to export the structures for each single-point calculation
+        to an external program instead of using ``run()``. Then save the
+        calculated gradients to <name>.pckl and continue using this instance.
+        """
+        atoms = self.atoms if inplace else self.atoms.copy()
+        yield self.name + '.eq', atoms
+        for dispName, a, i, disp in self.displacements():
+            if not inplace:
+                atoms = self.atoms.copy()
+            pos0 = atoms.positions[a, i]
+            atoms.positions[a, i] += disp
+            yield dispName, atoms
+            if inplace:
+                atoms.positions[a, i] = pos0
+
+    def iterimages(self):
+        """Yield initial and displaced structures."""
+        for name, atoms in self.iterdisplace():
+            yield atoms
 
     def displacements(self):
         for a in self.indices:
             for i in range(3):
                 for sign in [-1, 1]:
                     for ndis in range(1, self.nfree // 2 + 1):
-                        filename = ('%s.%d%s%s.pckl' %
+                        dispName = ('%s.%d%s%s' %
                                     (self.name, a, 'xyz'[i],
                                      ndis * ' +-'[sign]))
                         disp = ndis * sign * self.delta
-                        yield filename, a, i, disp
+                        yield dispName, a, i, disp
 
-    def calculate(self, filename, fd):
-        forces = self.atoms.get_forces()
+    def calculate(self, atoms, filename, fd):
+        forces = self.calc.get_forces(atoms)
         if self.ir:
-            dipole = self.calc.get_dipole_moment(self.atoms)
+            dipole = self.calc.get_dipole_moment(atoms)
         if self.ram:
             freq, noninPol, pol = self.get_polarizability()
         if rank == 0:
@@ -174,7 +197,8 @@ class Vibrations:
 
         n = 0
         filenames = [self.name + '.eq.pckl']
-        for filename, a, i, disp in self.displacements():
+        for dispName, a, i, disp in self.displacements():
+            filename = dispName + '.pckl'
             filenames.append(filename)
 
         for name in filenames:
@@ -338,6 +362,12 @@ class Vibrations:
         self.atoms.set_positions(p)
         self.atoms.set_calculator(calc)
         traj.close()
+
+    def show_as_force(self, n, scale=0.2):
+        mode = self.get_mode(n) * len(self.hnu) * scale
+        calc = SinglePointCalculator(self.atoms, forces=mode)
+        self.atoms.set_calculator(calc)
+        self.atoms.edit()
 
     def write_jmol(self):
         """Writes file for viewing of the modes with jmol."""

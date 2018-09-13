@@ -15,8 +15,13 @@ calculation.
 
 
 .. _VASP: http://cms.mpi.univie.ac.at/vasp/
+.. _Vasp 2.0: vasp2.html
 
-
+.. note::
+   A new VASP_ calculator is currently in BETA testing, see
+   :mod:`~ase.calculators.vasp.vasp2`,
+   which implements the calculator using the
+   :class:`~ase.calculators.calculator.FileIOCalculator`.
 
 Environment variables
 =====================
@@ -43,9 +48,21 @@ Set both environment variables in your shell configuration file:
   $ export VASP_SCRIPT=$HOME/vasp/run_vasp.py
   $ export VASP_PP_PATH=$HOME/vasp/mypps
 
-.. highlight:: python
+.. _VASP vdW wiki: https://cms.mpi.univie.ac.at/vasp/vasp/vdW_DF_functional_Langreth_Lundqvist_et_al.html
+  
+The following environment variable can be used to automatically copy the
+van der Waals kernel to the calculation directory. The kernel is needed for
+vdW calculations, see `VASP vdW wiki`_, for more details. The kernel is looked
+for, whenever ``luse_vdw=True``.
 
+.. highlight:: bash
 
+::
+   
+   $ export ASE_VASP_VDW=$HOME/<path-to-vdw_kernel.bindat-folder>
+
+The environment variable :envvar:`ASE_VASP_VDW` should point to the folder where
+the :file:`vdw_kernel.bindat` file is located.
 
 VASP Calculator
 ===============
@@ -351,3 +368,14 @@ calculations, in the directory of the previous calculation do:
 >>> atoms = calc.get_atoms()
 >>> atoms.get_potential_energy()
 -4.7386889999999999
+
+New Calculator
+==============
+
+A new VASP_ calculator is currently in BETA testing, see
+:mod:`~ase.calculators.vasp.vasp2`, which implements the calculator using the
+:class:`~ase.calculators.calculator.FileIOCalculator`.
+
+.. toctree::
+
+   vasp2

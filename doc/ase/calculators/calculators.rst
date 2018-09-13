@@ -59,9 +59,9 @@ The calculators can be divided in four groups:
 4) Calculators that wrap others, included in the ASE package:
    :class:`ase.calculators.checkpoint.CheckpointCalculator`,
    the :class:`ase.calculators.loggingcalc.LoggingCalculator`,
+   the :class:`ase.calculators.socketio.SocketIOCalculator`,
    the :ref:`Grimme-D3 <grimme>` potential, and the qmmm calculators
    :class:`~ase.calculators.qmmm.EIQMMM`,  and :class:`~ase.calculators.qmmm.SimpleQMMM`.
-
 
 ========================================= ===========================================
 name                                      description
@@ -87,10 +87,11 @@ gaussian                                  Gaussian based electronic structure co
 :mod:`~ase.calculators.gulp`              Interatomic potential code
 :mod:`~ase.calculators.jacapo`            Plane-wave ultra-soft pseudopotential code
 :mod:`~ase.calculators.lammps`            Classical molecular dynamics code
-:mod:`~ase.calculators.mopac`             ...
+:mod:`~ase.calculators.mopac`             Semiempirical molecular orbital code
 :mod:`~ase.calculators.nwchem`            Gaussian based electronic structure code
 :mod:`~ase.calculators.octopus`           Real-space pseudopotential code
 :mod:`~ase.calculators.onetep`            Linear-scaling pseudopotential code
+:mod:`~ase.calculators.openmx`            LCAO pseudopotential code
 :mod:`~ase.calculators.siesta`            LCAO pseudopotential code
 :mod:`~ase.calculators.turbomole`         Fast atom orbital code
 :mod:`~ase.calculators.vasp`              Plane-wave PAW code
@@ -98,6 +99,7 @@ gaussian                                  Gaussian based electronic structure co
 lj                                        Lennard-Jones potential
 morse                                     Morse potential
 :mod:`~ase.calculators.checkpoint`        Checkpoint calculator
+:mod:`~ase.calculators.socketio`          Socket-based interface to calculators
 :mod:`~ase.calculators.loggingcalc`       Logging calculator
 :mod:`~ase.calculators.dftd3`             DFT-D3 dispersion correction calculator
 :class:`~ase.calculators.qmmm.EIQMMM`     Explicit Interaction QM/MM
@@ -213,6 +215,7 @@ the :meth:`set` method:
    fleur
    gromacs
    gulp
+   socketio/socketio
    jacapo
    lammps
    lammpsrun
@@ -220,6 +223,7 @@ the :meth:`set` method:
    nwchem
    octopus
    onetep
+   openmx
    siesta
    turbomole
    vasp

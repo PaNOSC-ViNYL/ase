@@ -39,7 +39,6 @@ Quick links:
   :func:`~ase.build.minimize_rotation_and_translation`,
   :func:`~ase.build.get_deviation_from_optimal_cell_shape`,
   :func:`~ase.build.find_optimal_cell_shape`,
-  :func:`~ase.build.find_optimal_cell_shape_pure_python`,
   :func:`~ase.build.make_supercell`
 
 
@@ -49,7 +48,7 @@ Quick links:
 
    surface
    tools
-   
+
 .. seealso::
 
    * The :mod:`ase.lattice` module.  The module contains functions for
@@ -61,7 +60,7 @@ Quick links:
 
    * The :mod:`ase.cluster` module.  Useful for creating nanoparticles
      and clusters.
-     
+
    * The :mod:`ase.spacegroup` module
 
    * The :mod:`ase.geometry` module
@@ -174,9 +173,10 @@ Graphene nanoribbons
 examples:
 
 >>> from ase.build import graphene_nanoribbon
->>> gnr1 = graphene_nanoribbon(3, 4, type='armchair', saturated=True)
+>>> gnr1 = graphene_nanoribbon(3, 4, type='armchair', saturated=True,
+                               vacuum=3.5)
 >>> gnr2 = graphene_nanoribbon(2, 6, type='zigzag', saturated=True,
-...                            C_H=1.1, C_C=1.4, vacuum=6.0,
+...                            C_H=1.1, C_C=1.4, vacuum=3.0,
 ...                            magnetic=True, initial_mag=1.12)
 
 |gnr1| |gnr2|

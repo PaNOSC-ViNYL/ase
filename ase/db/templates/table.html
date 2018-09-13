@@ -13,27 +13,24 @@
 
 <div class="container">
 <div class="row">
-    <h1>{{proj}}</h1>
+  <h1>{{proj}}</h1>
 </div>
 
 
 
-<div class="well">
-        <form id="mainFormID" class="navbar-form navbar-default" role="search" action="/">
-            <input type="hidden" name="x" value="{{ x }}">
-
-            <div class="form-group">
-                <input type="text" name="query" value="{{ con.query[0] }}" id="formula-result" class="form-control" placeholder="Search formula e.g. MoS2" size="60">
-            </div>
-
-            <button type="submit" class="btn btn-default">
-                <i class="fa fa-search fa-1x" aria-hidden="true"></i>
-            </button>
-
-            <div class="row">
+<div class="well mt-2">
+  <form id="mainFormID" class="navbar-form navbar-default mt-2" role="search" action="/">
+    <input type="hidden" name="x" value="{{ x }}">
+    <div class="form-group" style="margin-top:5px;">
+      <input type="text" name="query" value="{{ con.query[0] }}" id="formula-result"
+             class="form-control mt-2" placeholder="Search formula e.g. MoS2" size="60">
+      <button type="submit" class="btn btn-default">
+        <i class="fa fa-search fa-1x" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="row">
     {% for control in ctrl %}
-                <div class="col-md-10">
-
+      <div class="col-md-10" style="margin-top:5px">
         {% if control[0] == 'SELECT' %}
             {{ select(control) }}
         {% elif control[0] == 'BOOL' %}
@@ -41,37 +38,38 @@
         {% elif control[0] == 'RANGE' %}
             {{ myrange(control) }}
         {% endif %}
-
-                </div>
-
+      </div>
     {% endfor %}
-            </div>
-
-            <div class="form-group" style="margin-bottom:0px;">
-                <small class="form-text text-muted"><a href="https://wiki.fysik.dtu.dk/ase/ase/db/db.html#querying" target="_blank">Help with constructing advanced search queries ...</a></small>
-            </div><br/>
+    </div>
+    <div class="form-group" style="margin-bottom:0px;">
+      <small class="form-text text-muted">
+        <a href="https://wiki.fysik.dtu.dk/ase/ase/db/db.html#querying" target="_blank">
+          Help with constructing advanced search queries ...
+        </a>
+      </small>
+    </div><br/>
 
 {# Flash query messages #}
 {% with messages = get_flashed_messages() %}
-    {% if messages %}
+  {% if messages %}
     <ul class="list-group">
-        {% for message in messages %}
-        <li class="list-group-item list-group-item-warning">{{ message }}</li>
-        {% endfor %}
+    {% for message in messages %}
+      <li class="list-group-item list-group-item-warning">{{ message }}</li>
+    {% endfor %}
     </ul>
-    {% endif %}
+  {% endif %}
 {% endwith %}
-<small lcass="form-text text-muted">
-<a data-toggle="collapse" href="#collapse1">Toggle list of keys ...</a>
-</small><br/>
-<div id="collapse1" class="collapse">
-<table class="table table-striped">
+    <small lcass="form-text text-muted">
+    <a data-toggle="collapse" href="#collapse1">Toggle list of keys ...</a>
+    </small><br/>
+    <div id="collapse1" class="collapse">
+      <table class="table table-striped">
 {% for key, description, unit in md.all_keys %}
-<tr><td>{{ key }}</td><td>{{ description }}</td><td>{{ unit|safe }}</td></tr>
+        <tr><td>{{ key }}</td><td>{{ description }}</td><td>{{ unit|safe }}</td></tr>
 {% endfor %}
-</table>
-</div>
-</form>
+      </table>
+    </div>
+  </form>
 </div>
 
 <div class="row">
@@ -226,16 +224,17 @@
 {% endblock content %}
 
 {% macro select(control) %}
-            {% set key, text, choises = control[1:] %}
-            {% set choise = con.query[1][key] %}
-            {{ text }}:<select name="select_{{ key }}">
-            <option value="">-</option>
-            {% for val in choises %}
-            <option value="{{ val }}"
-            {% if val == con.query[1][key] %} selected {% endif %}
-            >{{ val }}</option>
-            {% endfor %}
-            </select>
+{% set key, text, choises = control[1:] %}
+{% set choise = con.query[1][key] %}
+{{ text }}:
+<select name="select_{{ key }}">
+  <option value="">-</option>
+  {% for val in choises %}
+  <option value="{{ val }}" {% if val == con.query[1][key] %} selected {% endif %}>
+    {{ val }}
+  </option>
+  {% endfor %}
+</select>
 {% endmacro %}
 
 {% macro boolean(control) %}

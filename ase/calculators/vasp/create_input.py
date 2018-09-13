@@ -22,6 +22,7 @@ http://cms.mpi.univie.ac.at/vasp/
 import os
 import sys
 import warnings
+import shutil
 from os.path import join, isfile, islink
 
 import numpy as np
@@ -833,7 +834,10 @@ class GenerateVaspInput(object):
             'kpts_nintersections': None,
             # Option to write explicit k-points in units
             # of reciprocal lattice vectors:
-            'reciprocal': False}
+            'reciprocal': False,
+            # Switch to disable writing constraints to POSCAR
+            'ignore_constraints': False
+        }
 
     def set_xc_params(self, xc):
         """Set parameters corresponding to XC functional"""
@@ -1112,11 +1116,43 @@ class GenerateVaspInput(object):
         from ase.io.vasp import write_vasp
         write_vasp(join(directory, 'POSCAR'),
                    self.atoms_sorted,
-                   symbol_count=self.symbol_count)
+                   symbol_count=self.symbol_count,
+                   ignore_constraints=self.input_params['ignore_constraints'])
         self.write_incar(atoms, directory=directory)
         self.write_potcar(directory=directory)
         self.write_kpoints(directory=directory)
         self.write_sort_file(directory=directory)
+        self.copy_vdw_kernel(directory=directory)
+
+    def copy_vdw_kernel(self, directory='./'):
+        """Method to copy the vdw_kernel.bindat file.
+        Set ASE_VASP_VDW environment variable to the vdw_kernel.bindat
+        folder location. Checks if LUSE_VDW is enabled, and if no location
+        for the vdW kernel is specified, a warning is issued."""
+
+        vdw_env = 'ASE_VASP_VDW'
+        kernel = 'vdw_kernel.bindat'
+        dst = os.path.join(directory, kernel)
+
+        # No need to copy the file again
+        if isfile(dst):
+            return
+
+        if self.bool_params['luse_vdw']:
+            src = None
+            if vdw_env in os.environ:
+                src = os.path.join(os.environ[vdw_env],
+                                   kernel)
+
+            if not src or not isfile(src):
+                warnings.warn(('vdW has been enabled, however no'
+                               ' location for the {} file'
+                               ' has been specified.'
+                               ' Set {} environment variable to'
+                               ' copy the vdW kernel.').format(
+                                   kernel, vdw_env))
+            else:
+                shutil.copyfile(src, dst)
 
     def clean(self):
         """Method which cleans up after a calculation.
@@ -1386,35 +1422,35 @@ class GenerateVaspInput(object):
 
                 elif key in list_bool_keys:
                     self.list_bool_keys[key] = [_from_vasp_bool(x) for x in
-                                                _args_without_comment(data)]
+                                                _args_without_comment(data[2:])]
 
                 elif key in list_int_keys:
                     self.list_int_params[key] = [int(x) for x in
-                                                 _args_without_comment(data)]
+                                                 _args_without_comment(data[2:])]
 
                 elif key in list_float_keys:
                     if key == 'magmom':
-                        list = []
+                        lst = []
                         i = 2
                         while i < len(data):
                             if data[i] in ["#", "!"]:
                                 break
                             if data[i] == "*":
-                                b = list.pop()
+                                b = lst.pop()
                                 i += 1
                                 for j in range(int(b)):
-                                    list.append(float(data[i]))
+                                    lst.append(float(data[i]))
                             else:
-                                list.append(float(data[i]))
+                                lst.append(float(data[i]))
                             i += 1
-                        self.list_params['magmom'] = list
-                        list = np.array(list)
+                        self.list_float_params['magmom'] = lst
+                        lst = np.array(lst)
                         if self.atoms is not None:
                             self.atoms.set_initial_magnetic_moments(
-                                list[self.resort])
+                                lst[self.resort])
                     else:
                         data = _args_without_comment(data)
-                        self.list_float_params[key] = [float(x) for x in data]
+                        self.list_float_params[key] = [float(x) for x in data[2:]]
                 # elif key in list_keys:
                 #     list = []
                 #     if key in ('dipol', 'eint', 'ferwe', 'ferdo',

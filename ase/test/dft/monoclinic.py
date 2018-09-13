@@ -2,7 +2,8 @@
 import numpy as np
 from ase import Atoms
 from ase.calculators.test import FreeElectrons
-from ase.geometry import crystal_structure_from_cell, cell_to_cellpar, cellpar_to_cell
+from ase.geometry import (crystal_structure_from_cell, cell_to_cellpar,
+                          cellpar_to_cell)
 from ase.dft.kpoints import get_special_points
 
 mc1 = [[1, 0, 0], [0, 1, 0], [0, 0.2, 1]]

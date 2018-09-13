@@ -22,8 +22,7 @@ for row in db1.select():
         id = db2.reserve(layers=n, surf=symb, ads='clean')
         if id is not None:
             atoms = run(symb, a, n)
-            db2.write(atoms, layers=n, surf=symb, ads='clean')
-            del db2[id]
+            db2.write(atoms, id=id, layers=n, surf=symb, ads='clean')
 
 # Atoms:
 for ads in 'CNO':

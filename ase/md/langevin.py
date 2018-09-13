@@ -1,7 +1,6 @@
 """Langevin dynamics class."""
 
 import numpy as np
-from numpy.random import standard_normal
 
 from ase.md.md import MolecularDynamics
 from ase.parallel import world
@@ -28,6 +27,11 @@ class Langevin(MolecularDynamics):
         If True, the position and momentum of the center of mass is
         kept unperturbed.  Default: True.
 
+    rng
+        Random number generator, by default numpy.random.  Must have a
+        standard_normal method matching the signature of
+        numpy.random.standard_normal.
+
     The temperature and friction are normally scalars, but in principle one
     quantity per atom could be specified by giving an array.
 
@@ -46,11 +50,12 @@ class Langevin(MolecularDynamics):
 
     def __init__(self, atoms, timestep, temperature, friction, fixcm=True,
                  trajectory=None, logfile=None, loginterval=1,
-                 communicator=world):
+                 communicator=world, rng=np.random):
         self.temp = temperature
         self.fr = friction
         self.fixcm = fixcm  # will the center of mass be held fixed?
         self.communicator = communicator
+        self.rng = rng
         MolecularDynamics.__init__(self, atoms, timestep, trajectory,
                                    logfile, loginterval)
         self.updatevars()
@@ -99,8 +104,8 @@ class Langevin(MolecularDynamics):
         # processors.
         self.v = atoms.get_velocities()
 
-        self.xi = standard_normal(size=(natoms, 3))
-        self.eta = standard_normal(size=(natoms, 3))
+        self.xi = self.rng.standard_normal(size=(natoms, 3))
+        self.eta = self.rng.standard_normal(size=(natoms, 3))
 
         if self.communicator is not None:
             self.communicator.broadcast(self.xi, 0)

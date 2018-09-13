@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import sys
-
 import numpy as np
 
 from ase.optimize.optimize import Optimizer
@@ -322,21 +320,3 @@ class LBFGSLineSearch(LBFGS):
 #            else:
 #                RdR += self.dR * 0.5
 #        return du * RdR
-
-
-class HessLBFGS(LBFGS):
-    """Backwards compatibiliyt class"""
-    def __init__(self, *args, **kwargs):
-        if 'method' in kwargs:
-            del kwargs['method']
-        sys.stderr.write('Please use LBFGS instead of HessLBFGS!')
-        LBFGS.__init__(self, *args, **kwargs)
-
-
-class LineLBFGS(LBFGSLineSearch):
-    """Backwards compatibiliyt class"""
-    def __init__(self, *args, **kwargs):
-        if 'method' in kwargs:
-            del kwargs['method']
-        sys.stderr.write('Please use LBFGSLineSearch instead of LineLBFGS!')
-        LBFGSLineSearch.__init__(self, *args, **kwargs)

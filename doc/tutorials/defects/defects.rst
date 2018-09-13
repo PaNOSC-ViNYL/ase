@@ -145,19 +145,6 @@ number of primitive unit cells.
 Implementation of algorithm
 ---------------------------
 
-The algorithm described above has been implemented in two versions:
-
-* :func:`~ase.build.find_optimal_cell_shape`: An
-  implementation that invokes inline-C code via the `scipy.weave
-  <http://docs.scipy.org/doc/scipy/reference/tutorial/weave.html>`_
-  interface as is substantially (about one to two orders of magnitude)
-  faster than the pure python version. `scipy
-  <https://www.scipy.org/>`_ is available on many systems for
-  scientific computing and should be preferable if available.
-
-* :func:`~ase.build.find_optimal_cell_shape_pure_python`:
-  A pure python implementation that is, however, quite slow.
-
 For illustration consider the following example. First we set up a
 primitive face-centered cubic (fcc) unit cell, after which we call
 :func:`~ase.build.find_optimal_cell_shape` to obtain a

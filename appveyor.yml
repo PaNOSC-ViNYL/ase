@@ -8,7 +8,7 @@ environment:
     #- PYTHON: "C:\\Python27-x64"
     #  # Python 3.6
     #- PYTHON: "C:\\Python36"
-      # Python 3.6 - 64-bit
+    # Python 3.6 - 64-bit
     - PYTHON: "C:\\Python36-x64"
     #  # Conda 2.7
     #- PYTHON: "C:\\Miniconda"
@@ -28,15 +28,19 @@ install:
   # Install the conda supplied packages if using conda, otherwise use pip
   # The wheel package is needed for 'pip wheel'
   # Turn off progressbars '-q' otherwise PowerShell thinks there are errors
+  - "echo %PYTHON%"
   - ps: |
       if($env:PYTHON -match "conda")
       {
+        echo "install with conda"
         conda update -yq conda
         conda install -yq pip wheel numpy scipy pyflakes matplotlib flask
       }
       else
       {
-        pip install --upgrade pip
+        echo "install with pip"
+        #pip install --upgrade pip
+        python.exe -m pip install --upgrade pip
         pip install wheel
       }
   # install ase into the current python
@@ -50,7 +54,7 @@ test_script:
   # run tests from temp dir so source tree doesn't interfere
   - "cd %TEMP%"
   - "ase info"
-  - "ase test -v"
+  - "ase -T test"
 
 after_test:
   # This step builds distribution.

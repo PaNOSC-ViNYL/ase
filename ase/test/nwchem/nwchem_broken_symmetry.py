@@ -5,7 +5,7 @@ from ase.calculators.nwchem import NWChem
 
 
 def main():
-    """Perform C_{\inf v} calculation on Cr_2."""
+    """Perform C_{\\inf v} calculation on Cr_2."""
     # PBE from
     # J. Chem. Phys. 112 , 5576 (2000)
     # http://dx.doi.org/10.1063/1.481183

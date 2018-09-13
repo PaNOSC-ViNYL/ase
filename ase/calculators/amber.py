@@ -14,8 +14,6 @@ from ase.calculators.calculator import Calculator, FileIOCalculator
 import ase.units as units
 from scipy.io import netcdf
 
-# SPC/Fw charge on H
-qH = 0.410
 
 class Amber(FileIOCalculator):
     """Class for doing Amber classical MM calculations.
@@ -269,12 +267,17 @@ class Amber(FileIOCalculator):
                                (self.label, errorcode))
 
     def get_virtual_charges(self, atoms):
-        charges = np.empty(len(atoms))
-        charges[:] = qH
-        if atoms.numbers[0] == 8:
-            charges[::3] = -2 * qH
-        else:
-            charges[2::3] = -2 * qH
+        topology = open(self.topologyfile, 'r').readlines()
+        for n, line in enumerate(topology):
+            if '%FLAG CHARGE' in line:
+                chargestart = n + 2
+        lines1 = topology[chargestart:(chargestart
+                                       + (len(atoms)-1)//5 + 1)]
+        mm_charges = []
+        for line in lines1:
+            for el in line.split():
+                mm_charges.append(float(el)/18.2223)
+        charges = np.array(mm_charges)
         return charges
 
     def add_virtual_sites(self, positions):
@@ -282,6 +285,7 @@ class Amber(FileIOCalculator):
 
     def redistribute_forces(self, forces):
         return forces
+
 
 def map(atoms, top):
     p = np.zeros((2, len(atoms)), dtype="int")

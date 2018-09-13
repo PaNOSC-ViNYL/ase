@@ -17,9 +17,6 @@ A preconditioned version of FIRE is also included, this is less well tested.
 Optional dependencies
 ---------------------
 
-    - matscipy, https://github.com/libAtoms/matscipy, for faster
-      neighbour list asssembly with large systems. The module
-      falls back on `ase.neighbour_list` if matscipy is not available.
     - scipy, `pip install scipy` for efficient sparse linear algebra,
       important for large systems (>1000 atoms).
     - PyAMG, `pip install pyamg`, for iterative adaptive multi grid

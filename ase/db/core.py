@@ -12,6 +12,7 @@ import numpy as np
 from ase.atoms import Atoms, symbols2numbers, string2symbols
 from ase.calculators.calculator import all_properties, all_changes
 from ase.data import atomic_numbers
+from ase.db.row import AtomsRow
 from ase.parallel import world, DummyMPI, parallel_function, parallel_generator
 from ase.utils import Lock, basestring, PurePath
 
@@ -139,7 +140,8 @@ def connect(name, type='extract_from_name', create_indices=True,
             type = None
         elif not isinstance(name, basestring):
             type = 'json'
-        elif name.startswith('postgresql://'):
+        elif (name.startswith('postgresql://') or
+              name.startswith('postgres://')):
             type = 'postgresql'
         else:
             type = os.path.splitext(name)[1][1:]
@@ -294,7 +296,7 @@ class Database:
 
     @parallel_function
     @lock
-    def write(self, atoms, key_value_pairs={}, data={}, **kwargs):
+    def write(self, atoms, key_value_pairs={}, data={}, id=None, **kwargs):
         """Write atoms to database with key-value pairs.
 
         atoms: Atoms object
@@ -305,6 +307,8 @@ class Database:
             Dictionary of key-value pairs.  Values must be strings or numbers.
         data: dict
             Extra stuff (not for searching).
+        id: int
+            Overwrite existing row.
 
         Key-value pairs can also be set using keyword arguments::
 
@@ -319,10 +323,10 @@ class Database:
         kvp = dict(key_value_pairs)  # modify a copy
         kvp.update(kwargs)
 
-        id = self._write(atoms, kvp, data)
+        id = self._write(atoms, kvp, data, id)
         return id
 
-    def _write(self, atoms, key_value_pairs, data):
+    def _write(self, atoms, key_value_pairs, data, id=None):
         check(key_value_pairs)
         return 1
 
@@ -365,7 +369,7 @@ class Database:
 
             atoms.calc = Fake()
 
-        id = self._write(atoms, key_value_pairs, {})
+        id = self._write(atoms, key_value_pairs, {}, None)
 
         return id
 
@@ -400,7 +404,6 @@ class Database:
         selection: int, str or list
             See the select() method.
         """
-
         rows = list(self.select(selection, limit=2, **kwargs))
         if not rows:
             raise KeyError('no match')
@@ -410,7 +413,7 @@ class Database:
     @parallel_generator
     def select(self, selection=None, filter=None, explain=False,
                verbosity=1, limit=None, offset=0, sort=None,
-               include_data=True, **kwargs):
+               include_data=True, columns='all', **kwargs):
         """Select rows.
 
         Return AtomsRow iterator with results.  Selection is done
@@ -442,6 +445,10 @@ class Database:
             Sort rows after key.  Prepend with minus sign for a decending sort.
         include_data: bool
             Use include_data=False to skip reading data from rows.
+        columns: 'all' or list of str
+            Specify which columns from the SQL table to include.
+            For example, if only the row id and the energy is needed,
+            queries can be speeded up by setting columns=['id', 'energy'].
         """
 
         if sort:
@@ -456,7 +463,8 @@ class Database:
         for row in self._select(keys, cmps, explain=explain,
                                 verbosity=verbosity,
                                 limit=limit, offset=offset, sort=sort,
-                                include_data=include_data):
+                                include_data=include_data,
+                                columns=columns):
             if filter is None or filter(row):
                 yield row
 
@@ -476,36 +484,71 @@ class Database:
 
     @parallel_function
     @lock
-    def update(self, ids, delete_keys=[], block_size=1000,
+    def update(self, id, atoms=None, delete_keys=[], data=None,
                **add_key_value_pairs):
         """Update and/or delete key-value pairs of row(s).
 
-        ids: int or list of int
-            ID's of rows to update.
+        id: int
+            ID of row to update.
+        atoms: Atoms object
+            Optionally update the Atoms data (positions, cell, ...).
+        data: dict
+            Data dict to be added to the existing data.
         delete_keys: list of str
             Keys to remove.
-        block_size: int
-            Block-size for each transaction.
 
         Use keyword arguments to add new key-value pairs.
 
         Returns number of key-value pairs added and removed.
         """
+
+        if not isinstance(id, numbers.Integral):
+            if isinstance(id, list):
+                err = ('First argument must be an int and not a list.\n'
+                       'Do something like this instead:\n\n'
+                       'with db:\n'
+                       '    for id in ids:\n'
+                       '        db.update(id, ...)')
+                raise ValueError(err)
+            raise TypeError('id must be an int')
+
         check(add_key_value_pairs)
 
-        if isinstance(ids, int):
-            ids = [ids]
+        row = self._get_row(id)
 
-        B = block_size
-        nblocks = (len(ids) - 1) // B + 1
-        M = 0
-        N = 0
-        for b in range(nblocks):
-            m, n = self._update(ids[b * B:(b + 1) * B], delete_keys,
-                                add_key_value_pairs)
-            M += m
-            N += n
-        return M, N
+        if atoms:
+            oldrow = row
+            row = AtomsRow(atoms)
+
+            # Copy over data, kvp, ctime, user and id
+            row._data = oldrow._data
+            kvp = oldrow.key_value_pairs
+            row.__dict__.update(kvp)
+            row._keys = list(kvp)
+            row.ctime = oldrow.ctime
+            row.user = oldrow.user
+            row.id = id
+
+        kvp = row.key_value_pairs
+
+        n = len(kvp)
+        for key in delete_keys:
+            kvp.pop(key, None)
+        n -= len(kvp)
+        m = -len(kvp)
+        kvp.update(add_key_value_pairs)
+        m += len(kvp)
+
+        moredata = data
+        data = row.get('data', {})
+        if moredata:
+            data.update(moredata)
+        if not data:
+            data = None
+
+        self._write(row, kvp, data, row.id)
+
+        return m, n
 
     def delete(self, ids):
         """Delete rows."""

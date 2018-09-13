@@ -37,8 +37,8 @@ from .create_input import GenerateVaspInput
 class Vasp(GenerateVaspInput, Calculator):
     name = 'Vasp'
 
-    implemented_properties = ['energy', 'forces', 'dipole', 'fermi', 'stress'
-                                'magmom', 'magmoms']
+    implemented_properties = ['energy', 'forces', 'dipole', 'fermi', 'stress',
+                              'magmom', 'magmoms']
 
     def __init__(self, restart=None,
                  output_template='vasp',

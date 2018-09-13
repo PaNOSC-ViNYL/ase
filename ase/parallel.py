@@ -43,37 +43,69 @@ def parprint(*args, **kwargs):
         print(*args, **kwargs)
 
 
+
+
 class DummyMPI:
     rank = 0
     size = 1
 
-    def sum(self, a):
-        if isinstance(a, np.ndarray) and a.ndim > 0:
-            pass
-        else:
+    def _returnval(self, a, root=-1):
+        # MPI interface works either on numbers, in which case a number is
+        # returned, or on arrays, in-place.
+        if np.isscalar(a):
             return a
+        assert isinstance(a, np.ndarray)
+        return None
 
-    def product(self, a):
-        """Do nothing ing the same way as sum."""
-        return self.sum(a)
+    def sum(self, a, root=-1):
+        return self._returnval(a)
+
+    def product(self, a, root=-1):
+        return self._returnval(a)
+
+    def broadcast(self, a, root):
+        assert root == 0
+        return self._returnval(a)
 
     def barrier(self):
         pass
 
-    def broadcast(self, a, rank):
-        pass
-
 
 class MPI4PY:
-    def __init__(self):
-        from mpi4py import MPI
-        self.comm_world = MPI.COMM_WORLD
-        self.comm = self.comm_world
-        self.rank = self.comm.rank
-        self.size = self.comm.size
+    def __init__(self, mpi4py_comm=None):
+        if mpi4py_comm is None:
+            from mpi4py import MPI
+            mpi4py_comm = MPI.COMM_WORLD
+        self.comm = mpi4py_comm
 
-    def sum(self, a):
-        return self.comm.allreduce(a)
+    @property
+    def rank(self):
+        return self.comm.rank
+
+    @property
+    def size(self):
+        return self.comm.size
+
+    def _returnval(self, a, b):
+        """Behave correctly when working on scalars/arrays.
+
+        Either input is an array and we in-place write b (output from
+        mpi4py) back into a, or input is a scalar and we return the
+        corresponding output scalar."""
+        if np.isscalar(a):
+            assert np.isscalar(b)
+            return b
+        else:
+            assert not np.isscalar(b)
+            a[:] = b
+            return None
+
+    def sum(self, a, root=-1):
+        if root == -1:
+            b = self.comm.allreduce(a)
+        else:
+            b = self.comm.reduce(a, root)
+        return self._returnval(a, b)
 
     def split(self, split_size=None):
         """Divide the communicator."""
@@ -83,9 +115,8 @@ class MPI4PY:
             split_size = self.size
         color = int(self.rank // (self.size / split_size))
         key = int(self.rank % (self.size / split_size))
-        self.comm = self.comm.Split(color, key)
-        self.rank = self.comm.rank
-        self.size = self.comm.size
+        comm = self.comm.Split(color, key)
+        return MPI4PY(comm)
 
     def barrier(self):
         self.comm.barrier()
@@ -93,15 +124,23 @@ class MPI4PY:
     def abort(self, code):
         self.comm.Abort(code)
 
-    def broadcast(self, a, rank):
-        a[:] = self.comm.bcast(a, root=rank)
+    def broadcast(self, a, root):
+        b = self.comm.bcast(a, root=root)
+        return self._returnval(a, b)
 
+
+world = None
 
 # Check for special MPI-enabled Python interpreters:
 if '_gpaw' in sys.builtin_module_names:
     # http://wiki.fysik.dtu.dk/gpaw
     import _gpaw
     world = _gpaw.Communicator()
+elif '_gpaw' in sys.modules:
+    # Same thing as above but for the module version
+    import _gpaw
+    if hasattr(_gpaw, 'Communicator'):
+        world = _gpaw.Communicator()
 elif '_asap' in sys.builtin_module_names:
     # Modern version of Asap
     # http://wiki.fysik.dtu.dk/asap
@@ -116,7 +155,8 @@ elif 'Scientific_mpi' in sys.modules:
     from Scientific.MPI import world
 elif 'mpi4py' in sys.modules:
     world = MPI4PY()
-else:
+
+if world is None:
     # This is a standard Python interpreter:
     world = DummyMPI()
 
@@ -168,8 +208,8 @@ def parallel_function(func):
         if world.rank == 0:
             try:
                 result = func(*args, **kwargs)
-            except Exception as ex:
-                pass
+            except Exception as x:
+                ex = x
         ex, result = broadcast((ex, result))
         if ex is not None:
             raise ex
