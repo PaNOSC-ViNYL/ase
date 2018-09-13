@@ -381,7 +381,7 @@ class Dftb(FileIOCalculator):
             for i in range(nspin):
                 for j in range(nkpt):
                     eigenvalues = []
-                    for k in range(ncol):
+                    for k in range(rows_per_kpt):
                         eigenvalues += map(float, self.lines[index].split())
                         index += 1
                     eigval[j, i] = eigenvalues
