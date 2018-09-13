@@ -146,7 +146,11 @@ def index(project):
             projects.append((proj, db.meta.get('title', proj)))
 
     if project is None and len(projects) > 1:
-        return render_template('projects.html', projects=projects, md=None)
+        return render_template('projects.html',
+                               projects=projects,
+                               home=home,
+                               md=None,
+                               ase_db_footer=ase_db_footer)
 
     if project is None:
         project = list(databases)[0]
@@ -349,6 +353,7 @@ def get_summary_page(project, key, value):
                            n2=n2,
                            n3=n3,
                            home=home,
+                           back=True,
                            ase_db_footer=ase_db_footer,
                            md=db.meta,
                            open_ase_gui=open_ase_gui)
