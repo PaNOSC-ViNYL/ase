@@ -35,7 +35,7 @@ import os
 
 import numpy as np
 
-from ase.calculators.calculator import FileIOCalculator, kpts2mp
+from ase.calculators.calculator import FileIOCalculator, kpts2mp, kpts2ndarray
 from ase.units import Hartree, Bohr
 from ase.dft.kpoints import get_bandpath
 
@@ -67,12 +67,10 @@ class Dftb(FileIOCalculator):
 
             This keyword can also be a dictionary, for the purpose of 
             band structure calculations. The dict should contain the keys:
-              'path': string with the special k-points (*)
+              'path': string with the special k-points (for more info,
+                      see ase.dft.kpoints.special_points)
               'npoints': the total number of k-points along the path
-              'lattice': the type of lattice (*)
-            e.g. kpts={'path':'GKLGX', 'npoints':100, 'lattice':'fcc'}
-
-            (*) for more info, see ase.dft.kpoints.special_points   
+            e.g. for an FCC lattice: kpts={'path':'GKLGX', 'npoints':100}
 
         ---------
         Additional object (to be set by function embed)
@@ -132,29 +130,22 @@ class Dftb(FileIOCalculator):
 
         # kpoint stuff by ase
         self.kpts = kpts
-        self.kpts_coord = []  # here we put the (scaled) k-point coordinates
+        self.kpts_coord = kpts2ndarray(self.kpts, atoms=atoms)
 
         if self.kpts is not None:
             initkey = 'Hamiltonian_KPointsAndWeights'
+            self.parameters[initkey + '_'] = ''
             if isinstance(self.kpts, dict):
-                cell = atoms.get_cell()
-                coords, x, X = get_bandpath(self.kpts['path'], cell, 
-                                       npoints=self.kpts['npoints'])
                 self.parameters[initkey + '_'] = 'Klines '
-                for i, c in enumerate(coords):
-                    key = initkey + '_empty%09d'  % i
-                    self.parameters[key] = '1 ' + ' '.join(map(str, c))
-                    self.kpts_coord.append(c)
-            else:
-                self.parameters[initkey + '_'] = ''
-                mpgrid = kpts2mp(atoms, self.kpts)
-                mp = monkhorst_pack(mpgrid)
-                for i, imp in enumerate(mp):
-                    key = initkey + '_empty%09d' % i
-                    self.parameters[key] = str(mp[i]).strip('[]') + ' 1.0'
-                    self.kpts_coord.append(mp[i])  
-                  
-        self.kpts_coord = np.array(self.kpts_coord)
+
+            for i, c in enumerate(self.kpts_coord):
+                key = initkey + '_empty%09d'  % i
+                c_str = ' '.join(map(str, c))
+                if isinstance(self.kpts, dict):
+                    c_str = '1 ' + c_str
+                else:
+                    c_str += ' 1.0'
+                self.parameters[key] = c_str
 
     def write_dftb_in(self, filename):
         """ Write the innput file for the dftb+ calculation.
