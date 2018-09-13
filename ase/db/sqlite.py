@@ -500,6 +500,9 @@ class SQLite3Database(Database, object):
                 jsonop = '->'
                 if isinstance(value, basestring):
                     jsonop = '->>'
+                elif isinstance(value, bool):
+                    jsonop = '->>'
+                    value = str(value).lower()
                 where.append("systems.key_value_pairs {} '{}'{}?"
                              .format(jsonop, key, op))
                 args.append(str(value))
