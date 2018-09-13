@@ -37,6 +37,7 @@ import numpy as np
 
 from ase.calculators.calculator import FileIOCalculator, kpts2mp
 from ase.units import Hartree, Bohr
+from ase.dft.kpoints import ibz_points, get_bandpath
 
 
 class Dftb(FileIOCalculator):
@@ -65,11 +66,13 @@ class Dftb(FileIOCalculator):
             with dimensions given by kpts.
 
             This keyword can also be a dictionary, for the purpose of 
-            band structure calculations. The dict should contain a 'path'
-            key with the special k-points list (as specified in 
-            ase.dft.kpoints.special_points) and a 'npoints' key 
-            with the total number of k-points along the path, e.g.
-            for an FCC lattice: kpts={'path':'GKLGX', 'npoints':100}  
+            band structure calculations. The dict should contain the keys:
+              'path': string with the special k-points (*)
+              'npoints': the total number of k-points along the path
+              'lattice': the type of lattice (*)
+            e.g. kpts={'path':'GKLGX', 'npoints':100, 'lattice':'fcc'}
+
+            (*) for more info, see ase.dft.kpoints.special_points   
 
         ---------
         Additional object (to be set by function embed)
@@ -129,17 +132,19 @@ class Dftb(FileIOCalculator):
 
         # kpoint stuff by ase
         self.kpts = kpts
-        self.kpts_coord = []  # here we store the (scaled) k-point coordinates
+        self.kpts_coord = []  # here we put the (scaled) k-point coordinates
 
         if self.kpts is not None:
-            initkey = 'Hamiltonian_KPointsAndWeights' 
+            initkey = 'Hamiltonian_KPointsAndWeights'
             if isinstance(self.kpts, dict):
+                cell = atoms.get_cell()
+                coords, x, X = get_bandpath(self.kpts['path'], cell, 
+                                       npoints=self.kpts['npoints'])
                 self.parameters[initkey + '_'] = 'Klines '
-                for i, point in enumerate(self.kpts['path']):
-                    key = initkey + '_empty%09d'  % i 
-                    line = ' '.join(map(str, self.kpts[point]))
-                    self.parameters[key] = line
-                    self.kpts_coord.append(self.kpts[point][1:])
+                for i, c in enumerate(coords):
+                    key = initkey + '_empty%09d'  % i
+                    self.parameters[key] = '1 ' + ' '.join(map(str, c))
+                    self.kpts_coord.append(c)
             else:
                 self.parameters[initkey + '_'] = ''
                 mpgrid = kpts2mp(atoms, self.kpts)
