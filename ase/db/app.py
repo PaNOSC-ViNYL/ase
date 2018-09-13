@@ -148,7 +148,7 @@ def index(project):
         return render_template('projects.html', projects=projects, md=None)
 
     if project is None:
-        project = 'default'
+        project = list(databases)[0]
 
     con_id = int(request.args.get('x', '0'))
     if con_id in connections:
