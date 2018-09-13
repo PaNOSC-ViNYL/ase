@@ -406,7 +406,7 @@ class Dftb(FileIOCalculator):
         return self.nspin
 
     def get_eigenvalues(self, kpt=0, spin=0): 
-        return self.results['eigenvalues'][kpt, spin]
+        return self.results['eigenvalues'][kpt, spin].copy()
 
     def get_fermi_levels(self):
         return self.results['fermi_levels'].copy()
