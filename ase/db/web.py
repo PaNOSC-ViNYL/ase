@@ -53,7 +53,11 @@ def process_metadata(db, html=True):
         kind = special[0]
         if kind == 'SELECT':
             key = special[1]
-            choises = sorted({row.get(key) for row in db.select(key)})
+            choises = sorted({row.get(key)
+                              for row in
+                              db.select(key,
+                                        columns=['key_value_pairs'],
+                                        include_data=False)})
             if key in kd:
                 longkey = kd[key][1]
             else:
@@ -99,7 +103,7 @@ def process_metadata(db, html=True):
         meta['key_descriptions'][key] = (short, long, unit)
 
     all_keys1 = set(meta['key_descriptions'])
-    for row in db.select():
+    for row in db.select(columns=['key_value_pairs'], include_data=False):
         all_keys1.update(row._keys)
     all_keys2 = []
     for key in all_keys1:
