@@ -51,9 +51,7 @@ html_context = {
          ('{} (latest stable)'.format(ase_stable_version),
           'https://wiki.fysik.dtu.dk/ase')]}
 
-latex_elements = {
-    'papersize': 'a4paper',
-    'preample': r'\setcounter{tocdepth}{4}'}
+latex_elements = {'papersize': 'a4paper'}
 latex_show_urls = 'inline'
 latex_show_pagerefs = True
 latex_documents = [
