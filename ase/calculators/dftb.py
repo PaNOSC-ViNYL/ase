@@ -35,9 +35,8 @@ import os
 
 import numpy as np
 
-from ase.calculators.calculator import FileIOCalculator, kpts2mp, kpts2ndarray
+from ase.calculators.calculator import FileIOCalculator, kpts2ndarray
 from ase.units import Hartree, Bohr
-from ase.dft.kpoints import get_bandpath
 
 
 class Dftb(FileIOCalculator):
@@ -77,8 +76,6 @@ class Dftb(FileIOCalculator):
         pcpot: PointCharge object
             An external point charge potential (only in qmmm)
         """
-
-        from ase.dft.kpoints import monkhorst_pack
 
         if 'DFTB_PREFIX' in os.environ:
             self.slako_dir = os.environ['DFTB_PREFIX'].rstrip('/') + '/'
