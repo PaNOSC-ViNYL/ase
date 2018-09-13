@@ -37,7 +37,7 @@ import numpy as np
 
 from ase.calculators.calculator import FileIOCalculator, kpts2mp
 from ase.units import Hartree, Bohr
-from ase.dft.kpoints import ibz_points, get_bandpath
+from ase.dft.kpoints import get_bandpath
 
 
 class Dftb(FileIOCalculator):
