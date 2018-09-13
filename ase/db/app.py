@@ -37,6 +37,7 @@ except ImportError:
 
 import ase.db
 import ase.db.web
+from ase.db.core import convert_str_to_int_float_or_str
 from ase.db.plot import atoms2png
 from ase.db.summary import Summary
 from ase.db.table import Table, all_columns
@@ -191,12 +192,12 @@ def index(project):
             kind, key = special[:2]
             if kind == 'SELECT':
                 value = request.args['select_' + key]
-                dct[key] = value
+                dct[key] = convert_str_to_int_float_or_str(value)
                 if value:
                     q += ',{}={}'.format(key, value)
             elif kind == 'BOOL':
                 value = request.args['bool_' + key]
-                dct[key] = value
+                dct[key] = convert_str_to_int_float_or_str(value)
                 if value:
                     q += ',{}={}'.format(key, value)
             else:
@@ -334,8 +335,8 @@ def get_summary_page(project, key, value):
         return ''
     if not hasattr(db, 'meta'):
         db.meta = ase.db.web.process_metadata(db)
-    prfx = project + '-' + str(id) + '-'
     row = db.get(**{key: value})
+    prfx = '{project}-{id}-'.format(project=project, id=row.id)
     s = Summary(row, db.meta, SUBSCRIPT, prfx, tmpdir)
     atoms = Atoms(cell=row.cell, pbc=row.pbc)
     n1, n2, n3 = kptdensity2monkhorstpack(atoms,
