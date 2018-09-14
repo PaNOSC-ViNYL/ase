@@ -58,7 +58,11 @@ class Espresso(FileIOCalculator):
 
     def read_results(self):
         output = io.read(self.label + '.pwo')
+        self.calc = output.calc
         self.results = output.calc.results
+
+    def get_fermi_level(self):
+        return self.calc.get_fermi_level()
 
     def socket_driver(self, **kwargs):
         from ase.calculators.socketio import SocketIOCalculator

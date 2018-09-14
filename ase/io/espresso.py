@@ -20,7 +20,7 @@ from os import path
 import numpy as np
 
 from ase.atoms import Atoms
-from ase.calculators.singlepoint import SinglePointCalculator
+from ase.calculators.singlepoint import SinglePointDFTCalculator
 from ase.calculators.calculator import kpts2ndarray
 from ase.constraints import FixAtoms, FixCartesian
 from ase.data import chemical_symbols, atomic_numbers
@@ -40,7 +40,7 @@ _PW_MAGMOM = 'Magnetic moment per site'
 _PW_FORCE = 'Forces acting on atoms'
 _PW_TOTEN = '!    total energy'
 _PW_STRESS = 'total   stress'
-
+_PW_FERMI = 'the Fermi energy is'
 
 class Namelist(OrderedDict):
     """Case insensitive dict that emulates Fortran Namelists."""
@@ -106,7 +106,8 @@ def read_espresso_out(fileobj, index=-1, results_required=True):
         _PW_MAGMOM: [],
         _PW_FORCE: [],
         _PW_TOTEN: [],
-        _PW_STRESS: []
+        _PW_STRESS: [],
+        _PW_FERMI: [],
     }
 
     for idx, line in enumerate(pwo_lines):
@@ -251,9 +252,15 @@ def read_espresso_out(fileobj, index=-1, results_required=True):
                     in pwo_lines[magmoms_index + 1:
                                  magmoms_index + 1 + len(structure)]]
 
+        # Fermi level
+        for fermi_index in indexes[_PW_FERMI]:
+            if image_index < fermi_index < next_index:
+                efermi = float(pwo_lines[fermi_index].split()[-2])
+
         # Put everything together
-        calc = SinglePointCalculator(structure, energy=energy, forces=forces,
-                                     stress=stress, magmoms=magmoms)
+        calc = SinglePointDFTCalculator(structure, energy=energy, 
+                                        forces=forces, stress=stress, 
+                                        magmoms=magmoms, efermi=efermi)
         structure.set_calculator(calc)
 
         yield structure
