@@ -128,6 +128,7 @@ class TurbomoleOptimizer:
             self.calc.verify_parameters()
         self.calc.calculate()
         self.atoms.positions[:] = self.calc.atoms.positions
+        self.calc.parameters['task'] = 'energy'
 
 
 class Turbomole(FileIOCalculator):
@@ -1927,7 +1928,7 @@ class Turbomole(FileIOCalculator):
         else:
             self.hostname = hostnames[0]
 
-    def get_optimizer(self, atoms):
+    def get_optimizer(self, atoms, trajectory=None, logfile=None):
         """returns a TurbomoleOptimizer object"""
         self.parameters['task'] = 'optimize'
         self.verify_parameters()
