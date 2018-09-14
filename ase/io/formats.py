@@ -95,6 +95,7 @@ all_formats = {
     'mustem': ('muSTEM xtl file', '1F'),
     'netcdftrajectory': ('AMBER NetCDF trajectory file', '+S'),
     'nomad-json': ('JSON from Nomad archive', '+F'),
+    'nomad-ziptxt': ('ZIPPED TXT from Nomad archive', '+F'),
     'nwchem': ('NWChem input file', '1F'),
     'octopus': ('Octopus input file', '1F'),
     'proteindatabank': ('Protein Data Bank', '+F'),
@@ -608,6 +609,9 @@ def filetype(filename, read=True, guess=True):
 
         if basename.endswith('.nomad.json'):
             return 'nomad-json'
+        
+        if basename.endswith('.nomad.zip'):
+            return 'nomad-ziptxt'
 
         if '.' in basename:
             ext = os.path.splitext(basename)[1].strip('.').lower()
