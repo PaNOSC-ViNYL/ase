@@ -7,7 +7,7 @@ import numpy as np
 
 __all__ = ['FixCartesian', 'FixBondLength', 'FixedMode', 'FixConstraintSingle',
            'FixAtoms', 'UnitCellFilter', 'FixScaled', 'StrainFilter',
-           'FixedPlane', 'Filter', 'FixConstraint', 'FixedLine',
+           'FixCom', 'FixedPlane', 'Filter', 'FixConstraint', 'FixedLine',
            'FixBondLengths', 'FixInternals', 'Hookean', 'ExternalForce']
 
 
@@ -202,6 +202,28 @@ class FixAtoms(FixConstraint):
             return None
         return self
 
+
+class FixCom(FixConstraint):
+    """ Fix center of mass for geometry optimization.
+        https://pubs.acs.org/doi/abs/10.1021/jp9722824 """    
+
+    def __init__(self):
+
+        self.removed_dof = 3
+
+    def adjust_positions(self, atoms, new):
+        pass
+
+    def adjust_forces(self, atoms, forces):
+        m = atoms.get_masses()
+        mm = np.tile(m, (3, 1)).T 
+        lb = np.sum(mm * forces, axis=0) / sum(m**2)
+        forces -= mm * lb
+
+    def todict(self):
+        return {'name': 'FixCom', 
+                'kwargs': {}}
+         
 
 def ints2string(x, threshold=None):
     """Convert ndarray of ints to string."""
