@@ -205,7 +205,7 @@ class FixAtoms(FixConstraint):
 
 class FixCom(FixConstraint):
     """ Fix center of mass for geometry optimization.
-        https://pubs.acs.org/doi/abs/10.1021/jp9722824 """    
+        https://pubs.acs.org/doi/abs/10.1021/jp9722824 """
 
     def __init__(self):
 
@@ -216,14 +216,14 @@ class FixCom(FixConstraint):
 
     def adjust_forces(self, atoms, forces):
         m = atoms.get_masses()
-        mm = np.tile(m, (3, 1)).T 
+        mm = np.tile(m, (3, 1)).T
         lb = np.sum(mm * forces, axis=0) / sum(m**2)
         forces -= mm * lb
 
     def todict(self):
-        return {'name': 'FixCom', 
+        return {'name': 'FixCom',
                 'kwargs': {}}
-         
+
 
 def ints2string(x, threshold=None):
     """Convert ndarray of ints to string."""
