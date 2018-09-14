@@ -253,6 +253,7 @@ def read_espresso_out(fileobj, index=-1, results_required=True):
                                  magmoms_index + 1 + len(structure)]]
 
         # Fermi level
+        efermi = None
         for fermi_index in indexes[_PW_FERMI]:
             if image_index < fermi_index < next_index:
                 efermi = float(pwo_lines[fermi_index].split()[-2])

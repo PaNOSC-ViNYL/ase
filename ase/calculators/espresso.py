@@ -57,7 +57,10 @@ class Espresso(FileIOCalculator):
         io.write(self.label + '.pwi', atoms, **self.parameters)
 
     def read_results(self):
-        output = io.read(self.label + '.pwo')
+        try:
+            output = io.read(self.label + '.pwo')
+        except StopIteration:
+            output = io.read(self.label + '.pwo', results_required=False)
         self.calc = output.calc
         self.results = output.calc.results
 
