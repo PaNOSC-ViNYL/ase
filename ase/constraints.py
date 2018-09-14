@@ -1523,7 +1523,7 @@ class ExpCellFilter(UnitCellFilter):
                  hydrostatic_strain=False,
                  constant_volume=False,
                  scalar_pressure=0.0):
-        """Create a filter that returns the atomic forces and unit cell
+        r"""Create a filter that returns the atomic forces and unit cell
         stresses together, so they can simultaneously be minimized.
 
         The first argument, atoms, is the atoms object. The optional second
