@@ -21,6 +21,7 @@ import numpy as np
 
 from ase.atoms import Atoms
 from ase.calculators.singlepoint import SinglePointCalculator
+from ase.calculators.calculator import kpts2ndarray
 from ase.constraints import FixAtoms, FixCartesian
 from ase.data import chemical_symbols, atomic_numbers
 from ase.units import create_units
@@ -1511,8 +1512,16 @@ def write_espresso_in(fd, atoms, input_data=None, pseudopotentials=None,
     if isinstance(koffset, int):
         koffset = (koffset, ) * 3
 
-    # QE defaults to gamma point, make it explicit
-    if all([x == 1 for x in kgrid]) and not any(koffset):
+    if isinstance(kgrid, dict):
+        # Band structure calculation
+        pwi.append('K_POINTS tpiba_b\n')
+        kgrid = kpts2ndarray(kgrid, atoms=atoms)
+        pwi.append('%s\n' % len(kgrid))
+        for k in kgrid:
+            pwi.append('{k[0]:.14f} {k[1]:.14f} {k[2]:.14f} 0\n'.format(k=k))
+        pwi.append('\n')
+    elif all([x == 1 for x in kgrid]) and not any(koffset):
+        # QE defaults to gamma point, make it explicit
         pwi.append('K_POINTS gamma\n')
         pwi.append('\n')
     else:
