@@ -25,10 +25,12 @@
               <li>
                 <a href="{{ home }}">CMR</a>
               </li>
+    {% if project %}
               <li>
                 <a href="{{ home }}{{ project }}/{{ project }}.html">
                 More information</a>
               </li>
+    {% endif %}
 {% endif %}
 {% if back %}
               <li>

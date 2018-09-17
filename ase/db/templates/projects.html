@@ -9,13 +9,13 @@ List of databases
   List of databases:
   <table id="rows" class="table table-striped">
     <tr>
-      <th class="text-center">Name</th>
-      <th class="text-center">Description</th>
+      <th>Name</th>
+      <th>Description</th>
     </tr>
 {% for name, description in projects -%}
     <tr id="rowentry" class="rowentry">
-      <td class="text-center"><a href='/{{ name }}/'>{{ name }}</a></td>
-      <td class="text-center"><a href='/{{ name }}/'>{{ description }}</a></td>
+      <td><a href='/{{ name }}/'>{{ name }}</a></td>
+      <td><a href='/{{ name }}/'>{{ description }}</a></td>
     </tr>
 {% endfor %}
   </table>
