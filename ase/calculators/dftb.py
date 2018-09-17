@@ -35,7 +35,7 @@ import os
 
 import numpy as np
 
-from ase.calculators.calculator import FileIOCalculator, kpts2mp
+from ase.calculators.calculator import FileIOCalculator, kpts2ndarray
 from ase.units import Hartree, Bohr
 
 
@@ -58,13 +58,24 @@ class Dftb(FileIOCalculator):
         run_manyDftb_steps:  Logical
             True: many steps are run by DFTB+,
             False:a single force&energy calculation at given positions
+
+        kpts: list/tuple or dict
+            When a list or tuple of 3 integers is given, 
+            k-points will be set according to a Monkhorst-Pack mesh 
+            with dimensions given by kpts.
+
+            This keyword can also be a dictionary, for the purpose of 
+            band structure calculations. The dict should contain the keys:
+              'path': string with the special k-points (for more info,
+                      see ase.dft.kpoints.special_points)
+              'npoints': the total number of k-points along the path
+            e.g. for an FCC lattice: kpts={'path':'GKLGX', 'npoints':100}
+
         ---------
         Additional object (to be set by function embed)
         pcpot: PointCharge object
             An external point charge potential (only in qmmm)
         """
-
-        from ase.dft.kpoints import monkhorst_pack
 
         if 'DFTB_PREFIX' in os.environ:
             self.slako_dir = os.environ['DFTB_PREFIX'].rstrip('/') + '/'
@@ -105,16 +116,33 @@ class Dftb(FileIOCalculator):
         FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
                                   label, atoms,
                                   **kwargs)
-        self.kpts = kpts
+
+        # Determine number of spin channels
+        try:
+            entry = kwargs['Hamiltonian_SpinPolarisation']
+            spinpol = 'colinear' in entry.lower()
+        except KeyError:
+            spinpol = False
+        self.nspin = 2 if spinpol else 1
+
         # kpoint stuff by ase
+        self.kpts = kpts
+        self.kpts_coord = kpts2ndarray(self.kpts, atoms=atoms)
+
         if self.kpts is not None:
-            mpgrid = kpts2mp(atoms, self.kpts)
-            mp = monkhorst_pack(mpgrid)
             initkey = 'Hamiltonian_KPointsAndWeights'
             self.parameters[initkey + '_'] = ''
-            for i, imp in enumerate(mp):
-                key = initkey + '_empty' + str(i)
-                self.parameters[key] = str(mp[i]).strip('[]') + ' 1.0'
+            if isinstance(self.kpts, dict):
+                self.parameters[initkey + '_'] = 'Klines '
+
+            for i, c in enumerate(self.kpts_coord):
+                key = initkey + '_empty%09d'  % i
+                c_str = ' '.join(map(str, c))
+                if isinstance(self.kpts, dict):
+                    c_str = '1 ' + c_str
+                else:
+                    c_str += ' 1.0'
+                self.parameters[key] = c_str
 
     def write_dftb_in(self, filename):
         """ Write the innput file for the dftb+ calculation.
@@ -231,6 +259,7 @@ class Dftb(FileIOCalculator):
         forces = self.read_forces()
         self.results['forces'] = forces
         self.mmpositions = None
+
         # stress stuff begins
         sstring = 'stress'
         have_stress = False
@@ -248,6 +277,15 @@ class Dftb(FileIOCalculator):
             self.results['stress'] = stress.flat[[0, 4, 8, 5, 2, 1]]
         # stress stuff ends
 
+        # eigenvalues and fermi levels
+        fermi_levels = self.read_fermi_levels()
+        if fermi_levels is not None:
+            self.results['fermi_levels'] = fermi_levels
+        
+        eigenvalues = self.read_eigenvalues()
+        if eigenvalues is not None:
+            self.results['eigenvalues'] = eigenvalues
+
         # calculation was carried out with atoms written in write_input
         os.remove(os.path.join(self.directory, 'results.tag'))
 
@@ -264,14 +302,13 @@ class Dftb(FileIOCalculator):
                 index_force_end = iline + 1 + \
                     int(line1.split(',')[-1])
                 break
-        try:
-            gradients = []
-            for j in range(index_force_begin, index_force_end):
-                word = self.lines[j].split()
-                gradients.append([float(word[k]) for k in range(0, 3)])
-            return np.array(gradients) * Hartree / Bohr
-        except:
-            raise RuntimeError('Problem in reading forces')
+
+        gradients = []
+        for j in range(index_force_begin, index_force_end):
+            word = self.lines[j].split()
+            gradients.append([float(word[k]) for k in range(0, 3)])
+
+        return np.array(gradients) * Hartree / Bohr
 
     def read_charges_and_energy(self):
         """Get partial charges on atoms
@@ -295,6 +332,7 @@ class Dftb(FileIOCalculator):
             # print('Warning: did not find DFTB-charges')
             # print('This is ok if flag SCC=NO')
             return None, energy
+
         lines1 = lines[chargestart:(chargestart + len(self.atoms))]
         for line in lines1:
             qm_charges.append(float(line.split()[-1]))
@@ -308,6 +346,73 @@ class Dftb(FileIOCalculator):
             return self.results['charges']
         else:
             return None
+
+    def read_eigenvalues(self):
+        """ Read Eigenvalues from dftb output file (results.tag).
+            Unfortunately, the order seems to be scrambled. """
+        # Eigenvalue line indexes
+        index_eigval_begin = None
+        for iline, line in enumerate(self.lines):
+            fstring = 'eigenvalues   '
+            if line.find(fstring) >= 0:
+                index_eigval_begin = iline + 1
+                line1 = line.replace(':', ',')
+                ncol, nband, nkpt, nspin = map(int, line1.split(',')[-4:])
+                rows_per_kpt = int(np.ceil(nband * 1. / ncol))
+                break
+        else:
+            return None
+
+        index = index_eigval_begin
+        eigval = np.zeros((nkpt, nspin, nband)) 
+        for i in range(nspin):
+            for j in range(nkpt):
+                eigenvalues = []
+                for k in range(rows_per_kpt):
+                    eigenvalues += map(float, self.lines[index].split())
+                    index += 1
+                eigval[j, i] = eigenvalues
+
+        return eigval * Hartree
+
+    def read_fermi_levels(self):
+        """ Read Fermi level(s) from dftb output file (results.tag). """
+        # Fermi level line indexes
+        for iline, line in enumerate(self.lines):
+            fstring = 'fermi_level   '
+            if line.find(fstring) >= 0:
+                index_fermi = iline + 1
+                break
+        else:
+            return None
+
+        fermi_levels = []
+        words = self.lines[index_fermi].split()
+        assert len(words) == 2
+
+        for word in words:
+            e = float(word)
+            if abs(e) > 1e-8:
+                # Without spin polarization, one of the Fermi 
+                # levels is equal to 0.000000000000000E+000    
+                fermi_levels.append(e)
+
+        return np.array(fermi_levels) * Hartree
+
+    def get_ibz_k_points(self):
+        return self.kpts_coord.copy()
+
+    def get_number_of_spins(self):
+        return self.nspin
+
+    def get_eigenvalues(self, kpt=0, spin=0): 
+        return self.results['eigenvalues'][kpt, spin].copy()
+
+    def get_fermi_levels(self):
+        return self.results['fermi_levels'].copy()
+
+    def get_fermi_level(self):
+        return max(self.get_fermi_levels())
 
     def embed(self, mmcharges=None, directory='./'):
         """Embed atoms in point-charges (mmcharges)

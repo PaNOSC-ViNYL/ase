@@ -1,4 +1,4 @@
-from __future__ import division, print_function
+from __future__ import division
 from math import sqrt
 from ase.geometry import find_mic
 from ase.calculators.calculator import PropertyNotImplementedError
@@ -213,7 +213,8 @@ def ints2string(x, threshold=None):
 class FixBondLengths(FixConstraint):
     maxiter = 500
 
-    def __init__(self, pairs, tolerance=1e-13, bondlengths=None, iterations=None):
+    def __init__(self, pairs, tolerance=1e-13,
+                 bondlengths=None, iterations=None):
         """iterations:
                 Ignored"""
         self.pairs = np.asarray(pairs)
@@ -227,7 +228,7 @@ class FixBondLengths(FixConstraint):
         masses = atoms.get_masses()
 
         if self.bondlengths is None:
-           self.bondlengths = self.initialize_bond_lengths(atoms)
+            self.bondlengths = self.initialize_bond_lengths(atoms)
 
         for i in range(self.maxiter):
             converged = True
@@ -254,7 +255,7 @@ class FixBondLengths(FixConstraint):
         masses = atoms.get_masses()
 
         if self.bondlengths is None:
-           self.bondlengths = self.initialize_bond_lengths(atoms)
+            self.bondlengths = self.initialize_bond_lengths(atoms)
 
         for i in range(self.maxiter):
             converged = True
@@ -919,7 +920,7 @@ class Hookean(FixConstraint):
         elif self._type == 'point':
             p1 = positions[self.index]
             p2 = self.origin
-        displace = find_mic([p2 -p1], atoms.cell, atoms._pbc)[0][0]
+        displace = find_mic([p2 - p1], atoms.cell, atoms._pbc)[0][0]
         bondlength = np.linalg.norm(displace)
         if bondlength > self.threshold:
             magnitude = self.spring * (bondlength - self.threshold)
@@ -949,7 +950,7 @@ class Hookean(FixConstraint):
         elif self._type == 'point':
             p1 = positions[self.index]
             p2 = self.origin
-        displace = find_mic([p2 -p1], atoms.cell, atoms._pbc)[0][0]
+        displace = find_mic([p2 - p1], atoms.cell, atoms._pbc)[0][0]
         bondlength = np.linalg.norm(displace)
         if bondlength > self.threshold:
             return 0.5 * self.spring * (bondlength - self.threshold)**2
@@ -1457,13 +1458,13 @@ class UnitCellFilter(Filter):
         self.atoms.set_cell(np.dot(self.orig_cell, self.deform_grad.T),
                             scale_atoms=True)
 
-
     def get_potential_energy(self, force_consistent=True):
         '''
         returns potential energy including enthalpy PV term.
         '''
-        atoms_energy = self.atoms.get_potential_energy(force_consistent=force_consistent)
-        return atoms_energy + self.scalar_pressure*self.atoms.get_volume()
+        atoms_energy = self.atoms.get_potential_energy(
+            force_consistent=force_consistent)
+        return atoms_energy + self.scalar_pressure * self.atoms.get_volume()
 
     def get_forces(self, apply_constraint=False):
         '''
@@ -1479,7 +1480,8 @@ class UnitCellFilter(Filter):
         stress = self.atoms.get_stress()
 
         volume = self.atoms.get_volume()
-        virial = -volume * voigt_6_to_full_3x3_stress(stress) - np.diag([self.scalar_pressure]*3)*volume
+        virial = -volume * (voigt_6_to_full_3x3_stress(stress) +
+                            np.diag([self.scalar_pressure] * 3))
         atoms_forces = np.dot(atoms_forces, self.deform_grad)
         dg_inv = np.linalg.inv(self.deform_grad)
         virial = np.dot(virial, dg_inv.T)
