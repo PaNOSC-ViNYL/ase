@@ -696,4 +696,6 @@ def get_results(out_data=None, log_data=None, restart_data=None,
 
 def get_file_name(extension='.out', filename=None):
     directory, prefix = os.path.split(filename)
+    if directory == '':
+        directory = os.curdir
     return os.path.abspath(directory + '/' + prefix + extension)

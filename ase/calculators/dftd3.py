@@ -331,7 +331,7 @@ class DFTD3(FileIOCalculator):
                         raise RuntimeError(message)
 
                     if line.startswith(' Edisp'):
-                        e_dftd3 = float(line.split()[3]) * Hartree
+                        e_dftd3 = float(line.split()[-2]) * Hartree
                         self.results['energy'] = e_dftd3
                         self.results['free_energy'] = e_dftd3
                         break
