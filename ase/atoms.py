@@ -17,8 +17,8 @@ import numpy as np
 import ase.units as units
 from ase.atom import Atom
 from ase.constraints import FixConstraint, FixBondLengths
-from ase.data import atomic_numbers, chemical_symbols, atomic_masses
-from ase.utils import basestring, formula_hill, formula_metal
+from ase.data import atomic_numbers, atomic_masses
+from ase.utils import basestring
 from ase.geometry import (wrap_positions, find_mic, cellpar_to_cell,
                           cell_to_cellpar, complete_cell, is_orthorhombic,
                           get_angles, get_distances)
@@ -238,6 +238,11 @@ class Atoms(object):
             self.info = dict(info)
 
         self.set_calculator(calculator)
+
+    @property
+    def symbols(self):
+        from ase.magic import Symbols
+        return Symbols(self.numbers)
 
     def set_calculator(self, calc=None):
         """Attach calculator object."""
@@ -465,7 +470,7 @@ class Atoms(object):
 
     def get_chemical_symbols(self):
         """Get list of chemical symbol strings."""
-        return [chemical_symbols[Z] for Z in self.arrays['numbers']]
+        return list(self.symbols)
 
     def set_chemical_symbols(self, symbols):
         """Set chemical symbols."""
@@ -498,42 +503,7 @@ class Atoms(object):
             Divide the symbol counts by their greatest common divisor to yield
             an empirical formula. Only for mode `metal` and `hill`.
         """
-        if len(self) == 0:
-            return ''
-
-        if mode in ('reduce', 'all') and empirical:
-            warnings.warn("Empirical chemical formula not available for mode '{}'".format(mode))
-
-        if mode == 'reduce':
-            numbers = self.get_atomic_numbers()
-            n = len(numbers)
-            changes = np.concatenate(([0], np.arange(1, n)[numbers[1:] !=
-                                                           numbers[:-1]]))
-            symbols = [chemical_symbols[e] for e in numbers[changes]]
-            counts = np.append(changes[1:], n) - changes
-
-            formula = ''
-            for s, c in zip(symbols, counts):
-                formula += s
-                if c > 1:
-                    formula += str(c)
-        elif mode == 'hill':
-            formula = formula_hill(self.get_atomic_numbers(),
-                                   empirical=empirical)
-        elif mode == 'all':
-            numbers = self.get_atomic_numbers()
-            symbols = [chemical_symbols[n] for n in numbers]
-
-            formula = ''
-            for s in symbols:
-                formula += s
-        elif mode == 'metal':
-            formula = formula_metal(self.get_atomic_numbers(),
-                                    empirical=empirical)
-        else:
-            raise ValueError("Use mode = 'all', 'reduce', 'hill' or 'metal'.")
-
-        return formula
+        return self.symbols.get_chemical_formula(mode, empirical)
 
     def set_tags(self, tags):
         """Set tags for all atoms. If only one tag is supplied, it is
