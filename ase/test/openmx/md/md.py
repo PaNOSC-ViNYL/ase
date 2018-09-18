@@ -20,9 +20,7 @@ bud = Atoms('CH4', np.array([
 calc = OpenMX(
     label='ch4',
     xc='GGA',
-    energy_cutoff=300 * Ry,
-    stress='on',
-    pbs={'processes': 20}
+    energy_cutoff=300 * Ry
     )
 
 bud.set_calculator(calc)
