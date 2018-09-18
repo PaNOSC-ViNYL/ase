@@ -20,8 +20,10 @@ from os import path
 import numpy as np
 
 from ase.atoms import Atoms
-from ase.calculators.singlepoint import SinglePointDFTCalculator
+from ase.calculators.singlepoint import (SinglePointDFTCalculator,
+                                         SinglePointKPoint)
 from ase.calculators.calculator import kpts2ndarray
+from ase.dft.kpoints import kpoint_convert
 from ase.constraints import FixAtoms, FixCartesian
 from ase.data import chemical_symbols, atomic_numbers
 from ase.units import create_units
@@ -41,6 +43,9 @@ _PW_FORCE = 'Forces acting on atoms'
 _PW_TOTEN = '!    total energy'
 _PW_STRESS = 'total   stress'
 _PW_FERMI = 'the Fermi energy is'
+_PW_KPTS = 'number of k points='
+_PW_BANDS = 'End of band structure calculation'
+
 
 class Namelist(OrderedDict):
     """Case insensitive dict that emulates Fortran Namelists."""
@@ -108,6 +113,8 @@ def read_espresso_out(fileobj, index=-1, results_required=True):
         _PW_TOTEN: [],
         _PW_STRESS: [],
         _PW_FERMI: [],
+        _PW_KPTS: [],
+        _PW_BANDS: [],
     }
 
     for idx, line in enumerate(pwo_lines):
@@ -258,10 +265,69 @@ def read_espresso_out(fileobj, index=-1, results_required=True):
             if image_index < fermi_index < next_index:
                 efermi = float(pwo_lines[fermi_index].split()[-2])
 
+        # K-points
+        ibzkpts = None
+        weights = None
+        for kpts_index in indexes[_PW_KPTS]:
+            if image_index < kpts_index < next_index:
+                ibzkpts = []
+                weights = []
+                nkpts = int(pwo_lines[kpts_index].split()[4])
+                kpts_index += 2
+                cell = structure.get_cell()
+                alat = np.linalg.norm(cell[0])
+                for i in range(nkpts):
+                    l =  pwo_lines[kpts_index + i].split()
+                    weights.append(float(l[-1]))
+                    coord = map(float, [l[-6], l[-5], l[-4].strip('),')])
+                    coord = np.array(coord) * 2 * np.pi / alat
+                    coord = kpoint_convert(cell, ckpts_kv=coord)
+                    ibzkpts.append(coord)
+                ibzkpts = np.array(ibzkpts)
+                weights = np.array(weights)
+
+        # Bands
+        kpts = None
+        for bands_index in indexes[_PW_BANDS]:
+            if image_index < bands_index < next_index:
+                assert ibzkpts is not None
+                spin, bands, eigenvalues = 0, [], [[], []]
+                bands_index += 2
+                while True:
+                    l = pwo_lines[bands_index].split()
+                    if len(l) == 0:
+                        if len(bands) > 0:
+                            eigenvalues[spin].append(bands)
+                    elif l[0] == 'k' and l[1] == '=':
+                        bands = []
+                    elif l[1] == 'SPIN' and l[2] == 'DOWN':
+                        spin += 1
+                    else:
+                        try:
+                            bands.extend(map(float, l))
+                        except ValueError:
+                            break
+                    bands_index += 1
+
+                eigenvalues[0] = np.array(eigenvalues[0])
+                if spin == 0:
+                    eigenvalues[1] = np.zeros_like(eigenvalues[0])
+
+                assert len(eigenvalues[0]) == len(eigenvalues[1])
+                assert len(eigenvalues[0]) == len(ibzkpts)
+
+                kpts = []
+                for s in range(spin + 1):
+                    for w, k, e in zip(weights, ibzkpts, eigenvalues[s]):
+                        kpt = SinglePointKPoint(w, s, k, eps_n=e)
+                        kpts.append(kpt)
+
         # Put everything together
         calc = SinglePointDFTCalculator(structure, energy=energy, 
                                         forces=forces, stress=stress, 
-                                        magmoms=magmoms, efermi=efermi)
+                                        magmoms=magmoms, efermi=efermi,
+                                        ibzkpts=ibzkpts)
+        calc.kpts = kpts
         structure.set_calculator(calc)
 
         yield structure
@@ -1522,7 +1588,7 @@ def write_espresso_in(fd, atoms, input_data=None, pseudopotentials=None,
 
     if isinstance(kgrid, dict):
         # Band structure calculation
-        pwi.append('K_POINTS tpiba_b\n')
+        pwi.append('K_POINTS crystal_b\n')
         kgrid = kpts2ndarray(kgrid, atoms=atoms)
         pwi.append('%s\n' % len(kgrid))
         for k in kgrid:

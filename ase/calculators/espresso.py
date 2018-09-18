@@ -67,6 +67,15 @@ class Espresso(FileIOCalculator):
     def get_fermi_level(self):
         return self.calc.get_fermi_level()
 
+    def get_ibz_k_points(self):
+        return self.calc.get_ibz_k_points()
+
+    def get_eigenvalues(self, **kwargs):
+        return self.calc.get_eigenvalues(**kwargs)
+
+    def get_number_of_spins(self):
+        return self.calc.get_number_of_spins()
+
     def socket_driver(self, **kwargs):
         from ase.calculators.socketio import SocketIOCalculator
         calc = SocketIOCalculator(self, **kwargs)
