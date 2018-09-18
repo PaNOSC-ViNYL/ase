@@ -311,7 +311,8 @@ def read_espresso_out(fileobj, index=-1, results_required=True):
                             break
                     bands_index += 1
 
-                assert len(eigenvalues[0]) == len(eigenvalues[1])
+                if spin == 1:
+                    assert len(eigenvalues[0]) == len(eigenvalues[1])
                 assert len(eigenvalues[0]) == len(ibzkpts)
 
                 kpts = []
