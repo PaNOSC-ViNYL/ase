@@ -119,7 +119,7 @@ class TurbomoleOptimizer:
         return {'type': 'optimization',
                 'optimizer': 'TurbomoleOptimizer'}
 
-    def run(self, fmax=None, steps=None, **tm_kwargs):
+    def run(self, fmax=None, steps=None):
         if fmax is not None:
             self.calc.parameters['force convergence'] = fmax
             self.calc.verify_parameters()
@@ -1932,8 +1932,6 @@ class Turbomole(FileIOCalculator):
         """returns a TurbomoleOptimizer object"""
         self.parameters['task'] = 'optimize'
         self.verify_parameters()
-        # task = self.parameters['task']
-        # assert task == 'optimize' or task == 'geometry optimization'
         return TurbomoleOptimizer(atoms, self)
 
     def get_results(self):
