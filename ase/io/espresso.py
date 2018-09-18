@@ -298,20 +298,18 @@ def read_espresso_out(fileobj, index=-1, results_required=True):
                     if len(l) == 0:
                         if len(bands) > 0:
                             eigenvalues[spin].append(bands)
+                            bands = []
                     elif l[0] == 'k' and l[1] == '=':
-                        bands = []
-                    elif l[1] == 'SPIN' and l[2] == 'DOWN':
-                        spin += 1
+                        pass
+                    elif l[1] == 'SPIN':
+                        if l[2] == 'DOWN':
+                            spin += 1
                     else:
                         try:
                             bands.extend(map(float, l))
                         except ValueError:
                             break
                     bands_index += 1
-
-                eigenvalues[0] = np.array(eigenvalues[0])
-                if spin == 0:
-                    eigenvalues[1] = np.zeros_like(eigenvalues[0])
 
                 assert len(eigenvalues[0]) == len(eigenvalues[1])
                 assert len(eigenvalues[0]) == len(ibzkpts)
