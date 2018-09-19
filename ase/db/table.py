@@ -175,6 +175,8 @@ class Row:
                 value = str(value)
             elif isinstance(value, list):
                 value = str(value)
+            elif isinstance(value, np.ndarray):
+                value = str(value.tolist())
             elif isinstance(value, int):
                 value = str(value)
                 numbers.add(column)
