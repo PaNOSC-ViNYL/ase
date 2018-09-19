@@ -31,6 +31,9 @@ class Symbols:
         return 'Symbols(\'{}\')'.format(self.get_chemical_formula())
 
     def get_chemical_formula(self, mode='hill', empirical=False):
+        """Get chemical formula.
+
+        See documentation of ase.atoms.Atoms.get_chemical_formula()."""
         if mode in ('reduce', 'all') and empirical:
             warnings.warn("Empirical chemical formula not available "
                           "for mode '{}'".format(mode))
@@ -47,19 +50,16 @@ class Symbols:
             symbols = [chemical_symbols[e] for e in numbers[changes]]
             counts = np.append(changes[1:], n) - changes
 
-            formula = ''
+            tokens = []
             for s, c in zip(symbols, counts):
-                formula += s
+                tokens.append(s)
                 if c > 1:
-                    formula += str(c)
+                    tokens.append(str(c))
+            formula = ''.join(tokens)
         elif mode == 'hill':
             formula = formula_hill(numbers, empirical=empirical)
         elif mode == 'all':
-            symbols = [chemical_symbols[n] for n in numbers]
-
-            formula = ''
-            for s in symbols:
-                formula += s
+            formula = ''.join([chemical_symbols[n] for n in numbers])
         elif mode == 'metal':
             formula = formula_metal(numbers, empirical=empirical)
         else:
