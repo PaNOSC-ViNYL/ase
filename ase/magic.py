@@ -37,6 +37,7 @@ class Symbols:
 
         if len(self) == 0:
             return ''
+
         numbers = self.numbers
 
         if mode == 'reduce':
@@ -52,8 +53,7 @@ class Symbols:
                 if c > 1:
                     formula += str(c)
         elif mode == 'hill':
-            formula = formula_hill(numbers,
-                                   empirical=empirical)
+            formula = formula_hill(numbers, empirical=empirical)
         elif mode == 'all':
             symbols = [chemical_symbols[n] for n in numbers]
 
@@ -61,8 +61,7 @@ class Symbols:
             for s in symbols:
                 formula += s
         elif mode == 'metal':
-            formula = formula_metal(self.get_atomic_numbers(),
-                                    empirical=empirical)
+            formula = formula_metal(numbers, empirical=empirical)
         else:
             raise ValueError("Use mode = 'all', 'reduce', 'hill' or 'metal'.")
 
