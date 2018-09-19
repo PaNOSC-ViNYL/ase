@@ -343,7 +343,7 @@ class LAMMPS:
                 parameters['boundary']).encode('utf-8'))
         else:
             f.write('boundary {0} {1} {2} \n'.format(
-                    *tuple('sp'[x] for x in pbc)).encode('utf-8'))
+                    *tuple('sp'[int(x)] for x in pbc)).encode('utf-8'))
         f.write('atom_modify sort 0 0.0 \n'.encode('utf-8'))
         for key in ('neighbor', 'newton'):
             if key in parameters:
