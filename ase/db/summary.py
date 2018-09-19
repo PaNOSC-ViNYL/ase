@@ -143,6 +143,12 @@ class Summary:
             self.constraints = ', '.join(c.__class__.__name__
                                          for c in self.constraints)
 
+        ukey = meta.get('unique_key')
+        if ukey:
+            self.unique_pair = (ukey, row.get(ukey))
+        else:
+            self.unique_pair = None
+
     def create_figures(self, row, prefix, tmpdir, functions):
         with Lock('ase.db.web.lock'):
             for func, filenames in functions:
