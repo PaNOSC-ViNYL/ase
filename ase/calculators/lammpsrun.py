@@ -282,7 +282,7 @@ class LAMMPS:
         exitcode = lmp_handle.poll()
         if exitcode and exitcode != 0:
             cwd = os.getcwd()
-            raise RuntimeError('LAMMPS exited in {0} with exit code: {0}.'
+            raise RuntimeError('LAMMPS exited in {} with exit code: {}.'
                                ''.format(cwd, exitcode))
 
         # A few sanity checks
