@@ -138,6 +138,9 @@ app.register_error_handler(Exception, error)
 def index(project):
     global next_con_id
 
+    # Backwards compatibility:
+    project = request.args.get('project') or project
+
     if not projects:
         # First time: initialize list of projects
         for proj, db in sorted(databases.items()):
