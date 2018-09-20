@@ -137,7 +137,8 @@ def read_espresso_out(fileobj, index=-1, results_required=True):
     #   only 'vc-relax' recalculates.
     if results_required:
         results_indexes = sorted(indexes[_PW_TOTEN] + indexes[_PW_FORCE] +
-                                 indexes[_PW_STRESS] + indexes[_PW_MAGMOM])
+                                 indexes[_PW_STRESS] + indexes[_PW_MAGMOM] +
+                                 indexes[_PW_BANDS])
 
         # Prune to only configurations with results data before the next
         # configuration
