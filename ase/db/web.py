@@ -32,7 +32,8 @@ def process_metadata(db, html=True):
                          ('default_columns', []),
                          ('special_keys', []),
                          ('key_descriptions', {}),
-                         ('layout', [])]:
+                         ('layout', []),
+                         ('unique_key', None)]:
         meta[key] = mod.get(key, meta.get(key, default))
 
     if not meta['default_columns']:

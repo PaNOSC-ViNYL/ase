@@ -324,11 +324,10 @@ def gui(project, id):
     return '', 204, []
 
 
-@app.route('/<project>/row')
-def row(project):
-    return get_summary_page(project,
-                            request.args.get('key'),
-                            request.args.get('value'))
+@app.route('/<project>/row/<value>')
+def row(project, value):
+    ukey = databases[project].meta['unique_key']
+    return get_summary_page(project, ukey, value)
 
 
 @app.route('/<project>/id/<int:id>')

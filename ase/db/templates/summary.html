@@ -157,6 +157,11 @@ jmol_isReady = function(applet)
 {{ s.formula|safe }}
 </h1>
 
+{% if s.unique_pair %}
+{% set key, value = s.unique_pair %}
+<a href="/{{ project }}/row/{{ value }}">link</a>
+{% endif %}
+
 <div class="panel-group">
 
 {% for title, things in s.layout %}
