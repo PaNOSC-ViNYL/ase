@@ -30,6 +30,10 @@ class Cell:
     def cellpar(self, radians=False):
         return cell_to_cellpar(self.cell, radians)
 
+    @property
+    def shape(self):
+        return self.cell.shape
+
     @classmethod
     def new(cls, cell):
         cell = np.array(cell, float)
@@ -60,8 +64,24 @@ class Cell:
         return Cell(self.cell.copy())
 
     @property
-    def ndim(self):
-        # XXX clashes with ndarray.ndim
+    def dtype(self):
+        return self.cell.dtype
+
+    @property
+    def size(self):
+        return self.cell.size
+
+    @property
+    def T(self):
+        return self.cell.T
+
+    @property
+    def flat(self):
+        return self.cell.flat
+
+    @property
+    def celldim(self):
+        # XXX Would name it ndim, but this clashes with ndarray.ndim
         return self.cell.any(1).sum()
 
     @property
@@ -71,18 +91,11 @@ class Cell:
     def box(self):
         return orthorhombic(self.cell)
 
-    def __array__(self):
+    def __array__(self, dtype=float):
+        if dtype != float:
+            raise ValueError('Cannot convert cell to array of type {}'
+                             .format(dtype))
         return self.cell
-
-    def __getattr__(self, name):
-        if name == '__setstate__':
-            # XXX This is voodoo
-            # We want pickle to work normally on this class and not
-            # to inherit this from ndarray.  For that we need to avoid
-            # forwarding to ndarray's __setstate__, but ndarray apparently
-            # does not have __getstate__.
-            raise AttributeError(name)
-        return getattr(self.cell, name)
 
     def __bool__(self):
         return bool(self.cell.any())

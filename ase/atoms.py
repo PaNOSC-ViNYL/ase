@@ -257,7 +257,7 @@ class Atoms(object):
     @property
     def number_of_lattice_vectors(self):
         """Number of (non-zero) lattice vectors."""
-        return self._cellobj.ndim
+        return self._cellobj.celldim
 
     def set_constraint(self, constraint=None):
         """Apply one or more constrains.
@@ -1829,10 +1829,10 @@ class Atoms(object):
 
     def get_volume(self):
         """Get volume of unit cell."""
-        if self._cellobj.ndim != 3:
+        if self._cellobj.celldim != 3:
             raise ValueError(
                 'You have {0} lattice vectors: volume not defined'
-                .format(self._cellobj.ndim))
+                .format(self._cellobj.celldim))
         return self._cellobj.volume
 
     def _get_positions(self):
