@@ -252,7 +252,7 @@ def index(project):
             okquery = ('', {}, 'id=0')  # this will return no rows
             nrows = 0
 
-    table = Table(db)
+    table = Table(db, meta.get('unique_key', 'id'))
     table.select(okquery[2], columns, sort, limit, offset=page * limit)
 
     con = Connection(query, nrows, page, columns, sort, limit)
@@ -326,21 +326,12 @@ def gui(project, id):
 
 @app.route('/<project>/row/<value>')
 def row(project, value):
-    ukey = databases[project].meta['unique_key']
-    return get_summary_page(project, ukey, value)
-
-
-@app.route('/<project>/id/<int:id>')
-def summary(project, id):
-    return get_summary_page(project, 'id', id)
-
-
-def get_summary_page(project, key, value):
     db = databases[project]
-    if db is None:
-        return ''
     if not hasattr(db, 'meta'):
         db.meta = ase.db.web.process_metadata(db)
+    key = db.meta.get('unique_key', 'id')
+    if key == 'id':
+        value = int(value)
     row = db.get(**{key: value})
     prfx = '{project}-{id}-'.format(project=project, id=row.id)
     s = Summary(row, db.meta, SUBSCRIPT, prfx, tmpdir)

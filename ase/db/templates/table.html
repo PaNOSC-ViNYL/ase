@@ -168,7 +168,7 @@
 {%- autoescape false -%}
 {%- for s in row.strings -%}
 <td class="text-center">
-  <a href='/{{ project }}/id/{{ row.dct.id }}'>
+  <a href='/{{ project }}/row/{{ row.uid }}'>
     {%- if s != "" -%}{{ s }}{% else %}-{% endif %}
   </a>
 </td>
