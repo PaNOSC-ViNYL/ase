@@ -1,6 +1,5 @@
 import numpy as np
 from numpy.random import RandomState
-import ase.units as u
 from ase.phonons import Phonons
 from ase.data import atomic_numbers
 from ase.optimize import FIRE
