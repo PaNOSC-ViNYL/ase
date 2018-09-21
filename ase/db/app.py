@@ -330,8 +330,10 @@ def row(project, value):
     if not hasattr(db, 'meta'):
         db.meta = ase.db.web.process_metadata(db)
     key = db.meta.get('unique_key', 'id')
-    if key == 'id':
+    try:
         value = int(value)
+    except ValueError:
+        pass
     row = db.get(**{key: value})
     prfx = '{project}-{id}-'.format(project=project, id=row.id)
     s = Summary(row, db.meta, SUBSCRIPT, prfx, tmpdir)
