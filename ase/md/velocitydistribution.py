@@ -95,7 +95,7 @@ def _phononharmonics(force_constants,
                      rng=np.random.rand,
                      quantum=True,
                      failfast=True):
-    """
+    r"""
     Args:
         force_constants: force constants (== Hessian) of the system in eV/AA^2
         masses: masses of the structure in amu
@@ -205,7 +205,7 @@ def PhononHarmonics(atoms,
                     rng=np.random,
                     quantum=True,
                     failfast=True):
-    r"""
+    """
     Args:
         atoms: ase.atoms.Atoms() object with positions
         force_constants: Force constants for the the structure represented by atoms in eV/AA^2
