@@ -65,7 +65,7 @@ if py3:
     forward_methods += ['__matmul__', '__rmatmul__']
 
 forward_methods += ['all', 'any', 'diagonal', 'dot', 'sum', 'ravel', 'tolist',
-                    'transpose']
+                    'transpose', 'tofile', 'tobytes', 'tostring']
 
 
 #'argmax', 'argmin',

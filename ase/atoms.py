@@ -326,8 +326,8 @@ class Atoms(object):
         uc = Cell.new(cell)
 
         if scale_atoms:
-            M = np.linalg.solve(self._cellobj.complete().cell,
-                                uc.complete().cell)
+            M = np.linalg.solve(self._cellobj.complete(),
+                                uc.complete())
             self.positions[:] = np.dot(self.positions, M)
         self._cellobj = uc
 
@@ -346,7 +346,7 @@ class Atoms(object):
             cell = self._cellobj.complete()
         else:
             cell = self._cellobj.copy()
-        return cell.cell
+        return cell
 
     def get_cell_lengths_and_angles(self):
         """Get unit cell parameters. Sequence of 6 numbers.
@@ -842,9 +842,9 @@ class Atoms(object):
         uc = self._cellobj
         if uc:
             if uc.is_orthorhombic:
-                cell = uc.box()
+                cell = uc.box().tolist()
             else:
-                cell = uc.cell.tolist()
+                cell = uc.tolist()
             tokens.append('cell={0}'.format(cell))
 
         for name in sorted(self.arrays):
@@ -1066,7 +1066,7 @@ class Atoms(object):
         """
 
         # Find the orientations of the faces of the unit cell
-        cell = self._cellobj.complete().cell
+        cell = self._cellobj.complete()
         dirs = np.zeros_like(cell)
         for i in range(3):
             dirs[i] = np.cross(cell[i - 1], cell[i - 2])
