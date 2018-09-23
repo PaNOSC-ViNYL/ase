@@ -217,6 +217,8 @@ class Spacegroup(object):
     def __index__(self):
         return self.no
 
+    __int__ = __index__
+
     def get_symop(self):
         """Returns all symmetry operations (including inversions and
         subtranslations) as a sequence of (rotation, translation)

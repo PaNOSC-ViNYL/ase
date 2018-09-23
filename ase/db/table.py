@@ -33,6 +33,7 @@ def get_sql_columns(columns):
         sql_columns[sql_columns.index('charge')] = 'charges'
 
     sql_columns.append('key_value_pairs')
+    sql_columns.append('constraints')
     if 'id' not in sql_columns:
         sql_columns.append('id')
 
@@ -174,6 +175,8 @@ class Row:
                 value = str(value)
             elif isinstance(value, list):
                 value = str(value)
+            elif isinstance(value, np.ndarray):
+                value = str(value.tolist())
             elif isinstance(value, int):
                 value = str(value)
                 numbers.add(column)

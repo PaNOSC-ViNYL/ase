@@ -9,6 +9,12 @@ Git master branch
 
 :git:`master <>`.
 
+* New filter for lattice optimization,
+  :class:`~ase.constraints.ExpCellFilter`, based on an exponential
+  reformulation of the degrees of freedom pertaining to the cell.
+  This is probably significantly faster than
+  :class:`ase.constraints.UnitCellFilter`.
+
 * Added calculator for :mod:`OpenMX <ase.calculators.openmx>`.
 
 * Updated the :class:`~ase.calculators.castep.Castep` calculator as well as
