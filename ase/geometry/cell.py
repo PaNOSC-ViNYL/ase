@@ -6,7 +6,9 @@ import numpy as np
 from numpy import pi, sin, cos, arccos, sqrt, dot
 from numpy.linalg import norm
 
+from ase.utils.arraywrapper import arraylike
 
+@arraylike
 class Cell:
     """Parallel epipedal unit cell of up to three dimensions.
 
@@ -17,16 +19,20 @@ class Cell:
     unit vectors that are zero."""
     def __init__(self, cell):
         if hasattr(cell, 'cell'):
-            cell = cell.cell
+            cell = cell.array
         assert cell.shape == (3, 3)
         # We could have lazy attributes for structure (bcc, fcc, ...)
         # and other things.  However this requires making the cell
         # array readonly, else people will modify it and things will
         # be out of synch.
-        self.cell = cell
+        self.array = cell
 
     def cellpar(self, radians=False):
-        return cell_to_cellpar(self.cell, radians)
+        return cell_to_cellpar(self.array, radians)
+
+    @property
+    def shape(self):
+        return self.array.shape
 
     @classmethod
     def new(cls, cell):
@@ -48,62 +54,100 @@ class Cell:
         return Cell(cell)
 
     def crystal_structure(self, eps=2e-4, niggli_reduce=True):
-        return crystal_structure_from_cell(self.cell, eps, niggli_reduce)
+        return crystal_structure_from_cell(self.array, eps, niggli_reduce)
 
     def complete(self):
         """Convert missing cell vectors into orthogonal unit vectors."""
-        return Cell(complete_cell(self.cell))
+        return Cell(complete_cell(self.array))
 
     def copy(self):
-        return Cell(self.cell.copy())
+        return Cell(self.array.copy())
 
     @property
-    def ndim(self):
-        return self.cell.any(1).sum()
+    def dtype(self):
+        return self.array.dtype
+
+    @property
+    def size(self):
+        return self.array.size
+
+    @property
+    def T(self):
+        return self.array.T
+
+    @property
+    def flat(self):
+        return self.array.flat
+
+    @property
+    def celldim(self):
+        # XXX Would name it ndim, but this clashes with ndarray.ndim
+        return self.array.any(1).sum()
 
     @property
     def is_orthorhombic(self):
-        return is_orthorhombic(self.cell)
+        return is_orthorhombic(self.array)
+
+    @property
+    def ndim(self):
+        return self.array.ndim
 
     def box(self):
-        return orthorhombic(self.cell)
+        return orthorhombic(self.array)
+
+    def __array__(self, dtype=float):
+        if dtype != float:
+            raise ValueError('Cannot convert cell to array of type {}'
+                             .format(dtype))
+        return self.array
+
+    def __bool__(self):
+        return bool(self.array.any())
+
+    def __ne__(self, other):
+        return self.array != other
+
+    def __eq__(self, other):
+        return self.array == other
+
+    __nonzero__ = __bool__
 
     @property
     def volume(self):
         # Fail or 0 for <3D cells?
         # Definitely 0 since this is currently a property.
         # I think normally it is more convenient just to get zero
-        return np.abs(np.linalg.det(self.cell))
+        return np.abs(np.linalg.det(self.array))
 
     def scaled_positions(self, positions):
-        return np.linalg.solve(self.complete().cell.T, positions.T).T
+        return np.linalg.solve(self.complete().array.T, positions.T).T
 
     def cartesian_positions(self, scaled_positions):
-        return np.dot(scaled_positions, self.complete().cell)
+        return np.dot(scaled_positions, self.complete().array)
 
     def reciprocal(self):
-        return np.linalg.pinv(self.cell).transpose()
+        return np.linalg.pinv(self.array).transpose()
 
     def __repr__(self):
         if self.is_orthorhombic:
-            numbers = np.diag(self.cell).tolist()
+            numbers = self.box().tolist()
         else:
-            numbers = self.cell.tolist()
+            numbers = self.tolist()
         return 'Cell({})'.format(numbers)
 
     def niggli_reduce(self):
         from ase.build.tools import niggli_reduce_cell
-        cell, _ = niggli_reduce_cell(self.cell)
+        cell, _ = niggli_reduce_cell(self.array)
         return Cell(cell)
 
     def bandpath(self, path, npoints=50):
         from ase.dft.kpoints import bandpath, BandPath
-        objs = bandpath(path, self.cell, npoints=npoints)
+        objs = bandpath(path, self.array, npoints=npoints)
         return BandPath(*objs, names=path)
 
     def special_points(self, eps=2e-4):
         from ase.dft.kpoints import get_special_points
-        return get_special_points(self.cell, eps=eps)
+        return get_special_points(self.array, eps=eps)
 
     def special_paths(self, eps=2e-4):
         from ase.dft.kpoints import special_paths
@@ -484,7 +528,7 @@ def orthorhombic(cell):
 
 
 def get_bravais_lattice(uc, eps=2e-4):
-    if np.linalg.det(uc.cell) < 0:
+    if np.linalg.det(uc.array) < 0:
         raise ValueError('Cell should be right-handed')
 
     cellpar = uc.cellpar()
@@ -523,7 +567,7 @@ def get_bravais_lattice(uc, eps=2e-4):
                 d['cycle'] = axis
             return f, d
 
-    _c = uc.cell
+    _c = uc.array
     BC_CA_AB = np.array([np.vdot(_c[1], _c[2]),
                          np.vdot(_c[2], _c[0]),
                          np.vdot(_c[0], _c[1])])

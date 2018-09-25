@@ -257,7 +257,7 @@ class Atoms(object):
     @property
     def number_of_lattice_vectors(self):
         """Number of (non-zero) lattice vectors."""
-        return self._cellobj.ndim
+        return self._cellobj.celldim
 
     def set_constraint(self, constraint=None):
         """Apply one or more constrains.
@@ -326,8 +326,8 @@ class Atoms(object):
         uc = Cell.new(cell)
 
         if scale_atoms:
-            M = np.linalg.solve(self._cellobj.complete().cell,
-                                uc.complete().cell)
+            M = np.linalg.solve(self._cellobj.complete(),
+                                uc.complete())
             self.positions[:] = np.dot(self.positions, M)
         self._cellobj = uc
 
@@ -346,7 +346,7 @@ class Atoms(object):
             cell = self._cellobj.complete()
         else:
             cell = self._cellobj.copy()
-        return cell.cell
+        return cell
 
     def get_cell_lengths_and_angles(self):
         """Get unit cell parameters. Sequence of 6 numbers.
@@ -842,9 +842,9 @@ class Atoms(object):
         uc = self._cellobj
         if uc:
             if uc.is_orthorhombic:
-                cell = uc.box()
+                cell = uc.box().tolist()
             else:
-                cell = uc.cell.tolist()
+                cell = uc.tolist()
             tokens.append('cell={0}'.format(cell))
 
         for name in sorted(self.arrays):
@@ -1066,7 +1066,7 @@ class Atoms(object):
         """
 
         # Find the orientations of the faces of the unit cell
-        cell = self._cellobj.complete().cell
+        cell = self._cellobj.complete()
         dirs = np.zeros_like(cell)
         for i in range(3):
             dirs[i] = np.cross(cell[i - 1], cell[i - 2])
@@ -1829,10 +1829,10 @@ class Atoms(object):
 
     def get_volume(self):
         """Get volume of unit cell."""
-        if self._cellobj.ndim != 3:
+        if self._cellobj.celldim != 3:
             raise ValueError(
                 'You have {0} lattice vectors: volume not defined'
-                .format(self._cellobj.ndim))
+                .format(self._cellobj.celldim))
         return self._cellobj.volume
 
     def _get_positions(self):
@@ -1882,7 +1882,7 @@ class Atoms(object):
 
     def _get_cell(self):
         """Return reference to unit cell for in-place manipulations."""
-        return self._cellobj.cell
+        return self._cellobj
 
     cell = property(_get_cell, set_cell, doc='Attribute for direct ' +
                     'manipulation of the unit cell.')

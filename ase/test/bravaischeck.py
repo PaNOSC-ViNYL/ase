@@ -11,7 +11,7 @@ def check_single(name, cell):
     assert ok
 
 def check(name, cell):
-    cell = Cell(cell).cell
+    cell = Cell(cell).array
     # Check all three positive permutations:
     check_single(name + '@012', cell[[0, 1, 2]])
     check_single(name + '@201', cell[[2, 0, 1]])

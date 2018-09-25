@@ -308,7 +308,7 @@ class Writer:
                                   dict, list, tuple, basestring,
                                   type(None))):
                 self.data[name] = value
-            elif isinstance(value, np.ndarray):
+            elif hasattr(value, '__array__'):
                 self.add_array(name, value.shape, value.dtype)
                 self.fill(value)
             else:
