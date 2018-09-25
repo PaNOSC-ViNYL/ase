@@ -476,6 +476,9 @@ def read_eigenvalues(line, f, debug=False):
     the end('*****...').
 
         eigenvalues[spin][kpoint][nbands]
+
+    For symmetry reason, `.out` file prints the eigenvalues at the half of the
+    K points. Thus, we have to fill up the rest of the half.
     """
     if 'Hartree' in line:
         return None
@@ -499,7 +502,17 @@ def read_eigenvalues(line, f, debug=False):
                 eigenvalues[1][i].append(float(rn(line, 1)))
                 line = f.readline()
             i += 1
-    return np.asarray(eigenvalues)
+    eigen_half = np.asarray(eigenvalues)
+
+    # Fill up the half
+    spin, half_kpts, bands = eigen_half.shape
+    eigen_values = np.zeros((spin, half_kpts*2, bands))
+    for i in range(half_kpts):
+        eigen_values[0, i] = eigen_half[0, i, :]
+        eigen_values[1, i] = eigen_half[1, i, :]
+        eigen_values[0, 2*half_kpts-1-i] = eigen_half[0, i, :]
+        eigen_values[1, 2*half_kpts-1-i] = eigen_half[1, i, :]
+    return eigen_values
 
 
 def read_forces(line, f):
@@ -561,6 +574,7 @@ def get_parameters(out_data=None, log_data=None, restart_data=None,
     translated_parameters = get_standard_parameters(parameters)
     parameters.update(translated_parameters)
     return {k: v for k, v in parameters.items() if v is not None}
+
 
 def get_standard_key(key):
     """
@@ -696,4 +710,6 @@ def get_results(out_data=None, log_data=None, restart_data=None,
 
 def get_file_name(extension='.out', filename=None):
     directory, prefix = os.path.split(filename)
+    if directory == '':
+        directory = os.curdir
     return os.path.abspath(directory + '/' + prefix + extension)

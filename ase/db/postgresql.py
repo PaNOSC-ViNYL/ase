@@ -1,12 +1,37 @@
 import json
+
+import numpy as np
 from psycopg2 import connect
 from psycopg2.extras import execute_values
 
 from ase.db.sqlite import (init_statements, index_statements, VERSION,
                            SQLite3Database)
+import ase.io.jsonio
 
-jsonb_indices = ['CREATE INDEX idxkeys ON systems USING GIN (key_value_pairs);',
-                 'CREATE INDEX idxcalc ON systems USING GIN (calculator_parameters);']
+jsonb_indices = [
+    'CREATE INDEX idxkeys ON systems USING GIN (key_value_pairs);',
+    'CREATE INDEX idxcalc ON systems USING GIN (calculator_parameters);']
+
+
+def remove_nan_and_inf(obj):
+    if isinstance(obj, float) and not np.isfinite(obj):
+        return {'__special_number__': str(obj)}
+    if isinstance(obj, list):
+        return [remove_nan_and_inf(x) for x in obj]
+    if isinstance(obj, dict):
+        return {key: remove_nan_and_inf(value) for key, value in obj.items()}
+    return obj
+
+
+def insert_nan_and_inf(obj):
+    if isinstance(obj, dict) and '__special_number__' in obj:
+        return float(obj['__special_number__'])
+    if isinstance(obj, list):
+        return [insert_nan_and_inf(x) for x in obj]
+    if isinstance(obj, dict):
+        return {key: insert_nan_and_inf(value) for key, value in obj.items()}
+    return obj
+
 
 class Connection:
     def __init__(self, con):
@@ -54,6 +79,31 @@ class Cursor:
 class PostgreSQLDatabase(SQLite3Database):
     type = 'postgresql'
     default = 'DEFAULT'
+
+    def encode(self, obj):
+        return ase.io.jsonio.encode(remove_nan_and_inf(obj))
+
+    def decode(self, obj):
+        return insert_nan_and_inf(ase.io.jsonio.numpyfy(obj))
+
+    def blob(self, array):
+        """Convert array to blob/buffer object."""
+
+        if array is None:
+            return None
+        if len(array) == 0:
+            array = np.zeros(0)
+        if array.dtype == np.int64:
+            array = array.astype(np.int32)
+        return array.tolist()
+
+    def deblob(self, buf, dtype=float, shape=None):
+        """Convert blob/buffer object to ndarray of correct dtype and shape.
+
+        (without creating an extra view)."""
+        if buf is None:
+            return None
+        return np.array(buf, dtype=dtype)
 
     def _connect(self):
         return Connection(connect(self.filename))
