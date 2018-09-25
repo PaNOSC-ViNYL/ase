@@ -18,6 +18,8 @@ inplace_methods = ['__iadd__',
                    '__itruediv__']
 if py3:
     inplace_methods.append('__imatmul__')
+else:
+    inplace_methods.append('__idiv__')
 
  #'__and__',
  #'__bool__',
@@ -63,6 +65,8 @@ forward_methods = ['__abs__',
 
 if py3:
     forward_methods += ['__matmul__', '__rmatmul__']
+else:
+    forward_methods += ['__div__', '__rdiv__']
 
 forward_methods += ['all', 'any', 'diagonal', 'dot', 'sum', 'ravel', 'tolist',
                     'transpose', 'tofile', 'tobytes', 'tostring']
