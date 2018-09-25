@@ -75,21 +75,23 @@ def n_BE(temp, omega):
     Bose-Einstein distribution function
     Args:
         temp: temperature converted to eV (*units.kB)
-        omega: List of frequencies converted to eV
+        omega: sequence of frequencies converted to eV
 
     Returns:
         Value of Bose-Einstein distribution function for each energy
 
     """
 
+    omega = np.asarray(omega)
+
     # 0K limit
     if temp < 1e-12:
-        n = 0 * omega
+        n = np.zeros_like(omega)
     else:
-        n = 1/(np.exp(omega / (temp)) - 1)
+        n = 1 / (np.exp(omega / (temp)) - 1)
     return n
 
-def _phononharmonics(force_constants,
+def phonon_harmonics(force_constants,
                      masses,
                      temp,
                      rng=np.random.rand,
@@ -209,20 +211,20 @@ def PhononHarmonics(atoms,
     Args:
         atoms: ase.atoms.Atoms() object with positions
         force_constants: Force constants for the the structure represented by atoms in eV/AA^2
-        temp: Temperature in Kelvin
+        temp: Temperature in eV (T * units.kB)
         rng: Random number generator function, e.g., np.random.rand
         quantum: True for Bose-Einstein distribution, False for Maxwell-Boltzmann (classical limit)
         failfast: True for sanity checking the phonon spectrum for negative frequencies at Gamma
 
     Returns:
-        The atoms object with positions and velocities set according to _phononharmonics()
+        The atoms object with positions and velocities set according to phonon_harmonics()
 
    """
 
-    # Receive displacements and velocities from _phononharmonics()
-    d_ac, v_ac = _phononharmonics(force_constants=force_constants,
+    # Receive displacements and velocities from phonon_harmonics()
+    d_ac, v_ac = phonon_harmonics(force_constants=force_constants,
                                   masses=atoms.get_masses(),
-                                  temp=temp,
+                                  temp=temp / units.kB,
                                   rng=rng.rand,
                                   quantum=quantum,
                                   failfast=failfast)

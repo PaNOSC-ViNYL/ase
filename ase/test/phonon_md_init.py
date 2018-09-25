@@ -7,6 +7,7 @@ from ase.optimize import FIRE
 from ase.calculators.emt import EMT
 from ase.build import bulk
 from ase.md.velocitydistribution import PhononHarmonics
+from ase import units
 
 # Tests the phonon-based perturbation and velocity distribution
 # for thermal equilibration in MD.
@@ -34,7 +35,7 @@ finally:
 matrices = phonons.get_force_constant()
 
 K = matrices[0]
-T = 300
+T = 300 * units.kB
 
 atoms.calc = EMT()
 Epotref = atoms.get_potential_energy()
@@ -80,16 +81,16 @@ for i in range(24):
 Epotmean = np.mean(Epots)
 Ekinmean = np.mean(Ekins)
 Tmean = np.mean(temps)
-Terr = abs(Tmean - T)
+Terr = abs(Tmean - T / units.kB)
 relative_imbalance = abs(Epotmean - Ekinmean) / (Epotmean + Ekinmean)
 
 
 print('epotmean', Epotmean)
 print('ekinmean', Ekinmean)
 print('rel imbalance', relative_imbalance)
-print('Tmean', Tmean, 'Tref', T, 'err', Terr)
+print('Tmean', Tmean, 'Tref', T / units.kB, 'err', Terr)
 
-assert Terr < 0.1*T, Terr  # error in Kelvin for instantaneous velocity
+assert Terr < 0.1*T / units.kB, Terr  # error in Kelvin for instantaneous velocity
 # Epot == Ekin give or take 2 %:
 assert relative_imbalance < 0.1, relative_imbalance
 
