@@ -2,6 +2,7 @@ from __future__ import print_function, division
 # Copyright (C) 2010, Jesper Friis
 # (see accompanying license files for details).
 
+import os
 import numpy as np
 from numpy import pi, sin, cos, arccos, sqrt, dot
 from numpy.linalg import norm
@@ -17,15 +18,20 @@ class Cell:
 
     Cells of less than three dimensions are represented by placeholder
     unit vectors that are zero."""
-    def __init__(self, cell):
-        if hasattr(cell, 'cell'):
-            cell = cell.array
-        assert cell.shape == (3, 3)
+
+    # This overridable variable tells an Atoms object whether atoms.cell
+    # and atoms.get_cell() should be a Cell object or an array.
+    _atoms_use_cellobj = bool(os.environ.get('ASE_DEBUG_CELLOBJ'))
+
+    def __init__(self, array):
+        if hasattr(array, 'array'):
+            array = array.array
+        assert array.shape == (3, 3)
         # We could have lazy attributes for structure (bcc, fcc, ...)
         # and other things.  However this requires making the cell
         # array readonly, else people will modify it and things will
         # be out of synch.
-        self.array = cell
+        self.array = array
 
     def cellpar(self, radians=False):
         return cell_to_cellpar(self.array, radians)
