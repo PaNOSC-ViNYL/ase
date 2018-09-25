@@ -29,8 +29,8 @@ c = app.app.test_client()
 page = c.get('/').data.decode()
 assert 'Test title' in page
 assert 'FOO' in page
-c.get('/id/1')
-c.get('json/1').data
-c.get('sqlite/1').data
-c.get('sqlite?x=1').data
-c.get('json?x=1').data
+c.get('/default/row/1')
+c.get('/default/json/1').data
+c.get('/default/sqlite/1').data
+c.get('/default/sqlite?x=1').data
+c.get('/default/json?x=1').data

@@ -6,14 +6,14 @@
     <center>
         <div id="appdiv"></div>
     {% if open_ase_gui %}
-        <img src="/image/{{ d.id }}.png?project={{ project }}">
+        <img src="/{{ project }}/image/{{ d.id }}.png">
     {% endif %}
     </center>
     <div class="row">
       <div class="col-md-1"></div>
       <div class="col-md-4">
         {% if open_ase_gui %}
-        <a class="btn" href="/gui/{{ d.id }}?project={{ project }}">
+        <a class="btn" href="/{{ project }}/gui/{{ d.id }}">
         Open ASE's GUI</a>
         {% endif %}
         <div class="btn-group pull-right">
@@ -30,9 +30,9 @@
                 Download <span class="caret"></span>
             </button>
             <ul class="dropdown-menu">
-                <li><a href="/xyz/{{ d.id }}?project={{ project }}">xyz</a></li>
-                <li><a href="/sqlite/{{ d.id }}?project={{ project }}">db</a></li>
-                <li><a href="/json/{{ d.id }}?project={{ project }}">json</a></li>
+                <li><a href="/{{ project }}/xyz/{{ d.id }}">xyz</a></li>
+                <li><a href="/{{ project }}/sqlite/{{ d.id }}">db</a></li>
+                <li><a href="/{{ project }}/json/{{ d.id }}">json</a></li>
             </ul>
         </div>
       </div>
@@ -141,7 +141,7 @@ jmol_isReady = function(applet)
 {
     Jmol._getElement(applet, "appletdiv").style.border="1px solid lightgray";
     Jmol.script(jmolApplet0, "set displaycellparameters false;")
-    Jmol.script(jmolApplet0, "load /cif/{{ d.id }}.cif?project={{ project }} { {{ n1 }} {{ n2 }} {{ n3 }} };");
+    Jmol.script(jmolApplet0, "load /{{ project }}/cif/{{ d.id }}.cif { {{ n1 }} {{ n2 }} {{ n3 }} };");
     }
 </script>
 
@@ -187,7 +187,7 @@ jmol_isReady = function(applet)
             {{ table(thing) }}
         {% else %}
                     <img
-                    src="/plot/{{ d.id }}-{{ thing }}?project={{ project }}" width="100%">
+                    src="/{{ project }}/plot/{{ d.id }}-{{ thing }}" width="100%">
         {% endif %}
                 </div> <!--END ROW-->
     {% endfor %}
@@ -200,4 +200,3 @@ jmol_isReady = function(applet)
 </div> <!--END PANEL GROUP-->
 </div>
 {% endblock content %}
-

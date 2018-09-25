@@ -353,7 +353,7 @@ def main(args):
                     else:
                         columns.append(col.lstrip('+'))
 
-            table = Table(db, verbosity, args.cut)
+            table = Table(db, verbosity=verbosity, cut=args.cut)
             table.select(query, columns, args.sort, args.limit, args.offset)
             if args.csv:
                 table.write_csv()
