@@ -3,6 +3,7 @@
 # Copyright (C) 2007-2017  CAMd
 # Please see the accompanying LICENSE file for further information.
 
+from __future__ import print_function
 import os
 import re
 import sys
@@ -44,11 +45,13 @@ class build_py(_build_py):
         msgfmt = 'msgfmt'
         status = os.system(msgfmt + ' -V')
         if status == 0:
-            for pofile in glob('ase/gui/po/*/LC_MESSAGES/ag.po'):
+            for pofile in sorted(glob('ase/gui/po/*/LC_MESSAGES/ag.po')):
                 dirname = join(self.build_lib, os.path.dirname(pofile))
                 if not os.path.isdir(dirname):
                     os.makedirs(dirname)
                 mofile = join(dirname, 'ag.mo')
+                print()
+                print('Compile {}'.format(pofile))
                 status = os.system('%s -cv %s --output-file=%s 2>&1' %
                                    (msgfmt, pofile, mofile))
                 assert status == 0, 'msgfmt failed!'
