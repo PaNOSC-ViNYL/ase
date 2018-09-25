@@ -329,6 +329,10 @@ class Atoms(object):
             M = np.linalg.solve(self._cellobj.complete(),
                                 uc.complete())
             self.positions[:] = np.dot(self.positions, M)
+
+        if hasattr(self, '_cellobj'):
+            # Copy the existing pbcs into the new cell object
+            uc.pbc = self.pbc
         self._cellobj = uc
 
     def set_celldisp(self, celldisp):
@@ -377,7 +381,7 @@ class Atoms(object):
         """Set periodic boundary condition flags."""
         if isinstance(pbc, int):
             pbc = (pbc,) * 3
-        self._pbc = np.array(pbc, bool)
+        self._cellobj.pbc = np.array(pbc, bool)
 
     def get_pbc(self):
         """Get periodic boundary condition flags."""
@@ -1896,7 +1900,7 @@ class Atoms(object):
 
     def _get_pbc(self):
         """Return reference to pbc-flags for in-place manipulations."""
-        return self._pbc
+        return self._cellobj.pbc
 
     pbc = property(_get_pbc, set_pbc,
                    doc='Attribute for direct manipulation ' +

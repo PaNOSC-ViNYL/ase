@@ -23,15 +23,23 @@ class Cell:
     # and atoms.get_cell() should be a Cell object or an array.
     _atoms_use_cellobj = bool(os.environ.get('ASE_DEBUG_CELLOBJ'))
 
-    def __init__(self, array):
-        if hasattr(array, 'array'):
-            array = array.array
-        assert array.shape == (3, 3)
+    def __init__(self, array=None, pbc=None):
+        if array is None:
+            array = np.zeros((3, 3))
+
+        if pbc is None:
+            pbc = np.zeros(3, bool)
+
         # We could have lazy attributes for structure (bcc, fcc, ...)
         # and other things.  However this requires making the cell
         # array readonly, else people will modify it and things will
         # be out of synch.
+        assert array.shape == (3, 3)
+        assert array.dtype == float
+        assert pbc.shape == (3,)
+        assert pbc.dtype == bool
         self.array = array
+        self.pbc = pbc
 
     def cellpar(self, radians=False):
         return cell_to_cellpar(self.array, radians)
@@ -139,7 +147,13 @@ class Cell:
             numbers = self.box().tolist()
         else:
             numbers = self.tolist()
-        return 'Cell({})'.format(numbers)
+
+        pbc = self.pbc
+        if all(pbc):
+            pbc = True
+        elif not any(pbc):
+            pbc = False
+        return 'Cell({}, pbc={})'.format(numbers, pbc)
 
     def niggli_reduce(self):
         from ase.build.tools import niggli_reduce_cell
