@@ -239,7 +239,7 @@ class FixBondLengths(FixConstraint):
                 b = ab[1]
                 cd = self.bondlengths[j]
                 r0 = old[a] - old[b]
-                d0 = find_mic([r0], atoms.cell, atoms._pbc)[0][0]
+                d0 = find_mic([r0], atoms.cell, atoms.pbc)[0][0]
                 d1 = new[a] - new[b] - r0 + d0
                 m = 1 / (1 / masses[a] + 1 / masses[b])
                 x = 0.5 * (cd**2 - np.dot(d1, d1)) / np.dot(d0, d1)
@@ -266,7 +266,7 @@ class FixBondLengths(FixConstraint):
                 b = ab[1]
                 cd = self.bondlengths[j]
                 d = old[a] - old[b]
-                d = find_mic([d], atoms.cell, atoms._pbc)[0][0]
+                d = find_mic([d], atoms.cell, atoms.pbc)[0][0]
                 dv = p[a] / masses[a] - p[b] / masses[b]
                 m = 1 / (1 / masses[a] + 1 / masses[b])
                 x = -np.dot(dv, d) / cd**2
@@ -922,7 +922,7 @@ class Hookean(FixConstraint):
         elif self._type == 'point':
             p1 = positions[self.index]
             p2 = self.origin
-        displace = find_mic([p2 - p1], atoms.cell, atoms._pbc)[0][0]
+        displace = find_mic([p2 - p1], atoms.cell, atoms.pbc)[0][0]
         bondlength = np.linalg.norm(displace)
         if bondlength > self.threshold:
             magnitude = self.spring * (bondlength - self.threshold)
@@ -952,7 +952,7 @@ class Hookean(FixConstraint):
         elif self._type == 'point':
             p1 = positions[self.index]
             p2 = self.origin
-        displace = find_mic([p2 - p1], atoms.cell, atoms._pbc)[0][0]
+        displace = find_mic([p2 - p1], atoms.cell, atoms.pbc)[0][0]
         bondlength = np.linalg.norm(displace)
         if bondlength > self.threshold:
             return 0.5 * self.spring * (bondlength - self.threshold)**2
