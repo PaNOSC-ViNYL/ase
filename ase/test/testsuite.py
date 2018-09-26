@@ -312,6 +312,9 @@ def test(calculators=[], jobs=0,
 
     # Note: :25 corresponds to ase.cli indentation
     print('{:25}{}'.format('test directory', testdir))
+    if test_calculator_names:
+        print('{:25}{}'.format('Enabled calculators:',
+                               ' '.join(test_calculator_names)))
     print('{:25}{}'.format('number of processes',
                            jobs or '1 (multiprocessing disabled)'))
     print('{:25}{}'.format('time', time.strftime('%c')))
