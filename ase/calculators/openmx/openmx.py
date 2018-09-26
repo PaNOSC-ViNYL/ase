@@ -25,6 +25,7 @@ import time
 import subprocess
 import re
 import warnings
+from distutils.version import LooseVersion
 import numpy as np
 from ase.geometry import cell_to_cellpar
 from ase.calculators.calculator import (FileIOCalculator, Calculator, equal,
@@ -488,10 +489,11 @@ class OpenMX(FileIOCalculator):
     def get_stress(self, atoms=None):
         if atoms is None:
             atoms = self.atoms
-        if float(self.version) < 3.8:
+
+        if LooseVersion(self.version) < '3.8':
             raise PropertyNotImplementedError(
                 'Version lower than 3.8 does not support stress calculation.' +
-                'Your version is %s'%self.version)
+                'Your version is %s' % self.version)
 #        if self.results.get('stress') is None:
 #            raise PropertyNotImplementedError
         return self.get_property('stress', atoms)
