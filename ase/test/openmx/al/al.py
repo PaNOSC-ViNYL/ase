@@ -3,17 +3,12 @@ from ase.test import NotAvailable
 from ase.build import bulk
 from ase.calculators.calculator import get_calculator
 
-
-required = {'abinit': dict(ecut=200, toldfe=0.0001, chksymbreak=0),
-            'aims': dict(sc_accuracy_rho=5.e-3),
-            'elk': dict(tasks=0, rgkmax=5.0),
-            'gpaw': dict(mode='pw'),
-            'cp2k': dict(auto_write=True, uks=True, max_scf=1, cutoff=400)}
+par = {'definition_of_atomic_species': [['Al', 'Al8.0-p1', 'Al_CA13'],
+                                        ['O', 'O6.0-p1', 'O_CA13']]}
 
 
 def run(name):
     Calculator = get_calculator(name)
-    par = required.get(name, {})
     calc = Calculator(label=name, xc='LDA', kpts=(1, 1, 1), **par)
     al = bulk('AlO', crystalstructure='rocksalt', a=4.5)
     al.calc = calc
