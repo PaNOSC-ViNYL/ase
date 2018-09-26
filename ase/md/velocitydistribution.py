@@ -101,7 +101,7 @@ def phonon_harmonics(force_constants,
     Args:
         force_constants: force constants (== Hessian) of the system in eV/AA^2
         masses: masses of the structure in amu
-        temp: Temperature in Kelvin
+        temp: Temperature converted to eV (*units.kB)
         rng: Random number generator function, e.g., np.random.rand
         quantum: True for Bose-Einstein distribution, False for Maxwell-Boltzmann (classical limit)
         failfast: True for sanity checking the phonon spectrum for negative frequencies at Gamma
@@ -143,9 +143,6 @@ def phonon_harmonics(force_constants,
     Reference:
         [West, Estreicher; PRL 96, 22 (2006)]
     """
-
-    # Temp to ASE units
-    temp *= units.kB
 
     # Build dynamical matrix
     rminv = (masses**-0.5).repeat(3)
@@ -224,7 +221,7 @@ def PhononHarmonics(atoms,
     # Receive displacements and velocities from phonon_harmonics()
     d_ac, v_ac = phonon_harmonics(force_constants=force_constants,
                                   masses=atoms.get_masses(),
-                                  temp=temp / units.kB,
+                                  temp=temp,
                                   rng=rng.rand,
                                   quantum=quantum,
                                   failfast=failfast)
