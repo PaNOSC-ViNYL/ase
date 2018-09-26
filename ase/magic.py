@@ -6,9 +6,78 @@ from ase.data import atomic_numbers, chemical_symbols
 from ase.utils import basestring, formula_hill, formula_metal
 
 
+def string2symbols(s):
+    """Convert string to list of chemical symbols."""
+    n = len(s)
+
+    if n == 0:
+        return []
+
+    c = s[0]
+
+    if c.isdigit():
+        i = 1
+        while i < n and s[i].isdigit():
+            i += 1
+        return int(s[:i]) * string2symbols(s[i:])
+
+    if c == '(':
+        p = 0
+        for i, c in enumerate(s):
+            if c == '(':
+                p += 1
+            elif c == ')':
+                p -= 1
+                if p == 0:
+                    break
+        j = i + 1
+        while j < n and s[j].isdigit():
+            j += 1
+        if j > i + 1:
+            m = int(s[i + 1:j])
+        else:
+            m = 1
+        return m * string2symbols(s[1:i]) + string2symbols(s[j:])
+
+    if c.isupper():
+        i = 1
+        if 1 < n and s[1].islower():
+            i += 1
+        j = i
+        while j < n and s[j].isdigit():
+            j += 1
+        if j > i:
+            m = int(s[i:j])
+        else:
+            m = 1
+        symbol = s[:i]
+        if symbol not in atomic_numbers:
+            raise ValueError
+        return m * [symbol] + string2symbols(s[j:])
+    else:
+        raise ValueError
+
+
+def symbols2numbers(symbols):
+    if isinstance(symbols, basestring):
+        symbols = string2symbols(symbols)
+    numbers = []
+    for s in symbols:
+        if isinstance(s, basestring):
+            numbers.append(atomic_numbers[s])
+        else:
+            numbers.append(s)
+    return numbers
+
+
 class Symbols:
     def __init__(self, numbers):
         self.numbers = numbers
+
+    @classmethod
+    def fromsymbols(cls, symbols):
+        numbers = symbols2numbers(symbols)
+        return cls(numbers)
 
     def __getitem__(self, key):
         num = self.numbers[key]
@@ -29,6 +98,17 @@ class Symbols:
 
     def __repr__(self):
         return 'Symbols(\'{}\')'.format(self.get_chemical_formula())
+
+    def __eq__(self, obj):
+        if not hasattr(obj, '__len__'):
+            return False
+
+        try:
+            symbols = Symbols.fromsymbols(obj)
+        except Exception as err:
+            print(err)
+            return False
+        return self.numbers == symbols.numbers
 
     def get_chemical_formula(self, mode='hill', empirical=False):
         """Get chemical formula.
