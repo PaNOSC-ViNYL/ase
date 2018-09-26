@@ -24,7 +24,8 @@ else:
 nomad_api_url = 'https://labdev-nomad.esc.rzg.mpg.de'
 nomad_query_url = 'https://analytics-toolkit.nomad-coe.eu'
 nomad_api_template = (nomad_api_url + '/api/resolve/{hash}?format=recursiveJson')
-nomad_nql_api_query_template = (nomad_api_url + '/dev/archive/nql-api/search?query={hash}')
+#nomad_nql_api_query_template = (nomad_query_url + '/dev/archive/nql-api/search?query={hash}')
+nomad_nql_api_query_template = (nomad_query_url + '/archive/nql-api/search?query={hash}')
 # The next link for queries will be DEPRECATED from NOMAD!
 nomad_api_query_template = (nomad_query_url + '/api/query/section_run?filter={hash}')
 
@@ -98,24 +99,23 @@ def add_nomad_metainfo(d, run, calc, system=[]):
     # key_value_pairs can also be stored at ASE db.
     info = {}
     info['nomad_metadata_type'] = run['type']
-    info['nomad_run_gIndex'] = run['gIndex']
+    info['nomad_run_gIndex'] = int(run['gIndex'])
     if system:
         info['nomad_uri'] = system['uri']
-        info['nomad_system_gIndex'] = system['gIndex']
+        info['nomad_system_gIndex'] = int(system['gIndex'])
     info['nomad_calculation_uri'] = d['uri']
     if 'program_name' in run:
         info['nomad_program_name'] = run['program_name']
     if 'program_version' in run:
-        info['nomad_program_version'] = ' '.join(run['program_version'].split())
+        info['nomad_program_version'] = 'version:' + ' '.join(run['program_version'].split())
     if 'energy_total_T0' in calc:
-        info['potential_energy'] = calc['energy_total_T0'] * units.J
+        info['nomad_potential_energy'] = float(calc['energy_total_T0']) * units.J
     if 'energy_total' in calc:
-        info['nomad_total_energy'] = calc['energy_total'] * units.J
-        info['energy'] = calc['energy_total'] * units.J
+        info['nomad_total_energy'] = float(calc['energy_total']) * units.J
     if 'energy_free' in calc:
-        info['free_energy'] = calc['energy_free'] * units.J
+        info['nomad_free_energy'] = float(calc['energy_free']) * units.J
     if 'single_configuration_calculation_converged' in calc:
-        info['nomad_converged'] = calc['single_configuration_calculation_converged']
+        info['nomad_converged'] = bool(calc['single_configuration_calculation_converged'])
     # Checking the reference section_method for this calc, 
     # section_single_configuration_calculation
     ref_method = calc.get('single_configuration_to_calculation_method_ref') 
@@ -279,6 +279,10 @@ def section_singleconfig2calc(dct, nmd_run, nmd_calc, nmd_system):
     return calc
 
 
+def getNumberArray(string):
+    return [float(s) for s in string[1:-1].split(',')]
+    
+
 class NomadQuery(object):
     """
         NOMAD Query class. Requests archive info from NOMAD servers.
@@ -364,6 +368,21 @@ class NomadQuery(object):
         self.number_of_results = None
         self.response = {}
         self.atom_labels = []
+        
+    def getCellPositions(self, elements, cell):
+        cellData= {}
+        cellData["normalizedCell"] = [
+                getNumberArray(cell['a']),
+                getNumberArray(cell['b']),
+                getNumberArray(cell['c'])
+                ]
+        cellData["labels"] = []
+        cellData["positions"] = []
+        
+        for i in range(len(elements)):
+            cellData["labels"].append(elements[i]["label"])
+            cellData["positions"].append(getNumberArray(elements[i]["position"]))
+        return cellData
 
     def request(self, atom_labels=None, query=None, 
                 nomad_interface='a', nomad_token='',
@@ -428,7 +447,7 @@ class NomadQuery(object):
             if self.query is None:
                 the_query = ''
                 if self.atom_labels:
-                    the_query = the_query + 'all atom_species=' + ','.join([
+                    the_query = the_query + 'alltarget atom_species=' + ','.join([
                         str(num) for num in symbols2numbers(self.atom_labels)])
                 if program_name != '':
                     the_query = the_query + ' and ' + 'program_name:' + str(program_name)
@@ -495,6 +514,26 @@ class NomadQuery(object):
                 except Exception as exc:
                     nomadsgrpdata = self._handle_error(exc)
                     print(nomadsgrpdata)
+                try:
+                    nomadelmdata = requests.get(
+                            url=nomad_enc_elmt_template.format(nomad_metarial_id),
+                            auth=self.auth
+                            )
+                    nomadelmdata = nomadelmdata.json()
+                    self.response['elements'] = nomadelmdata['results']
+                except Exception as exc:
+                    nomadelmdata = self._handle_error(exc)
+                    print(nomadelmdata)
+                try:
+                    nomadcelldata = requests.get(
+                            url=nomad_enc_cell_template.format(nomad_metarial_id),
+                            auth=self.auth
+                            )
+                    nomadcelldata = nomadcelldata.json()
+                    self.response['cells'] = nomadcelldata['results']
+                except Exception as exc:
+                    nomadcelldata = self._handle_error(exc)
+                    print(nomadcelldata)
             else:
                 print(response)
         else:
@@ -506,7 +545,7 @@ class NomadQuery(object):
                 for cgid in qdat["calculation_context"]['calculation_gid']:
                     nmd_uri_list.append('nmd://' + str(archive_gid) + '/' + str(cgid))
             self.response['data'] = response
-            self.response['info'] = response['info']
+            self.response['info'] = response.get('info','')
             self.response['nmd_uri_list'] = nmd_uri_list
             print('nmd_uri_list',len(nmd_uri_list))
 
@@ -735,10 +774,9 @@ class NomadQuery(object):
             response = self._handle_response(response, interface=self.nomad_interface)
         return response
 
-
     def download(self, index=':', only_atoms=False,
                  skip_errors=False, no_dublicate_positions=False,
-                 only_last_entries=False):
+                 only_last_entries=False, number_of_entries=-1):
         images = []
         from ase.utils import basestring
         from ase.io.formats import string2index
@@ -748,6 +786,7 @@ class NomadQuery(object):
             index = string2index(index)
         if(self.nomad_interface == 'a' or 
            self.nomad_interface == 'o'):
+            num_results=0
             for nmd_link in self.response["nmd_uri_list"]:
                 ref_positions = None
                 if 'section_run' in nmd_link:
@@ -760,8 +799,17 @@ class NomadQuery(object):
                     entry = download(nmduri, only_atoms=only_atoms, skip_errors=skip_errors)
                     nmd_images_download = entry.toatoms()
                     nmd_images = list(nmd_images_download)
-                except(TypeError, AttributeError, AssertionError, IndexError):
-                    print(exc = sys.exc_info()[1])
+                except Exception as exc:
+                    exc = sys.exc_info()[1]
+                    message = ''
+                    if hasattr(exc, 'message'):
+                        message = exc.message
+                    elif hasattr(exc, 'reason'):
+                        message = exc.reason
+                    if message:
+                        print('Exception:' + message)
+                    else:
+                        print('Exception:',exc)
                     nmd_images = []
                 if self.atom_labels:
                     if self.exclusive:
@@ -789,34 +837,43 @@ class NomadQuery(object):
                     nmd_images = nmd_new_images
                 #print(nmd_images)
                 if len(nmd_images)>0:
+                    num_results += 1
                     print('Adding ' + str(len(nmd_images)) + ' structure(s) with ' + ','.join(
                         list(set([str(ni.get_chemical_formula('reduce')) for ni in nmd_images]))))
                 else:
                     print('No structures is retrieved from this NOMAD archive!')
                 images.extend(nmd_images)
+                if number_of_entries>0:
+                    if num_results >= number_of_entries:
+                        break
         else:
+            num_results=0
             if 'data' in self.response:
                 for result in self.response["data"]:
-                    wyckoff_basis = []
-                    nmd_elements = []
-                    for item in result['wyckoff_groups_json']:
-                        if item['variables']:
-                            wyckoff_basis.append([
-                                float(item['variables']['x']),
-                                float(item['variables']['y']),
-                                float(item['variables']['z'])])
-                        if item['element']:
-                            nmd_elements.append(str(item['element']))
-                            lat_par = np.array([float(s) for s in result[
-                                "lattice_parameters"][1:-1].split(",")])
-                        nmd_cell = []
-                        nmd_cell.extend(lat_par[0:3] * units.m)
-                        nmd_cell.extend(lat_par[3:6] * 180.0/pi)
-                        atoms = crystal(nmd_elements,
-                                basis=wyckoff_basis,
-                                spacegroup=int(self.response['space_group']),
-                                cellpar=nmd_cell)
-                        images.append(atoms)
+                    cells = self.response.get("cells", [])
+                    if bool(cells[0]["is_primitive"]):
+                        cell = cells[0]
+                    else:
+                        cell = cells[1]
+                    cell_pos = self.getCellPositions(self.response[
+                        "elements"], cell)
+                    nmd_elements = cell_pos["labels"]
+                    nmd_pos = cell_pos["positions"]
+                    lat_par = np.array([float(s) for s in result[
+                        "lattice_parameters"][1:-1].split(",")])
+                    nmd_cell = []
+                    nmd_cell.extend(lat_par[0:3] * units.m)
+                    nmd_cell.extend(lat_par[3:6] * 180.0/pi)
+                    nmd_images = Atoms(symbols=nmd_elements,
+                                  positions=nmd_pos,
+                                  cell=nmd_cell)
+                    images.append(nmd_images)
+                if len(images)>0:
+                    num_results += 1
+                    print('Adding ' + str(len(images)) + ' structure(s) with ' + ','.join(
+                        list(set([str(ni.get_chemical_formula('reduce')) for ni in images]))))
+                else:
+                    print('No structures is retrieved from this NOMAD encyclopeadia query!')
         self.images = list(images)[index]
 
     def save_db(self, filename=None):
@@ -829,7 +886,17 @@ class NomadQuery(object):
             with ase.db.connect(self.db_file) as atoms_db:
                 for image in self.images:
                     if isinstance(image, Atoms):
-                        atoms_db.write(image)
+                        if 'key_value_pairs' in image.info:
+                            k_v_pairs = image.info['key_value_pairs']
+                            for k, v in k_v_pairs.items():
+                                if isinstance(v, basestring):
+                                    if ase.db.core.str_represents(v, int):
+                                        k_v_pairs[k] = int(v)
+                                    if ase.db.core.str_represents(v, float):
+                                        k_v_pairs[k] = float(v)
+                            atoms_db.write(image, key_value_pairs=k_v_pairs)
+                        else:
+                            atoms_db.write(image)
                         
     def __repr__(self):
         tokens = []
@@ -909,7 +976,8 @@ def main(argv):
             print(nmd_query)
             nmd_query.download(skip_errors=True, 
                     no_dublicate_positions=True,
-                    only_last_entries=False)
+                    only_last_entries=False,
+                    number_of_entries=-1)
     if write_to_atomsdb:
         if nmd_query:
             nmd_query.save_db(argv[2])
