@@ -490,13 +490,26 @@ class OpenMX(FileIOCalculator):
         if atoms is None:
             atoms = self.atoms
 
-        if LooseVersion(self.version) < '3.8':
-            raise PropertyNotImplementedError(
-                'Version lower than 3.8 does not support stress calculation.' +
-                'Your version is %s' % self.version)
-#        if self.results.get('stress') is None:
-#            raise PropertyNotImplementedError
-        return self.get_property('stress', atoms)
+        def check_version():
+            if LooseVersion(self.version) < '3.8':
+                raise PropertyNotImplementedError(
+                    'Version lower than 3.8 does not support stress '
+                    'calculation.  Your version is %s' % self.version)
+
+        # We may not yet know what version we are, since that can only
+        # be seen from the output
+        if getattr(self, 'version', None) is not None:
+            check_version()
+
+        try:
+            stress = self.get_property('stress', atoms)
+        except PropertyNotImplementedError:
+            # Now we know the version number, either we raise version
+            # error or the original error (the latter should not happen)
+            check_version()
+            raise
+
+        return stress
 
     def get_band_structure(self, atoms=None, calc=None):
         """
