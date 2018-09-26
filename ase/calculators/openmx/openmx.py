@@ -74,8 +74,9 @@ class OpenMX(FileIOCalculator):
         'debug': False
     }
 
-    def __init__(self, restart=None, ignore_bad_restart_file=False, label='./openmx',
-                 atoms=None, command=None, mpi=None, pbs=None, **kwargs):
+    def __init__(self, restart=None, ignore_bad_restart_file=False,
+                 label='./openmx', atoms=None, command=None, mpi=None,
+                 pbs=None, **kwargs):
 
         # Initialize and put the default parameters.
         self.initialize_pbs(pbs)
@@ -318,12 +319,13 @@ class OpenMX(FileIOCalculator):
             self.run()
             #  self.read_results()
             self.version = self.read_version()
-            atoms = read_openmx(filename=self.label, debug=self.debug)
-            self.parameters.update(atoms.calc.parameters)
-            self.results = atoms.calc.results
+            output_atoms = read_openmx(filename=self.label, debug=self.debug)
+            self.output_atoms = output_atoms
+            # XXX The parameters are supposedly inputs, so it is dangerous
+            # to update them from the outputs. --askhl
+            self.parameters.update(output_atoms.calc.parameters)
+            self.results = output_atoms.calc.results
             # self.clean()
-            if atoms is not None:
-                self.update_atoms(atoms)
         except RuntimeError as e:
             try:
                 with open(get_file_name('.log'), 'r') as f:
@@ -448,7 +450,7 @@ class OpenMX(FileIOCalculator):
 
         atoms = kwargs.get('atoms')
         if atoms is not None and self.atoms is None:
-            self.atoms = atoms
+            self.atoms = atoms.copy()
 
     def set_results(self, results):
         # Not Implemented fully
