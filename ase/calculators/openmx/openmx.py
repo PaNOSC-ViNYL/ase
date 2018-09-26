@@ -28,7 +28,8 @@ import warnings
 import numpy as np
 from ase.geometry import cell_to_cellpar
 from ase.calculators.calculator import (FileIOCalculator, Calculator, equal,
-                                        all_changes, kptdensity2monkhorstpack)
+                                        all_changes, kptdensity2monkhorstpack,
+                                        PropertyNotImplementedError)
 from ase.calculators.openmx.parameters import OpenMXParameters
 from ase.calculators.openmx.default_settings import default_dictionary
 from ase.calculators.openmx.reader import read_openmx, get_file_name
@@ -315,7 +316,8 @@ class OpenMX(FileIOCalculator):
             self.print_input(debug=self.debug, nohup=self.nohup)
             self.run()
             #  self.read_results()
-            atoms = read_openmx(filename=self.label)
+            self.version = self.read_version()
+            atoms = read_openmx(filename=self.label, debug=self.debug)
             self.parameters.update(atoms.calc.parameters)
             self.results = atoms.calc.results
             # self.clean()
@@ -374,12 +376,22 @@ class OpenMX(FileIOCalculator):
         self.set_label(label)
         if label[-5:] in ['.dat', '.out', '.log']:
             label = label[:-4]
-        atoms = read_openmx(filename=label)
+        atoms = read_openmx(filename=label, debug=self.debug)
         self.update_atoms(atoms)
         self.parameters.update(atoms.calc.parameters)
         self.results = atoms.calc.results
         self.parameters['restart'] = self.label
         self.parameters['label'] = label
+
+    def read_version(self, label=None):
+        version = None
+        if label is None:
+            label = self.label
+        for line in open(get_file_name('.out', label)):
+            if line.find('Ver.') != -1:
+                version = line.split()[-1]
+                break
+        return version
 
     def update_atoms(self, atoms):
         self.atoms = atoms.copy()
@@ -472,6 +484,17 @@ class OpenMX(FileIOCalculator):
                 "Example : 'mpirun -np 4 openmx ./%s -nt 2 > ./%s'.\n" +
                 "Got '%s'" % command)
         return command
+
+    def get_stress(self, atoms=None):
+        if atoms is None:
+            atoms = self.atoms
+        if float(self.version) < 3.8:
+            raise PropertyNotImplementedError(
+                'Version lower than 3.8 does not support stress calculation.' +
+                'Your version is %s'%self.version)
+#        if self.results.get('stress') is None:
+#            raise PropertyNotImplementedError
+        return self.get_property('stress', atoms)
 
     def get_band_structure(self, atoms=None, calc=None):
         """
