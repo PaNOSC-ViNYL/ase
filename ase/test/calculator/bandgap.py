@@ -47,7 +47,7 @@ def run(name):
 
 # gpaw does not conform to the new ase interface standard:
 # https://trac.fysik.dtu.dk/projects/gpaw/ticket/268
-names = ['abinit', 'aims', 'elk']  # , 'gpaw']
+names = ['abinit', 'aims', 'elk', 'openmx']  # , 'gpaw']
 for name in names:
     try:
         run(name)
