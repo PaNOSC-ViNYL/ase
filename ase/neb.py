@@ -58,7 +58,7 @@ class NEB:
             and its neighbors), it will be optimized again. This routine
             can speed up calculations if convergence is non-uniform.
             Convergence criterion should be the same as that given to
-            the optimizer.
+            the optimizer. Not efficient when parallelizing over images.
         method: string of method
             Choice betweeen three method:
 
@@ -147,13 +147,19 @@ class NEB:
         n1 = 0
         for i, image in enumerate(self.images[1:-1]):
             if self.dynamic_relaxation:
-                forces_dyn = self.get_fmax_all(self.images)
-                if forces_dyn[i] < self.fmax:
-                    n1 += self.natoms
+                if self.parallel:
+                    msg = ('Dynamic relaxation does not work efficiently '
+                           'when parallelizing over images. Try AutoNEB '
+                           'routine for freezing images in parallel.')
+                    raise ValueError(msg)
                 else:
-                    n2 = n1 + self.natoms
-                    image.set_positions(positions[n1:n2])
-                    n1 = n2
+                    forces_dyn = self.get_fmax_all(self.images)
+                    if forces_dyn[i] < self.fmax:
+                        n1 += self.natoms
+                    else:
+                        n2 = n1 + self.natoms
+                        image.set_positions(positions[n1:n2])
+                        n1 = n2
             else:
                 n2 = n1 + self.natoms
                 image.set_positions(positions[n1:n2])
