@@ -106,7 +106,6 @@ class Symbols:
         try:
             symbols = Symbols.fromsymbols(obj)
         except Exception as err:
-            print(err)
             return False
         return self.numbers == symbols.numbers
 

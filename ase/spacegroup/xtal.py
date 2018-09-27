@@ -11,7 +11,7 @@ knowledge of the space group.
 import numpy as np
 
 import ase
-from ase.atoms import string2symbols
+from ase.symbols import string2symbols
 from ase.spacegroup import Spacegroup
 from ase.geometry import cellpar_to_cell
 from ase.utils import basestring

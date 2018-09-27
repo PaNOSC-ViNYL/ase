@@ -2,7 +2,8 @@ from optparse import OptionParser
 
 import numpy as np
 
-from ase.atoms import Atoms, string2symbols
+from ase.atoms import Atoms
+from ase.symbols import string2symbols
 from ase.build import (molecule, fcc111, hcp0001, bcc110, bcc100, diamond111,
                        add_adsorbate)
 from ase.data import reference_states, atomic_numbers, covalent_radii
