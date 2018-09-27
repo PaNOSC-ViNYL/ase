@@ -17,12 +17,12 @@ import numpy as np
 import ase.units as units
 from ase.atom import Atom
 from ase.constraints import FixConstraint, FixBondLengths
-from ase.data import atomic_numbers, atomic_masses
+from ase.data import atomic_masses
 from ase.utils import basestring
 from ase.geometry import (wrap_positions, find_mic, cellpar_to_cell,
                           cell_to_cellpar, complete_cell, is_orthorhombic,
                           get_angles, get_distances)
-from ase.symbols import Symbols, symbols2numbers, string2symbols
+from ase.symbols import Symbols, symbols2numbers
 
 
 class Atoms(object):
