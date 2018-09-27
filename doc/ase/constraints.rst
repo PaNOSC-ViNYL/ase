@@ -119,6 +119,18 @@ A mode is a list of vectors specifying a direction for each atom. It often
 comes from :meth:`ase.vibrations.Vibrations.get_mode`.
 
 
+The FixCom class
+===================
+
+.. autoclass:: FixCom
+
+Example of use::
+
+  >>> from ase.constraints import FixedCom
+  >>> c = FixedCom()
+  >>> atoms.set_constraint(c)
+
+
 The Hookean class
 =================
 

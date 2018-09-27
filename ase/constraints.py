@@ -204,7 +204,7 @@ class FixAtoms(FixConstraint):
 
 
 class FixCom(FixConstraint):
-    """Fix center of mass for geometry optimization.
+    """Constraint class for fixing the center of mass.
        
     References
     ----------
