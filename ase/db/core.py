@@ -9,7 +9,8 @@ from time import time
 
 import numpy as np
 
-from ase.atoms import Atoms, symbols2numbers, string2symbols
+from ase.atoms import Atoms
+from ase.symbols import symbols2numbers, string2symbols
 from ase.calculators.calculator import all_properties, all_changes
 from ase.data import atomic_numbers
 from ase.db.row import AtomsRow

@@ -22,7 +22,7 @@ from ase.utils import basestring
 from ase.geometry import (wrap_positions, find_mic, cellpar_to_cell,
                           cell_to_cellpar, complete_cell, is_orthorhombic,
                           get_angles, get_distances)
-from ase.magic import string2symbols, symbols2numbers
+from ase.symbols import Symbols, symbols2numbers, string2symbols
 
 
 class Atoms(object):
@@ -242,7 +242,6 @@ class Atoms(object):
 
     @property
     def symbols(self):
-        from ase.magic import Symbols
         return Symbols(self.numbers)
 
     def set_calculator(self, calc=None):
