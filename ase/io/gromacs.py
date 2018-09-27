@@ -12,7 +12,7 @@ def read_gromacs(filename):
     """ From:
     http://manual.gromacs.org/current/online/gro.html
     C format
-    "%5d%5s%5s%5d%8.3f%8.3f%8.3f%8.4f%8.4f%8.4f"
+    "%5d%-5s%5s%5d%8.3f%8.3f%8.3f%8.4f%8.4f%8.4f"
     python: starting from 0, including first excluding last
     0:4 5:10 10:15 15:20 20:28 28:36 36:44 44:52 52:60 60:68
 
@@ -68,7 +68,7 @@ def read_gromacs(filename):
         if velocities is not None:
             # velocities from nm/ps to ase units
             velocities *= units.nm / (1000.0 * units.fs)
-            gromacs_velocities.append(floatvect)
+            gromacs_velocities.append(velocities)
 
         gromacs_residuenumbers.append(int(line[0:5]))
         gromacs_residuenames.append(line[5:11].strip())
@@ -197,8 +197,9 @@ def write_gromacs(fileobj, images):
         vel = pos
         vel = pos * 0.0
 
-    fileobj.write('#A Gromacs structure file written by ASE \n')
-    fileobj.write('%5d \n' % len(images[-1]))
+    # No "#" in the first line to prevent read error in VMD
+    fileobj.write('A Gromacs structure file written by ASE \n')
+    fileobj.write('%5d\n' % len(images[-1]))
     count = 1
 
     # gromac line see http://manual.gromacs.org/documentation/current/user-guide/file-formats.html#gro
@@ -206,10 +207,14 @@ def write_gromacs(fileobj, images):
     for resnb, resname, atomtype, xyz, vxyz in zip\
             (residuenumbers, gromacs_residuenames, gromacs_atomtypes, pos, vel):
 
-        line = ("{0:5d}{1:5s}{2:5s}{3:5d}{4:8.3f}{5:8.3f}{6:8.3f}{7:8.4f}"
-                "{8:8.4f}{9:8.4f}\n"
-                .format(resnb, resname.rjust(5), atomtype.rjust(5), count,
+        # THIS SHOULD BE THE CORRECT, PYTHON FORMATTING, EQUIVALENT TO THE
+        # C FORMATTING GIVEN IN THE GROMACS DOCUMENTATION: 
+        # >>> %5d%-5s%5s%5d%8.3f%8.3f%8.3f%8.4f%8.4f%8.4f <<<
+        line = ("{0:>5d}{1:<5s}{2:>5s}{3:>5d}{4:>8.3f}{5:>8.3f}{6:>8.3f}"
+                "{7:>8.4f}{8:>8.4f}{9:>8.4f}\n"
+                .format(resnb, resname, atomtype, count,
                         xyz[0], xyz[1], xyz[2], vxyz[0], vxyz[1], vxyz[2]))
+
         fileobj.write(line)
         count += 1
 

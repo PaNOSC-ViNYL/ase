@@ -1,6 +1,5 @@
 import numpy as np
 from numpy.random import RandomState
-import ase.units as u
 from ase.phonons import Phonons
 from ase.data import atomic_numbers
 from ase.optimize import FIRE
@@ -8,6 +7,7 @@ from ase.optimize import FIRE
 from ase.calculators.emt import EMT
 from ase.build import bulk
 from ase.md.velocitydistribution import PhononHarmonics
+from ase import units
 
 # Tests the phonon-based perturbation and velocity distribution
 # for thermal equilibration in MD.
@@ -35,7 +35,7 @@ finally:
 matrices = phonons.get_force_constant()
 
 K = matrices[0]
-T = 100 * u.kB
+T = 300 * units.kB
 
 atoms.calc = EMT()
 Epotref = atoms.get_potential_energy()
@@ -47,7 +47,7 @@ Etots = []
 
 
 for i in range(24):
-    PhononHarmonics(atoms, T, K, rng=np.random.RandomState(888 + i))
+    PhononHarmonics(atoms, K, T, quantum=True, rng=np.random.RandomState(888 + i))
 
     Epot = atoms.get_potential_energy() - Epotref
     Ekin = atoms.get_kinetic_energy()
@@ -81,18 +81,18 @@ for i in range(24):
 Epotmean = np.mean(Epots)
 Ekinmean = np.mean(Ekins)
 Tmean = np.mean(temps)
-Terr = abs(Tmean - T / u.kB)
+Terr = abs(Tmean - T / units.kB)
 relative_imbalance = abs(Epotmean - Ekinmean) / (Epotmean + Ekinmean)
 
 
 print('epotmean', Epotmean)
 print('ekinmean', Ekinmean)
 print('rel imbalance', relative_imbalance)
-print('Tmean', Tmean, 'Tref', T / u.kB, 'err', Terr)
+print('Tmean', Tmean, 'Tref', T / units.kB, 'err', Terr)
 
-assert Terr < 5.0, Terr  # error in Kelvin for instantaneous velocity
+assert Terr < 0.1*T / units.kB, Terr  # error in Kelvin for instantaneous velocity
 # Epot == Ekin give or take 2 %:
-assert relative_imbalance < 0.04, relative_imbalance
+assert relative_imbalance < 0.1, relative_imbalance
 
 
 if 0:
