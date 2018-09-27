@@ -204,8 +204,13 @@ class FixAtoms(FixConstraint):
 
 
 class FixCom(FixConstraint):
-    """ Fix center of mass for geometry optimization.
-        https://pubs.acs.org/doi/abs/10.1021/jp9722824 """
+    """Fix center of mass for geometry optimization.
+       
+    References
+    ----------
+    https://pubs.acs.org/doi/abs/10.1021/jp9722824 
+
+    """
 
     def __init__(self):
 
