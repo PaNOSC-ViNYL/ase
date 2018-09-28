@@ -79,41 +79,13 @@ class Summary:
 
         misc = set(table.keys())
         self.layout = []
-        for headline, columns in meta['layout']:
+        for headline, columns in meta['layout'](row):
             empty = True
             newcolumns = []
             for column in columns:
                 newcolumn = []
                 for block in column:
-                    if block is None:
-                        pass
-                    elif isinstance(block, tuple):
-                        title, keys = block
-                        rows = []
-                        for key in keys:
-                            value = table.get(key, None)
-                            if value is not None:
-                                if key in misc:
-                                    misc.remove(key)
-                                desc, unit = kd.get(key, [0, key, ''])[1:]
-                                rows.append((desc, value, unit))
-                        if rows:
-                            block = (title, rows)
-                        else:
-                            continue
-                    elif any(block.endswith(ext) for ext in ['.png', '.csv']):
-                        name = op.join(tmpdir, prefix + block)
-                        if not op.isfile(name):
-                            self.create_figures(row, prefix, tmpdir,
-                                                meta['functions'])
-                        if op.getsize(name) == 0:
-                            # Skip empty files:
-                            block = None
-                        elif block.endswith('.csv'):
-                            block = read_csv_table(name)
-                    else:
-                        assert block in ['ATOMS', 'CELL', 'FORCES'], block
-
+                    block = create_block(block)
                     newcolumn.append(block)
                     if block is not None:
                         empty = False
@@ -223,3 +195,33 @@ class Summary:
 
         if self.data:
             print('Data:', self.data, '\n')
+
+
+def create_block(block, misc=set()):
+    if block is None:
+        return None
+    if isinstance(block, tuple):
+        title, table = block
+        if table and isinstance(table[0], str):
+        rows = []
+        for key in keys:
+            value = table.get(key, None)
+            if value is not None:
+                if key in misc:
+                    misc.remove(key)
+                desc, unit = kd.get(key, [0, key, ''])[1:]
+                rows.append((desc, value, unit))
+        if rows:
+            block = (title, rows)
+        else:
+            continue
+    elif block.endswith('.png'):
+        name = op.join(tmpdir, prefix + block)
+        if not op.isfile(name):
+            self.create_figures(row, prefix, tmpdir,
+                                meta['functions'])
+        if op.getsize(name) == 0:
+            # Skip empty files:
+            block = None
+    else:
+        assert block in ['ATOMS', 'CELL', 'FORCES'], block
