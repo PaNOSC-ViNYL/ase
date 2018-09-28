@@ -655,7 +655,7 @@ class Wannier:
 
     def write_cube(self, index, fname, repeat=None, real=True):
         """Dump specified Wannier function to a cube file"""
-        from ase.io.cube import write_cube
+        from ase.io import write
 
         # Default size of plotting cell is the one corresponding to k-points.
         if repeat is None:
@@ -675,10 +675,10 @@ class Wannier:
             phase_fname = fname.split('.')
             phase_fname.insert(1, 'phase')
             phase_fname = '.'.join(phase_fname)
-            write_cube(phase_fname, atoms, data=np.angle(func))
+            write(phase_fname, atoms, data=np.angle(func), format='cube')
             func = abs(func)
 
-        write_cube(fname, atoms, data=func)
+        write(fname, atoms, data=func, format='cube')
 
     def localize(self, step=0.25, tolerance=1e-08,
                  updaterot=True, updatecoeff=True):
