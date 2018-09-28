@@ -53,67 +53,40 @@ class Summary:
 
         age = float_to_time_string(now() - row.ctime, True)
 
-        table = dict((key, value)
-                     for key, value in [
-                         ('id', row.id),
-                         ('age', age),
-                         ('formula', self.formula),
-                         ('user', row.user),
-                         ('calculator', row.get('calculator')),
-                         ('energy', row.get('energy')),
-                         ('fmax', fmax),
-                         ('charge', row.get('charge')),
-                         ('mass', mass),
-                         ('magmom', row.get('magmom')),
-                         ('unique id', row.unique_id),
-                         ('volume', row.get('volume'))]
-                     if value is not None)
+        # Collect all data in this dict:
+        dct = dict((key, value)
+                   for key, value in [
+                       ('id', row.id),
+                       ('age', age),
+                       ('formula', self.formula),
+                       ('user', row.user),
+                       ('calculator', row.get('calculator')),
+                       ('energy', row.get('energy')),
+                       ('fmax', fmax),
+                       ('charge', row.get('charge')),
+                       ('mass', mass),
+                       ('magmom', row.get('magmom')),
+                       ('unique_id', row.unique_id),
+                       ('volume', row.get('volume'))]
+                   if value is not None)
 
-        table.update(row.key_value_pairs)
+        dct.update(row.key_value_pairs)
 
-        for key, value in table.items():
-            if isinstance(value, float):
-                table[key] = '{:.3f}'.format(value)
+        #for key, value in dct.items():
+        #    if isinstance(value, float):
+        #        dct[key] = '{:.3f}'.format(value)
 
         kd = meta.get('key_descriptions', {})
 
-        misc = set(table.keys())
+        misc = set(dct.keys())
         self.layout = []
-        for headline, columns in meta['layout']:
+        for headline, columns in meta['layout'](row):
             empty = True
             newcolumns = []
             for column in columns:
                 newcolumn = []
                 for block in column:
-                    if block is None:
-                        pass
-                    elif isinstance(block, tuple):
-                        title, keys = block
-                        rows = []
-                        for key in keys:
-                            value = table.get(key, None)
-                            if value is not None:
-                                if key in misc:
-                                    misc.remove(key)
-                                desc, unit = kd.get(key, [0, key, ''])[1:]
-                                rows.append((desc, value, unit))
-                        if rows:
-                            block = (title, rows)
-                        else:
-                            continue
-                    elif any(block.endswith(ext) for ext in ['.png', '.csv']):
-                        name = op.join(tmpdir, prefix + block)
-                        if not op.isfile(name):
-                            self.create_figures(row, prefix, tmpdir,
-                                                meta['functions'])
-                        if op.getsize(name) == 0:
-                            # Skip empty files:
-                            block = None
-                        elif block.endswith('.csv'):
-                            block = read_csv_table(name)
-                    else:
-                        assert block in ['ATOMS', 'CELL', 'FORCES'], block
-
+                    block = create_block(block, dct, misc)
                     newcolumn.append(block)
                     if block is not None:
                         empty = False
@@ -125,7 +98,7 @@ class Summary:
         if misc:
             rows = []
             for key in sorted(misc):
-                value = table[key]
+                value = dct[key]
                 desc, unit = kd.get(key, [0, key, ''])[1:]
                 rows.append((desc, value, unit))
             self.layout.append(('Miscellaneous', [[('Items', rows)]]))
@@ -140,26 +113,7 @@ class Summary:
 
         self.constraints = row.get('constraints')
         if self.constraints:
-            self.constraints = ', '.join(c.__class__.__name__
-                                         for c in self.constraints)
-
-    def create_figures(self, row, prefix, tmpdir, functions):
-        with Lock('ase.db.web.lock'):
-            for func, filenames in functions:
-                for filename in filenames:
-                    try:
-                        os.remove(filename)
-                    except OSError:  # Python 3 only: FileNotFoundError
-                        pass
-                func(row)
-                for filename in filenames:
-                    path = os.path.join(tmpdir, prefix + filename)
-                    if os.path.isfile(filename):
-                        shutil.move(filename, path)
-                    else:
-                        # Create an empty file:
-                        with open(path, 'w'):
-                            pass
+            self.constraints = ', '.join(d['name'] for d in self.constraints)
 
     def write(self):
         row = self.row
@@ -174,25 +128,20 @@ class Summary:
                 if block is None:
                     pass
                 elif isinstance(block, tuple):
-                    title, keys = block
+                    title, table = block
                     print(title + ':')
-                    if not keys:
+                    if not table:
                         print()
                         continue
-                    width = max(len(name) for name, value, unit in keys)
+                    width = max(len(name) for name, value, unit in table)
                     print('{:{width}}|value'.format('name', width=width))
-                    for name, value, unit in keys:
+                    for name, value, unit in table:
                         print('{:{width}}|{} {}'.format(name, value, unit,
                                                         width=width))
                     print()
                 elif block.endswith('.png'):
                     if op.isfile(block) and op.getsize(block) > 0:
                         print(block)
-                    print()
-                elif block.endswith('.csv'):
-                    if op.isfile(block) and op.getsize(block) > 0:
-                        with open(block) as f:
-                            print(f.read())
                     print()
                 elif block == 'CELL':
                     print('Unit cell in Ang:')
@@ -226,7 +175,61 @@ class Summary:
             print('Data:', self.data, '\n')
 
 
-def read_csv_table(name):
-    with open(name) as f:
-        title = f.readline()[1:].strip()
-        return (title, [line.rsplit(',', 2) for line in f])
+def create_block(block, dct, key_descriptions, misc=set()):
+    if block is None:
+        pass
+    elif isinstance(block, tuple):
+        title, table = block
+        if table and isinstance(table[0], str):
+            keys = table
+            if key in misc:
+                misc.remove(key)
+            table = create_table(, ...)
+        if table:
+            block = (title, table)
+    elif block.endswith('.png'):
+        name = op.join(tmpdir, prefix + block)
+        if not op.isfile(name):
+            create_figures(row, prefix, tmpdir,
+                           meta['functions'])
+        if op.getsize(name) == 0:
+            # Skip empty files:
+            block = None
+    else:
+        assert block in ['ATOMS', 'CELL', 'FORCES']
+    return block
+
+
+def create_table(row, keys, key_descriptions, decimals=3):
+    # types: (Row, List[str], Dict[str, Tuple[str, str, str]], int)
+    # types: -> Tuple[str, List[List[str]]]
+    from ase.db import key_descriptions
+    descriptions = ChainMap(description, key_descriptions)
+    table = []
+    for key in keys:
+        value = row.get(key)
+        if value is not None:
+            short, long, unit = descriptions[key]
+            if isinstance(value, float):
+                value = '{:.{}f}'.format(value, decimals)
+            table.append([long or short, value, unit])
+    return table
+
+
+def create_figures(row, prefix, tmpdir, functions):
+    with Lock('ase.db.web.lock'):
+        for func, filenames in functions:
+            for filename in filenames:
+                try:
+                    os.remove(filename)
+                except OSError:  # Python 3 only: FileNotFoundError
+                    pass
+            func(row)
+            for filename in filenames:
+                path = os.path.join(tmpdir, prefix + filename)
+                if os.path.isfile(filename):
+                    shutil.move(filename, path)
+                else:
+                    # Create an empty file:
+                    with open(path, 'w'):
+                        pass
