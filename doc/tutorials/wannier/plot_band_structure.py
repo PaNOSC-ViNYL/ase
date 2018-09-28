@@ -16,7 +16,7 @@ plt.plot([-.5, .5], [1, 1], 'k:', label='_nolegend_')
 plt.text(-.5, 1, 'fixedenergy', ha='left', va='bottom')
 plt.axis('tight')
 plt.xticks([-.5, -.25, 0, .25, .5],
-          [ r'$X$', r'$\Delta$', r'$\Gamma$', r'$\Delta$', r'$X$'], size=16)
+           [r'$X$', r'$\Delta$', r'$\Gamma$', r'$\Delta$', r'$X$'], size=16)
 plt.ylabel(r'$E - E_F\  \rm{(eV)}$', size=16)
 plt.legend()
 plt.savefig('bands.png', dpi=80)
