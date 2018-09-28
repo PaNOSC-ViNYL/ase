@@ -91,14 +91,14 @@ class IPIProtocol:
 
         self.log(' sendposdata')
         self.sendmsg('POSDATA')
-        self.send(cell / units.Bohr, np.float64)
-        self.send(icell * units.Bohr, np.float64)
+        self.send(cell.T / units.Bohr, np.float64)
+        self.send(icell.T * units.Bohr, np.float64)
         self.send(len(positions), np.int32)
         self.send(positions / units.Bohr, np.float64)
 
     def recvposdata(self):
-        cell = self.recv((3, 3), np.float64)
-        icell = self.recv((3, 3), np.float64)
+        cell = self.recv((3, 3), np.float64).T.copy()
+        icell = self.recv((3, 3), np.float64).T.copy()
         natoms = self.recv(1, np.int32)
         natoms = int(natoms)
         positions = self.recv((natoms, 3), np.float64)
@@ -113,7 +113,7 @@ class IPIProtocol:
         natoms = self.recv(1, np.int32)
         assert natoms >= 0
         forces = self.recv((int(natoms), 3), np.float64)
-        virial = self.recv((3, 3), np.float64)
+        virial = self.recv((3, 3), np.float64).T.copy()
         nmorebytes = self.recv(1, np.int32)
         nmorebytes = int(nmorebytes)
         if nmorebytes > 0:
@@ -136,7 +136,7 @@ class IPIProtocol:
         natoms = len(forces)
         self.send(np.array([natoms]), np.int32)
         self.send(units.Bohr / units.Ha * forces, np.float64)
-        self.send(1.0 / units.Ha * virial, np.float64)
+        self.send(1.0 / units.Ha * virial.T, np.float64)
         # We prefer to always send at least one byte due to trouble with
         # empty messages.  Reading a closed socket yields 0 bytes
         # and thus can be confused with a 0-length bytestring.
