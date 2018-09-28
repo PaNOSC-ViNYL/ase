@@ -85,7 +85,7 @@ class Summary:
             for column in columns:
                 newcolumn = []
                 for block in column:
-                    block = create_block(block)
+                    block = create_block(block, misc)
                     newcolumn.append(block)
                     if block is not None:
                         empty = False
