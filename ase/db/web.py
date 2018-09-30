@@ -29,6 +29,7 @@ def process_metadata(db, html=True):
         eval(compile(code, db.python, 'exec'), mod, mod)
 
     for key, default in [('title', 'ASE database'),
+                         ('external_libraries', []),
                          ('default_columns', []),
                          ('special_keys', []),
                          ('key_descriptions', {}),
