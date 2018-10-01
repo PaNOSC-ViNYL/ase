@@ -184,7 +184,7 @@ def create_block(block, dct, key_descriptions, misc=set()):
             keys = table
             if key in misc:
                 misc.remove(key)
-            #table = create_table(, ...)
+            table = create_table(, ...)
         if table:
             block = (title, table)
     elif block.endswith('.png'):
