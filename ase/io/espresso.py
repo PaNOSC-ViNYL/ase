@@ -22,7 +22,7 @@ import numpy as np
 from ase.atoms import Atoms
 from ase.calculators.singlepoint import (SinglePointDFTCalculator,
                                          SinglePointKPoint)
-from ase.calculators.calculator import kpts2ndarray
+from ase.calculators.calculator import kpts2ndarray, kpts2sizeandoffsets
 from ase.dft.kpoints import kpoint_convert
 from ase.constraints import FixAtoms, FixCartesian
 from ase.data import chemical_symbols, atomic_numbers
@@ -1581,7 +1581,10 @@ def write_espresso_in(fd, atoms, input_data=None, pseudopotentials=None,
     if kspacing is not None:
         kgrid = kspacing_to_grid(atoms, kspacing)
     elif kpts is not None:
-        kgrid = kpts
+        if isinstance(kpts, dict) and 'path' not in kpts:
+            kgrid, koffset = kpts2sizeandoffsets(atoms=atoms, **kpts)
+        else:
+            kgrid = kpts
     else:
         kgrid = (1, 1, 1)
 
@@ -1591,6 +1594,7 @@ def write_espresso_in(fd, atoms, input_data=None, pseudopotentials=None,
 
     if isinstance(kgrid, dict):
         pwi.append('K_POINTS crystal_b\n')
+        assert 'path' in kgrid
         kgrid = kpts2ndarray(kgrid, atoms=atoms)
         pwi.append('%s\n' % len(kgrid))
         for k in kgrid:
