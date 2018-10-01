@@ -45,6 +45,7 @@ CALCULATION_END_MARK = '__end_of_ase_invoked_calculation__'
 
 
 class LAMMPS:
+    name = 'lammpsrun'
 
     def __init__(self, label='lammps', tmp_dir=None, parameters={},
                  specorder=None, files=[], always_triclinic=False,
