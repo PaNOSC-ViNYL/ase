@@ -1582,7 +1582,11 @@ def write_espresso_in(fd, atoms, input_data=None, pseudopotentials=None,
         kgrid = kspacing_to_grid(atoms, kspacing)
     elif kpts is not None:
         if isinstance(kpts, dict) and 'path' not in kpts:
-            kgrid, koffset = kpts2sizeandoffsets(atoms=atoms, **kpts)
+            kgrid, shift = kpts2sizeandoffsets(atoms=atoms, **kpts)
+            koffset = []
+            for i, x in enumerate(shift):
+                assert x == 0 or x * kgrid[i] == 0.5
+                koffset.append(0 if x == 0 else 1)
         else:
             kgrid = kpts
     else:
