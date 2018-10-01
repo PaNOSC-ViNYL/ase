@@ -1590,7 +1590,6 @@ def write_espresso_in(fd, atoms, input_data=None, pseudopotentials=None,
         koffset = (koffset, ) * 3
 
     if isinstance(kgrid, dict):
-        # Band structure calculation
         pwi.append('K_POINTS crystal_b\n')
         kgrid = kpts2ndarray(kgrid, atoms=atoms)
         pwi.append('%s\n' % len(kgrid))
