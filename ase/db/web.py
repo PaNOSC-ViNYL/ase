@@ -4,16 +4,6 @@ import os
 from ase.db.core import default_key_descriptions
 
 
-functions = []
-
-
-def creates(*filenames):
-    def decorator(func):
-        functions.append((func, filenames))
-        return func
-    return decorator
-
-
 def process_metadata(db, html=True):
     meta = db.metadata
 
@@ -71,17 +61,6 @@ def process_metadata(db, html=True):
             pass
         sk.append(special)
     meta['special_keys'] = sk
-
-    if not meta['layout']:
-        keys = ['id', 'formula', 'age']
-        meta['layout'] = [
-            ('Basic properties',
-             [['ATOMS', 'CELL'],
-              [('Key Value Pairs', keys), 'FORCES']])]
-
-    if mod:
-        meta['functions'] = functions[:]
-        functions[:] = []
 
     sub = re.compile(r'`(.)_(.)`')
     sup = re.compile(r'`(.*)\^\{?(.*?)\}?`')

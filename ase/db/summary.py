@@ -18,82 +18,17 @@ class Summary:
         self.lengths = par[:3]
         self.angles = par[3:]
 
-        forces = row.get('constrained_forces')
-        if forces is None:
-            fmax = None
-            self.forces = None
-        else:
-            fmax = (forces**2).sum(1).max()**0.5
-            N = len(forces)
-            self.forces = []
-            for n, f in enumerate(forces):
-                if n < 5 or n >= N - 5:
-                    f = tuple('{0:10.3f}'.format(x) for x in f)
-                    symbol = chemical_symbols[row.numbers[n]]
-                    self.forces.append((n, symbol) + f)
-                elif n == 5:
-                    self.forces.append((' ...', '',
-                                        '       ...',
-                                        '       ...',
-                                        '       ...'))
-
         self.stress = row.get('stress')
         if self.stress is not None:
             self.stress = ', '.join('{0:.3f}'.format(s) for s in self.stress)
 
-        if 'masses' in row:
-            mass = row.masses.sum()
-        else:
-            mass = atomic_masses[row.numbers].sum()
-
         self.formula = formula_metal(row.numbers)
-
         if subscript:
             self.formula = subscript.sub(r'<sub>\1</sub>', self.formula)
 
-        age = float_to_time_string(now() - row.ctime, True)
-
-        table = dict((key, value)
-                     for key, value in [
-                         ('id', row.id),
-                         ('age', age),
-                         ('formula', self.formula),
-                         ('user', row.user),
-                         ('calculator', row.get('calculator')),
-                         ('energy', row.get('energy')),
-                         ('fmax', fmax),
-                         ('charge', row.get('charge')),
-                         ('mass', mass),
-                         ('magmom', row.get('magmom')),
-                         ('unique id', row.unique_id),
-                         ('volume', row.get('volume'))]
-                     if value is not None)
-
-        table.update(row.key_value_pairs)
-
-        for key, value in table.items():
-            if isinstance(value, float):
-                table[key] = '{:.3f}'.format(value)
-
         kd = meta.get('key_descriptions', {})
-
-        create_layout_function = meta.get('layout', default_layout)
-        layout = create_layout_function(row)
-
-        misc = set(table.keys())
-        self.layout = []
-        for headline, columns in layout:
-            empty = True
-            newcolumns = []
-            for column in columns:
-                newcolumn = []
-                for type, data in column:
-                    if type == 'keys':
-                        data = create_table(data['keys'], kd)
-                        type = table
-                    newcolumn.append(block)
-                newcolumns.append(newcolumn)
-            self.layout.append((headline, newcolumns))
+        create_layout = meta.get('layout', default_layout)
+        self.layout = create_layout(row, kd)
 
         self.dipole = row.get('dipole')
         if self.dipole is not None:
@@ -172,30 +107,37 @@ class Summary:
             print('Data:', self.data, '\n')
 
 
-def create_block(block, misc=set()):
-    if block is None:
-        return None
-    if isinstance(block, tuple):
-        title, table = block
-        if table and isinstance(table[0], str):
-        rows = []
-        for key in keys:
-            value = table.get(key, None)
-            if value is not None:
-                if key in misc:
-                    misc.remove(key)
-                desc, unit = kd.get(key, [0, key, ''])[1:]
-                rows.append((desc, value, unit))
+def create_table(row, keys, title, key_descriptions, digits=3):
+    table = []
+    for key in keys:
+        value = row.get(key)
+        if value:
+            if isinstance(valeu, float):
+                value = '{:.{}f}'.format(value, digits)
+            elif not isinstance(value, str):
+                value = str(value)
+            if key == 'age':
+                value = float_to_time_string(now() - row.ctime, True)
+                desc = 'Age'
+                unit = ''
+            else:
+                desc, unit = key_descriptions.get(key, ['', key, ''])[1:]
+            table.append((desc, value, unit))
+    return ('table', {'rows': table, 'title': title})
 
 
-        if misc:
-            rows = []
-            for key in sorted(misc):
-                value = table[key]
-                desc, unit = kd.get(key, [0, key, ''])[1:]
-                rows.append((desc, value, unit))
-            self.layout.append(('Miscellaneous', [[('Items', rows)]]))
-
-def default_layout(row):
-    return []
-    
+def default_layout(row, key_descriptions):
+    # types: (Row, Dict[str, Tuple[str, str, str]])
+    # types -> List[Tuple[str, Dict[str, Any]]]
+    keys = ['id',
+            'energy', 'fmax', 'smax',
+            'mass',
+            'age']
+    table = create_table(row, keys, 'Key Value Pairs', key_descriptions)
+    layout = [('Basic properties', [[('atoms', {}),
+                                     ('cell', {})],
+                                    [table]])]
+    keys =
+    misc = create_table(row, keys, 'Items', key_descriptions)
+    layout.append(('Miscellaneous', [[misc]]))
+    return
