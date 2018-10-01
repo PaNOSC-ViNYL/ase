@@ -510,12 +510,46 @@ class SocketClient:
             pass
 
 
+class PySocketIO:
+    def __init__(self, calc, port=None, unixsocket=None, timeout=None):
+        self.iocalc = SocketIOCalculator(port=port,
+                                         unixsocket=unixsocket,
+                                         timeout=timeout,
+                                         _inithook=self._start_subprocess)
+        self.calc = calc
+        self.proc = None
+
+    @staticmethod
+    def _run_pyclient(atoms, calc):
+        # XXX improve parameter passing?
+        client = SocketClient(unixsocket=atoms.calc.server.unixsocket,
+                              port=atoms.calc.server.port)  # log, comm
+        atoms.calc = calc
+        client.run(atoms)
+
+    def _start_subprocess(self, atoms):
+        from multiprocessing import Process
+        self.proc = Process(target=self._run_pyclient,
+                            args=[atoms, self.calc])
+        self.proc.start()
+
+    def __enter__(self):
+        return self.iocalc
+
+    def __exit__(self, type, value, traceback):
+        self.iocalc.close()
+        if self.proc is not None:
+            self.proc.join()
+            self.proc = None
+
+
 class SocketIOCalculator(Calculator):
     implemented_properties = ['energy', 'forces', 'stress']
     supported_changes = {'positions', 'cell'}
 
     def __init__(self, calc=None, port=None,
-                 unixsocket=None, timeout=None, log=None):
+                 unixsocket=None, timeout=None, log=None,
+                 _inithook=None):
         """Initialize socket I/O calculator.
 
         This calculator launches a server which passes atomic
@@ -576,6 +610,7 @@ class SocketIOCalculator(Calculator):
         self.timeout = timeout
         self.server = None
         self.log = log
+        self._inithook = _inithook
 
         # We only hold these so we can pass them on to the server.
         # They may both be None as stored here.
@@ -584,6 +619,7 @@ class SocketIOCalculator(Calculator):
 
         # First time calculate() is called, system_changes will be
         # all_changes.  After that, only positions and cell may change.
+        # We keep track of this by means of this boolean.
         self.calculator_initialized = False
 
         # If there is a calculator, we will launch in calculate() because
@@ -617,6 +653,14 @@ class SocketIOCalculator(Calculator):
                 'Cannot change {} through IPI protocol.  '
                 'Please create new socket calculator.'
                 .format(bad if len(bad) > 1 else bad[0]))
+
+        if not self.calculator_initialized and self._inithook is not None:
+            # When we have no internal calculator, _inithook provides
+            # a means to automatically send the initial atoms object
+            # to the subprocess.  This is useful because the i-PI
+            # protocol itself can only communicate positions/cell.
+            # So far we only use _inithook internally.
+            self._inithook(atoms)
 
         self.calculator_initialized = True
 
