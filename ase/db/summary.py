@@ -77,30 +77,23 @@ class Summary:
 
         kd = meta.get('key_descriptions', {})
 
+        create_layout_function = meta.get('layout', default_layout)
+        layout = create_layout_function(row)
+
         misc = set(table.keys())
         self.layout = []
-        for headline, columns in meta['layout'](row):
+        for headline, columns in layout:
             empty = True
             newcolumns = []
             for column in columns:
                 newcolumn = []
-                for block in column:
-                    block = create_block(block, misc)
+                for type, data in column:
+                    if type == 'keys':
+                        data = create_table(data['keys'], kd)
+                        type = table
                     newcolumn.append(block)
-                    if block is not None:
-                        empty = False
                 newcolumns.append(newcolumn)
-
-            if not empty:
-                self.layout.append((headline, newcolumns))
-
-        if misc:
-            rows = []
-            for key in sorted(misc):
-                value = table[key]
-                desc, unit = kd.get(key, [0, key, ''])[1:]
-                rows.append((desc, value, unit))
-            self.layout.append(('Miscellaneous', [[('Items', rows)]]))
+            self.layout.append((headline, newcolumns))
 
         self.dipole = row.get('dipole')
         if self.dipole is not None:
@@ -113,24 +106,6 @@ class Summary:
         self.constraints = row.get('constraints')
         if self.constraints:
             self.constraints = ', '.join(d['name'] for d in self.constraints)
-
-    def create_figures(self, row, prefix, tmpdir, functions):
-        with Lock('ase.db.web.lock'):
-            for func, filenames in functions:
-                for filename in filenames:
-                    try:
-                        os.remove(filename)
-                    except OSError:  # Python 3 only: FileNotFoundError
-                        pass
-                func(row)
-                for filename in filenames:
-                    path = os.path.join(tmpdir, prefix + filename)
-                    if os.path.isfile(filename):
-                        shutil.move(filename, path)
-                    else:
-                        # Create an empty file:
-                        with open(path, 'w'):
-                            pass
 
     def write(self):
         row = self.row
@@ -211,17 +186,16 @@ def create_block(block, misc=set()):
                     misc.remove(key)
                 desc, unit = kd.get(key, [0, key, ''])[1:]
                 rows.append((desc, value, unit))
-        if rows:
-            block = (title, rows)
-        else:
-            continue
-    elif block.endswith('.png'):
-        name = op.join(tmpdir, prefix + block)
-        if not op.isfile(name):
-            self.create_figures(row, prefix, tmpdir,
-                                meta['functions'])
-        if op.getsize(name) == 0:
-            # Skip empty files:
-            block = None
-    else:
-        assert block in ['ATOMS', 'CELL', 'FORCES'], block
+
+
+        if misc:
+            rows = []
+            for key in sorted(misc):
+                value = table[key]
+                desc, unit = kd.get(key, [0, key, ''])[1:]
+                rows.append((desc, value, unit))
+            self.layout.append(('Miscellaneous', [[('Items', rows)]]))
+
+def default_layout(row):
+    return []
+    
