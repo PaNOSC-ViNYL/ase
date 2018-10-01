@@ -35,11 +35,11 @@ def gram_schmidt_single(U, n):
     for i in indices:
         v_i = U.T[i]
         v_i -=  v_n * np.dot(v_n.conj(), v_i)
-        
+
 
 def lowdin(U, S=None):
     """Orthonormalize columns of U according to the Lowdin procedure.
-    
+
     If the overlap matrix is know, it can be specified in S.
     """
     if S is None:
@@ -155,7 +155,7 @@ def rotation_from_projection2(proj_nw, fixed):
     c_ul = np.zeros((Nb-M, L), dtype=proj_nw.dtype)
     for V_n in V_ni.T:
         V_n /= np.linalg.norm(V_n)
-    
+
     # Find EDF
     P_ui = V_ni[M:].copy()
     la = np.linalg
@@ -176,11 +176,11 @@ def rotation_from_projection2(proj_nw, fixed):
 
 def rotation_from_projection(proj_nw, fixed, ortho=True):
     """Determine rotation and coefficient matrices from projections
-    
+
     proj_nw = <psi_n|p_w>
     psi_n: eigenstates
     p_w: localized function
-    
+
     Nb (n) = Number of bands
     Nw (w) = Number of wannier functions
     M  (f) = Number of fixed states
@@ -245,7 +245,7 @@ class Wannier:
             wavefunctions (save files with only the density is not enough).
             If the localization matrix is read from file, this is not needed,
             unless ``get_function`` or ``write_cube`` is called.
-          
+
         Optional arguments:
 
           ``nbands``: Bands to include in localization.
@@ -279,7 +279,7 @@ class Wannier:
         if classname in ['Dacapo', 'Jacapo']:
             print('Using ' + classname)
             sign = +1
-            
+
         self.nwannier = nwannier
         self.calc = calc
         self.spin = spin
@@ -441,7 +441,7 @@ class Wannier:
         """Calculate the Wannier centers
 
         ::
-        
+
           pos =  L / 2pi * phase(diag(Z))
         """
         coord_wc = np.angle(self.Z_dww[:3].diagonal(0, 1, 2)).T / (2 * pi) % 1
@@ -453,7 +453,7 @@ class Wannier:
         """Calculate the spread of the Wannier functions.
 
         ::
-          
+
                         --  /  L  \ 2       2
           radius**2 = - >   | --- |   ln |Z|
                         --d \ 2pi /
@@ -548,7 +548,7 @@ class Wannier:
         """Returns the matrix H(R)_nm=<0,n|H|R,m>.
 
         ::
-        
+
                                 1   _   -ik.R
           H(R) = <0,n|H|R,m> = --- >_  e      H(k)
                                 Nk  k
@@ -566,7 +566,7 @@ class Wannier:
         """Get Hamiltonian at existing k-vector of index k
 
         ::
-        
+
                   dag
           H(k) = V    diag(eps )  V
                   k           k    k
@@ -578,7 +578,7 @@ class Wannier:
         """Get Hamiltonian at some new arbitrary k-vector
 
         ::
-        
+
                   _   ik.R
           H(k) = >_  e     H(R)
                   R
@@ -605,7 +605,7 @@ class Wannier:
 
         Returns an array with the funcion values of the indicated Wannier
         function on a grid with the size of the *repeated* unit cell.
-       
+
         For a calculation using **k**-points the relevant unit cell for
         eg. visualization of the Wannier orbitals is not the original unit
         cell, but rather a larger unit cell defined by repeating the
@@ -626,7 +626,7 @@ class Wannier:
 
         dim = self.calc.get_number_of_grid_points()
         largedim = dim * [N1, N2, N3]
-        
+
         wanniergrid = np.zeros(largedim, dtype=complex)
         for k, kpt_c in enumerate(self.kpt_kc):
             # The coordinate vector of wannier functions
@@ -643,7 +643,7 @@ class Wannier:
             # Distribute the small wavefunction over large cell:
             for n1 in range(N1):
                 for n2 in range(N2):
-                    for n3 in range(N3): # sign?
+                    for n3 in range(N3):  # sign?
                         e = np.exp(-2.j * pi * np.dot([n1, n2, n3], kpt_c))
                         wanniergrid[n1 * dim[0]:(n1 + 1) * dim[0],
                                     n2 * dim[1]:(n2 + 1) * dim[1],
@@ -655,7 +655,7 @@ class Wannier:
 
     def write_cube(self, index, fname, repeat=None, real=True):
         """Dump specified Wannier function to a cube file"""
-        from ase.io.cube import write_cube
+        from ase.io import write
 
         # Default size of plotting cell is the one corresponding to k-points.
         if repeat is None:
@@ -675,10 +675,10 @@ class Wannier:
             phase_fname = fname.split('.')
             phase_fname.insert(1, 'phase')
             phase_fname = '.'.join(phase_fname)
-            write_cube(phase_fname, atoms, data=np.angle(func))
+            write(phase_fname, atoms, data=np.angle(func), format='cube')
             func = abs(func)
 
-        write_cube(fname, atoms, data=func)
+        write(fname, atoms, data=func, format='cube')
 
     def localize(self, step=0.25, tolerance=1e-08,
                  updaterot=True, updatecoeff=True):
@@ -722,10 +722,10 @@ class Wannier:
         #
         # for this reason the coefficient gradients should be multiplied
         # by (1 - c c^d).
-        
+
         Nb = self.nbands
         Nw = self.nwannier
-        
+
         dU = []
         dC = []
         for k in range(self.Nk):
@@ -747,7 +747,7 @@ class Wannier:
                 k2 = self.invkklst_dk[d, k]
                 V_knw = self.V_knw
                 Z_kww = self.Z_dkww[d]
-                
+
                 if L > 0:
                     Ctemp_nw += weight * np.dot(
                         np.dot(Z_knn[k], V_knw[k1]) * diagZ_w.conj() +
@@ -765,7 +765,7 @@ class Wannier:
                 dC.append(G_ul.ravel())
 
         return np.concatenate(dU + dC)
-                        
+
     def step(self, dX, updaterot=True, updatecoeff=True):
         # dX is (A, dC) where U->Uexp(-A) and C->C+dC
         Nw = self.nwannier

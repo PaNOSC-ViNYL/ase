@@ -671,7 +671,8 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
 
 
 def write_vasp(filename, atoms, label='', direct=False, sort=None,
-               symbol_count=None, long_format=True, vasp5=False):
+               symbol_count=None, long_format=True, vasp5=False,
+               ignore_constraints=False):
     """Method to write VASP position (POSCAR/CONTCAR) files.
 
     Writes label, scalefactor, unitcell, # of various kinds of atoms,
@@ -707,7 +708,9 @@ def write_vasp(filename, atoms, label='', direct=False, sort=None,
     else:
         coord = atoms.get_positions()
 
-    if atoms.constraints:
+    constraints = atoms.constraints and not ignore_constraints
+
+    if constraints:
         sflags = np.zeros((len(atoms), 3), dtype=bool)
         for constr in atoms.constraints:
             if isinstance(constr, FixScaled):
@@ -735,7 +738,7 @@ def write_vasp(filename, atoms, label='', direct=False, sort=None,
         ind = np.argsort(atoms.get_chemical_symbols())
         symbols = np.array(atoms.get_chemical_symbols())[ind]
         coord = coord[ind]
-        if atoms.constraints:
+        if constraints:
             sflags = sflags[ind]
     else:
         symbols = atoms.get_chemical_symbols()
@@ -789,7 +792,7 @@ def write_vasp(filename, atoms, label='', direct=False, sort=None,
         f.write(' %3i' % count)
     f.write('\n')
 
-    if atoms.constraints:
+    if constraints:
         f.write('Selective dynamics\n')
 
     if direct:
@@ -804,7 +807,7 @@ def write_vasp(filename, atoms, label='', direct=False, sort=None,
     for iatom, atom in enumerate(coord):
         for dcoord in atom:
             f.write(cform % dcoord)
-        if atoms.constraints:
+        if constraints:
             for flag in sflags[iatom]:
                 if flag:
                     s = 'F'

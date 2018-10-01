@@ -23,6 +23,7 @@ from __future__ import print_function, division
 
 import os
 import sys
+import re
 import numpy as np
 import subprocess
 from contextlib import contextmanager
@@ -33,8 +34,7 @@ from ase.io import read
 from ase.utils import basestring
 
 from ase.calculators.calculator import (FileIOCalculator, ReadError,
-                                        all_changes,
-                                        PropertyNotImplementedError)
+                                        all_changes)
 
 from .create_input import GenerateVaspInput
 
@@ -107,9 +107,8 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
         GenerateVaspInput.__init__(self)
         self._store_param_state()  # Initialize an empty parameter state
 
-        # Store atoms objects from vasprun.xml here, when an index is read
-        # Format: self.xml_data[index] = atoms_object
-        self.xml_data = {}
+        # Store atoms objects from vasprun.xml here - None => uninitialized
+        self._xml_data = None
 
         label = os.path.join(directory, label)
 
@@ -261,7 +260,7 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
             self.atoms = atoms.copy()
 
         self.check_cell()      # Check for zero-length lattice vectors
-        self.xml_data = {}     # Reset the stored data
+        self._xml_data = None     # Reset the stored data
 
         command = self.make_command(self.command)
         self.write_input(self.atoms, properties, system_changes)
@@ -407,16 +406,16 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
 
     def update_atoms(self, atoms):
         """Update the atoms object with new positions and cell"""
-        atoms_sorted = read(os.path.join(self.directory, 'CONTCAR'))
         if (self.int_params['ibrion'] is not None and
                 self.int_params['nsw'] is not None):
             if self.int_params['ibrion'] > -1 and self.int_params['nsw'] > 0:
                 # Update atomic positions and unit cell with the ones read
                 # from CONTCAR.
+                atoms_sorted = read(os.path.join(self.directory, 'CONTCAR'))
                 atoms.positions = atoms_sorted[self.resort].positions
                 atoms.cell = atoms_sorted.cell
 
-        self.atoms = atoms[self.sort].copy()
+        self.atoms = atoms.copy()
 
     def check_cell(self, atoms=None):
         """Check if there is a zero unit cell"""
@@ -432,32 +431,50 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
         # Temporarily load OUTCAR into memory
         outcar = self.load_file('OUTCAR')
 
-        # First we check convergence
-        self.converged = self.read_convergence(lines=outcar)
-
         # Read the data we can from vasprun.xml
-        atoms_xml = self.read_from_xml()
-        xml_data = {
-            'free_energy': atoms_xml.get_potential_energy(
-                force_consistent=True),
-            'energy': atoms_xml.get_potential_energy(),
-            'forces': atoms_xml.get_forces()[self.resort],
-            'stress': self.read_stress_xml(),
-            'fermi': atoms_xml.calc.get_fermi_level()}
-        self.results.update(xml_data)
+        atoms_xml = self._read_from_xml()
+        xml_results = atoms_xml.calc.results
+
+        # Fix sorting
+        xml_results['forces'] = xml_results['forces'][self.resort]
+
+        self.results.update(xml_results)
 
         # Parse the outcar, as some properties are not loaded in vasprun.xml
-        # This is typically pretty fastA
-        self.read_outcar(lines=outcar)
+        # We want to limit this as much as possible, as reading large OUTCAR's
+        # is relatively slow
+        # Removed for now
+        # self.read_outcar(lines=outcar)
 
         # Update results dict with results from OUTCAR
         # which aren't written to the atoms object we read from
         # the vasprun.xml file.
-        # XXX: Should be fixed in the XML reader!
-        self.results['magmom'] = self.magnetic_moment
-        self.results['magmoms'] = self.magnetic_moments
-        # self.results['fermi'] = self.fermi
-        self.results['dipole'] = self.dipole
+
+        self.converged = self.read_convergence(lines=outcar)
+        magmom, magmoms = self.read_mag(lines=outcar)
+        dipole = self.read_dipole(lines=outcar)
+        nbands = self.read_nbands(lines=outcar)
+        self.results.update(dict(magmom=magmom,
+                                 magmoms=magmoms,
+                                 dipole=dipole,
+                                 nbands=nbands))
+
+        # Stress is not always present.
+        # Prevent calculation from going into a loop
+        if 'stress' not in self.results:
+            self.results.update(dict(stress=None))
+
+        # Store keywords for backwards compatiblity
+        self.spinpol = self.get_spin_polarized()
+        self.version = self.get_version()
+        self.energy_free = self.get_potential_energy(force_consistent=True)
+        self.energy_zero = self.get_potential_energy(force_consistent=False)
+        self.forces = self.get_forces()
+        self.fermi = self.get_fermi_level()
+        self.dipole = self.get_dipole_moment()
+        # Prevent calculation from going into a loop
+        self.stress = self.get_property('stress', allow_calculation=False)
+        self.nbands = self.get_number_of_bands()
 
         # Store the parameters used for this calculation
         self._store_param_state()
@@ -509,8 +526,17 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
         with open(filename, 'r') as f:
             return f.readlines()
 
+    @contextmanager
+    def load_file_iter(self, filename):
+        """Return a file iterator"""
+
+        filename = os.path.join(self.directory, filename)
+        with open(filename, 'r') as f:
+            yield f
+
     def read_outcar(self, lines=None):
-        """Read results from the OUTCAR file"""
+        """Read results from the OUTCAR file.
+        Deprecated, see read_results()"""
         if not lines:
             lines = self.load_file('OUTCAR')
         # Spin polarized calculation?
@@ -529,26 +555,11 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
         self.nbands = self.read_nbands(lines=lines)
 
         self.read_ldau()
-        p = self.int_params
-        q = self.list_float_params
-        if self.spinpol:
-            self.magnetic_moment = self.read_magnetic_moment()
-            if ((p['lorbit'] is not None and p['lorbit'] >= 10) or
-                (p['lorbit'] is None and q['rwigs'])):
-                self.magnetic_moments = self.read_magnetic_moments(lines=lines)
-            else:
-                warn(('Magnetic moment data not written in OUTCAR (LORBIT<10),'
-                      ' setting magnetic_moments to zero.\nSet LORBIT>=10'
-                      ' to get information on magnetic moments'))
-                self.magnetic_moments = np.zeros(len(self.atoms))
-        else:
-            self.magnetic_moment = 0.0
-            self.magnetic_moments = np.zeros(len(self.atoms))
+        self.magnetic_moment, self.magnetic_moments = self.read_mag(lines=lines)
 
-    def read_from_xml(self, index=-1, filename='vasprun.xml', overwrite=False):
-        """Read vasprun.xml, and return an atoms object at a given index.
-        If we have not read the index before, we will read the xml file
-        at the given index and store it, before returning
+    def _read_from_xml(self, filename='vasprun.xml', overwrite=False):
+        """Read vasprun.xml, and return the last atoms object.
+        If we have not read the atoms object before, we will read the xml file
 
         Parameters:
 
@@ -557,66 +568,51 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
         overwrite: bool
             Force overwrite the existing data in xml_data
             Default value: False
-        index: int
-            Default returns the last configuration, index=-1
         """
-        if overwrite or index not in self.xml_data:
-            self.xml_data[index] = read(os.path.join(self.directory,
-                                                     filename),
-                                        index=index)
-        return self.xml_data[index]
+        if overwrite or not self._xml_data:
+            self._xml_data = read(os.path.join(self.directory,
+                                               filename),
+                                  index=-1)
+        return self._xml_data
 
-    def read_stress_xml(self, index=-1):
-        """Read stress tensor from the vasprun.xml file.
-        Returns None if there is no stress tensor in the calculation.
-
-        Use get_stress() instead of accessing this method.
-        """
-        atoms = self.read_from_xml(index)
-        try:
-            return atoms.get_stress()
-        except PropertyNotImplementedError:
-            # The tensor was not loaded in the XML file
-            return None
-
-    def get_ibz_k_points(self, index=-1):
-        atoms = self.read_from_xml(index)
+    def get_ibz_k_points(self):
+        atoms = self._read_from_xml()
         return atoms.calc.ibz_kpts
 
-    def get_kpt(self, kpt=0, spin=0, index=-1):
-        atoms = self.read_from_xml(index)
+    def get_kpt(self, kpt=0, spin=0):
+        atoms = self._read_from_xml()
         return atoms.calc.get_kpt(kpt=kpt, spin=spin)
 
-    def get_eigenvalues(self, kpt=0, spin=0, index=-1):
-        atoms = self.read_from_xml(index)
+    def get_eigenvalues(self, kpt=0, spin=0):
+        atoms = self._read_from_xml()
         return atoms.calc.get_eigenvalues(kpt=kpt, spin=spin)
 
-    def get_fermi_level(self, index=-1):
-        atoms = self.read_from_xml(index)
+    def get_fermi_level(self):
+        atoms = self._read_from_xml()
         return atoms.calc.get_fermi_level()
 
-    def get_homo_lumo(self, index=-1):
-        atoms = self.read_from_xml(index)
+    def get_homo_lumo(self):
+        atoms = self._read_from_xml()
         return atoms.calc.get_homo_lumo()
 
-    def get_homo_lumo_by_spin(self, spin=0, index=-1):
-        atoms = self.read_from_xml(index)
+    def get_homo_lumo_by_spin(self, spin=0):
+        atoms = self._read_from_xml()
         return atoms.calc.get_homo_lumo_by_spin(spin=spin)
 
-    def get_occupation_numbers(self, kpt=0, spin=0, index=-1):
-        atoms = self.read_from_xml(index)
+    def get_occupation_numbers(self, kpt=0, spin=0):
+        atoms = self._read_from_xml()
         return atoms.calc.get_occupation_numbers(kpt, spin)
 
-    def get_spin_polarized(self, index=-1):
-        atoms = self.read_from_xml(index)
+    def get_spin_polarized(self):
+        atoms = self._read_from_xml()
         return atoms.calc.get_spin_polarized()
 
-    def get_number_of_spins(self, index=-1):
-        atoms = self.read_from_xml(index)
+    def get_number_of_spins(self):
+        atoms = self._read_from_xml()
         return atoms.calc.get_number_of_spins()
 
     def get_number_of_bands(self):
-        return self.nbands
+        return self.results['nbands']
 
     def get_number_of_electrons(self, lines=None):
         if not lines:
@@ -629,13 +625,28 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
                 break
         return nelect
 
+    def get_k_point_weights(self):
+        return self.read_k_point_weights()
+
+    def get_dos(self, spin=None, **kwargs):
+        """
+        The total DOS.
+
+        Uses the ASE DOS module, and returns a tuple with
+        (energies, dos).
+        """
+        from ase.dft.dos import DOS
+        dos = DOS(self, **kwargs)
+        e = dos.get_energies()
+        d = dos.get_dos(spin=spin)
+        return e, d
+
     def get_version(self):
         """Get the VASP version number"""
         # The version number is the first occurence, so we can just
         # load the OUTCAR, as we will return soon anyway
-        filename = os.path.join(self.directory, 'OUTCAR')
-        with open(filename, 'r') as f:
-            for line in f:
+        with self.load_file_iter('OUTCAR') as lines:
+            for line in lines:
                 if ' vasp.' in line:
                     return line[len(' vasp.'):].split()[0]
             else:
@@ -645,14 +656,21 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
     def get_number_of_iterations(self):
         return self.read_number_of_iterations()
 
-    def read_number_of_iterations(self, lines=None):
-        if not lines:
-            lines = self.load_file('OUTCAR')
+    def read_number_of_iterations(self):
         niter = None
-        for line in lines:
-            # find the last iteration number
-            if '- Iteration' in line:
-                niter = int(line.split(')')[0].split('(')[-1].strip())
+        with self.load_file_iter('OUTCAR') as lines:
+            for line in lines:
+                # find the last iteration number
+                if '- Iteration' in line:
+                    niter = list(map(int, re.findall(r'\d+', line)))[1]
+        return niter
+
+    def read_number_of_ionic_steps(self):
+        niter = None
+        with self.load_file_iter('OUTCAR') as lines:
+            for line in lines:
+                if '- Iteration' in line:
+                    niter = list(map(int, re.findall(r'\d+', line)))[0]
         return niter
 
     def read_stress(self, lines=None):
@@ -803,20 +821,48 @@ class Vasp2(GenerateVaspInput, FileIOCalculator):
                                          f in line.split()[1:4]])
         return dipolemoment
 
-    def read_magnetic_moments(self, lines=None):
-        """Read magnetic moments from OUTCAR"""
+    def read_mag(self, lines=None):
+        if not lines:
+            lines = self.load_file('OUTCAR')
+        p = self.int_params
+        q = self.list_float_params
+        if self.spinpol:
+            magnetic_moment = self._read_magnetic_moment(lines=lines)
+            if ((p['lorbit'] is not None and p['lorbit'] >= 10) or
+                (p['lorbit'] is None and q['rwigs'])):
+                magnetic_moments = self._read_magnetic_moments(lines=lines)
+            else:
+                warn(('Magnetic moment data not written in OUTCAR (LORBIT<10),'
+                      ' setting magnetic_moments to zero.\nSet LORBIT>=10'
+                      ' to get information on magnetic moments'))
+                magnetic_moments = np.zeros(len(self.atoms))
+        else:
+            magnetic_moment = 0.0
+            magnetic_moments = np.zeros(len(self.atoms))
+        return magnetic_moment, magnetic_moments
+
+    def _read_magnetic_moments(self, lines=None):
+        """Read magnetic moments from OUTCAR.
+        Only reads the last occurrence. """
         if not lines:
             lines = self.load_file('OUTCAR')
 
         magnetic_moments = np.zeros(len(self.atoms))
+        magstr = 'magnetization (x)'
 
+        # Search for the last occurence
+        nidx = -1
         for n, line in enumerate(lines):
-            if line.rfind('magnetization (x)') > -1:
-                for m in range(len(self.atoms)):
-                    magnetic_moments[m] = float(lines[n + m + 4].split()[4])
-        return np.array(magnetic_moments)[self.resort]
+            if magstr in line:
+                nidx = n
 
-    def read_magnetic_moment(self, lines=None):
+        # Read that occurence
+        if nidx > -1:
+            for m in range(len(self.atoms)):
+                magnetic_moments[m] = float(lines[nidx + m + 4].split()[4])
+        return magnetic_moments[self.resort]
+
+    def _read_magnetic_moment(self, lines=None):
         """Read magnetic moment from OUTCAR"""
         if not lines:
             lines = self.load_file('OUTCAR')

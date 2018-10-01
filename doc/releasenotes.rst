@@ -9,6 +9,33 @@ Git master branch
 
 :git:`master <>`.
 
+* New filter for lattice optimization,
+  :class:`~ase.constraints.ExpCellFilter`, based on an exponential
+  reformulation of the degrees of freedom pertaining to the cell.
+  This is probably significantly faster than
+  :class:`ase.constraints.UnitCellFilter`.
+
+* Added calculator for :mod:`OpenMX <ase.calculators.openmx>`.
+
+* Updated the :class:`~ase.calculators.castep.Castep` calculator as well as
+  the related I/O methods in order to be more forgiving and less reliant on
+  the presence of a CASTEP binary. The ``castep_keywords.py`` file has been
+  replaced by a JSON file, and if its generation fails CASTEP files can still
+  be read and written if higher tolerance levels are set for the functions that
+  manipulate them.
+
+* Optimized performance of ase db, with enhanced speed of
+  queries on key value pairs for large SQLite (.db) database files.
+  Also, The ase db server (PostgreSQL) backend now uses
+  native ARRAY and JSONB data types for storing NumPy arrays and
+  dictionaries instead of the BYTEA datatype. Note that backwards
+  compatibility is lost for the postgreSQL backend, and that
+  postgres version 9.4+ is required.
+
+* New Gaussian Process (GP) regression optimizer
+  (:class:`~ase.optimize.GPMin`).  Check out this `performance test
+  <https://wiki.fysik.dtu.dk/gpaw/devel/ase_optimize/ase_optimize.html>`_.
+
 * Test suite now runs in parallel.
 
 * Socked-based interface to certain calculators through the
@@ -24,7 +51,7 @@ Git master branch
 * The :meth:`ase.db.core.Database.update` can now update the Atoms and the data
   parts of a row.
 
-* The :meth:`ase.db.core.Database.update` will no longer accept a list of
+* The :meth:`ase.db.core.Database.update` method will no longer accept a list of
   row ID's as the first argument.  Replace this::
 
       db.update(ids, ...)
@@ -43,6 +70,31 @@ Git master branch
 
 * Added callback method :meth:`ase.gui.gui.GUI.repeat_poll` to the GUI.
   Useful for programmatically updating the GUI.
+
+* :class:`~ase.constraints.UnitCellFilter` now supports scalar pressure and
+  hydrostatic strain.
+
+* :ref:`ase convert <cli>` now provides options to execute custom code
+  on each processed image.
+
+* Writing a trajectory file from a parallelized :class:`~ase.neb.NEB`
+  calculation is now much simpler.  Works the same way as for the serial
+  case.
+
+* New :class:`~ase.dft.pdos.DOS` object for representing and plotting
+  densities and states.
+
+* :class:`~ase.phonons.Phonons` class now uses
+  the :class:`~ase.dft.pdos.DOS` and
+  :class:`~ase.dft.band_structure.BandStructure` machinery.
+
+* Positions and velocities can now be initialized from phononic
+  force constant matrix; see
+  :func:`~ase.md.velocitydistribution.PhononHarmonics`.
+
+* Compare if two bulk structure are symmetrically equivalent with
+  :class:`~ase.utils.structure_comparator.SymmetryEquivalenceCheck`
+
 
 Version 3.16.2
 ==============
@@ -610,7 +662,7 @@ Version 3.5.0
   :class:`~ase.neighborlist.NeighborList` object and is
   now ASAP_ compatible.
 
-* :mod:`BFGSLineSearch <ase.optimize.bfgslinesearch>` is now the default
+* :class:`ase.optimize.BFGSLineSearch>` is now the default
   (``QuasiNewton==BFGSLineSearch``).
 
 * There is a new interface to the LAMMPS molecular dynamics code.

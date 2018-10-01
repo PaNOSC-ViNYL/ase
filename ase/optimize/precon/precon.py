@@ -77,7 +77,7 @@ class Precon(object):
                 while the F convention assumes it will be arranged component
                 by component (ie [x1, x2, ..., y1, y2, ...]).
             solver: One of "auto", "direct" or "pyamg", specifying whether to use
-               a direst sparse solver or PyAMG to solve P x = y. Default is "auto" which 
+               a direct sparse solver or PyAMG to solve P x = y. Default is "auto" which
                uses PyAMG if available, falling back to sparse solver if not.
             solve_tol: tolerance used for PyAMG sparse linear solver,
             if available.
@@ -121,10 +121,6 @@ class Precon(object):
         if dim < 1:
             raise ValueError('Dimension must be at least 1')
         self.dim = dim
-
-        #if not have_matscipy:
-        #    warnings.warn('Unable to import Matscipy. Neighbour list '
-        #                  'calculations may be very slow.')
 
     def make_precon(self, atoms, recalc_mu=None):
         """Create a preconditioner matrix based on the passed set of atoms.
@@ -372,8 +368,7 @@ class Precon(object):
         raise NotImplementedError('Must be overridden by subclasses')
 
     def estimate_mu(self, atoms, H=None):
-        """
-        Estimate optimal preconditioner coefficient \mu
+        r"""Estimate optimal preconditioner coefficient \mu
 
         \mu is estimated from a numerical solution of
 
@@ -656,7 +651,7 @@ class FF(Precon):
     def __init__(self, dim=3, c_stab=0.1, force_stab=False,
                  array_convention='C', solver="auto", solve_tol=1e-9,
                  apply_positions=True, apply_cell=True,
-                 hessian='reduced', morses=None, bonds=None, angles=None,
+                 hessian='spectral', morses=None, bonds=None, angles=None,
                  dihedrals=None):
         """Initialise an FF preconditioner with given parameters.
 
@@ -844,7 +839,7 @@ class Exp_FF(Exp, FF):
                  solver="auto", solve_tol=1e-9,
                  apply_positions=True, apply_cell=True,
                  estimate_mu_eigmode=False,
-                 hessian='reduced', morses=None, bonds=None, angles=None,
+                 hessian='spectral', morses=None, bonds=None, angles=None,
                  dihedrals=None):
         """Initialise an Exp+FF preconditioner with given parameters.
 

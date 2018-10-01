@@ -96,8 +96,8 @@ def read_lammps_data(fileobj, Z_of_type=None, style='full', sort_by_id=False,
                      "ylo yhi",
                      "zlo zhi",
                      "xy xz yz"]
-    sections_re = '(' + '|'.join(sections).replace(' ', '\s+') + ')'
-    header_fields_re = '(' + '|'.join(header_fields).replace(' ', '\s+') + ')'
+    sections_re = '(' + '|'.join(sections).replace(' ', '\\s+') + ')'
+    header_fields_re = '(' + '|'.join(header_fields).replace(' ', '\\s+') + ')'
 
     section = None
     header = True
@@ -106,7 +106,7 @@ def read_lammps_data(fileobj, Z_of_type=None, style='full', sort_by_id=False,
             comment = line.rstrip()
         else:
             line = re.sub("#.*", "", line).rstrip().lstrip()
-            if re.match("^\s*$", line):  # skip blank lines
+            if re.match("^\\s*$", line):  # skip blank lines
                 continue
 
         # check for known section names
@@ -128,7 +128,7 @@ def read_lammps_data(fileobj, Z_of_type=None, style='full', sort_by_id=False,
             #   if m is not None:
             #       field = m.group(2).lstrip().rstrip()
             #       val = m.group(1).lstrip().rstrip()
-            m = re.match("(.*)\s+" + header_fields_re, line)
+            m = re.match("(.*)\\s+" + header_fields_re, line)
             if m is not None:
                 field = m.group(2).lstrip().rstrip()
                 val = m.group(1).lstrip().rstrip()
@@ -286,8 +286,9 @@ def read_lammps_data(fileobj, Z_of_type=None, style='full', sort_by_id=False,
             masses[ind] = mass_in[type]
     # convert units
     positions *= unit_convert("distance", units)
-    masses *= unit_convert("mass", units)
     cell *= unit_convert("distance", units)
+    if masses is not None:
+        masses *= unit_convert("mass", units)
     if velocities is not None:
         velocities *= unit_convert("velocity", units)
 

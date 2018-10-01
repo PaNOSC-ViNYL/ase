@@ -571,7 +571,7 @@ class Atoms(object):
             return np.zeros((len(self), 3))
 
     def set_masses(self, masses='defaults'):
-        """Set atomic masses.
+        """Set atomic masses in atomic mass units.
 
         The array masses should contain a list of masses.  In case
         the masses argument is not given or for those elements of the
@@ -590,7 +590,7 @@ class Atoms(object):
         self.set_array('masses', masses, float, ())
 
     def get_masses(self):
-        """Get array of masses."""
+        """Get array of masses in atomic mass units."""
         if 'masses' in self.arrays:
             return self.arrays['masses'].copy()
         else:
@@ -1207,7 +1207,6 @@ class Atoms(object):
         Rotate 90 degrees around the z-axis, so that the x-axis is
         rotated into the y-axis:
 
-        >>> from math import pi
         >>> atoms = Atoms()
         >>> atoms.rotate(90, 'z')
         >>> atoms.rotate(90, (0, 0, 1))
@@ -1432,7 +1431,6 @@ class Atoms(object):
         Example: the following defines a very crude
         ethane-like molecule and twists one half of it by 30 degrees.
 
-        >>> from math import pi
         >>> atoms = Atoms('HHCCHH', [[-1, 1, 0], [-1, -1, 0], [0, 0, 0],
         ...                          [1, 0, 0], [2, 1, 0], [2, -1, 0]])
         >>> atoms.set_dihedral(1, 2, 3, 4, 210, mask=[0, 0, 0, 1, 1, 1])

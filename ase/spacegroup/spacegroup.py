@@ -217,6 +217,8 @@ class Spacegroup(object):
     def __index__(self):
         return self.no
 
+    __int__ = __index__
+
     def get_symop(self):
         """Returns all symmetry operations (including inversions and
         subtranslations) as a sequence of (rotation, translation)
@@ -667,9 +669,10 @@ def _read_datafile(spg, spacegroup, setting, f):
         compact_symbol = ''.join(_symbol.split())
         _setting = int(line2.strip().split()[1])
         _no = int(_no)
-        if ((isinstance(spacegroup, int) and _no == spacegroup) or
+        if ((isinstance(spacegroup, int) and _no == spacegroup and
+             _setting == setting) or
             (isinstance(spacegroup, basestring) and
-             compact_symbol == compact_spacegroup)) and _setting == setting:
+             compact_symbol == compact_spacegroup)):
             _read_datafile_entry(spg, _no, _symbol, _setting, f)
             break
         else:
@@ -740,20 +743,20 @@ def parse_sitesym(symlist, sep=','):
     return rot, trans
 
 
-def spacegroup_from_data(no=None, symbol=None, setting=1,
+def spacegroup_from_data(no=None, symbol=None, setting=None,
                          centrosymmetric=None, scaled_primitive_cell=None,
                          reciprocal_cell=None, subtrans=None, sitesym=None,
                          rotations=None, translations=None, datafile=None):
     """Manually create a new space group instance.  This might be
     useful when reading crystal data with its own spacegroup
     definitions."""
-    if no is not None:
+    if no is not None and setting is not None:
         spg = Spacegroup(no, setting, datafile)
     elif symbol is not None:
-        spg = Spacegroup(symbol, setting, datafile)
+        spg = Spacegroup(symbol, None, datafile)
     else:
-        raise SpacegroupValueError('either *no* or *symbol* must be given')
-
+        raise SpacegroupValueError('either *no* and *setting* '
+                                   'or *symbol* must be given')
     have_sym = False
     if centrosymmetric is not None:
         spg._centrosymmetric = bool(centrosymmetric)
@@ -812,7 +815,8 @@ def get_spacegroup(atoms, symprec=1e-5, method='phonopy'):
 
     # use spglib when it is available (and return)
     if has_spglib and method in ['phonopy', 'spglib']:
-        sg = spglib.get_spacegroup(atoms, symprec=symprec)
+        cell = (atoms.cell, atoms.get_scaled_positions(), atoms.numbers)
+        sg = spglib.get_spacegroup(cell, symprec=symprec)
         sg_no = int(sg[sg.find('(') + 1:sg.find(')')])
         return Spacegroup(sg_no)
 

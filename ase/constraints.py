@@ -1,12 +1,14 @@
-from __future__ import division, print_function
+from __future__ import division
 from math import sqrt
+from warnings import warn
 from ase.geometry import find_mic
 from ase.calculators.calculator import PropertyNotImplementedError
 
 import numpy as np
+from scipy.linalg import expm
 
 __all__ = ['FixCartesian', 'FixBondLength', 'FixedMode', 'FixConstraintSingle',
-           'FixAtoms', 'UnitCellFilter', 'FixScaled', 'StrainFilter',
+           'FixAtoms', 'UnitCellFilter', 'ExpCellFilter', 'FixScaled', 'StrainFilter',
            'FixedPlane', 'Filter', 'FixConstraint', 'FixedLine',
            'FixBondLengths', 'FixInternals', 'Hookean', 'ExternalForce']
 
@@ -213,7 +215,8 @@ def ints2string(x, threshold=None):
 class FixBondLengths(FixConstraint):
     maxiter = 500
 
-    def __init__(self, pairs, tolerance=1e-13, bondlengths=None, iterations=None):
+    def __init__(self, pairs, tolerance=1e-13,
+                 bondlengths=None, iterations=None):
         """iterations:
                 Ignored"""
         self.pairs = np.asarray(pairs)
@@ -227,7 +230,7 @@ class FixBondLengths(FixConstraint):
         masses = atoms.get_masses()
 
         if self.bondlengths is None:
-           self.bondlengths = self.initialize_bond_lengths(atoms)
+            self.bondlengths = self.initialize_bond_lengths(atoms)
 
         for i in range(self.maxiter):
             converged = True
@@ -254,7 +257,7 @@ class FixBondLengths(FixConstraint):
         masses = atoms.get_masses()
 
         if self.bondlengths is None:
-           self.bondlengths = self.initialize_bond_lengths(atoms)
+            self.bondlengths = self.initialize_bond_lengths(atoms)
 
         for i in range(self.maxiter):
             converged = True
@@ -919,7 +922,7 @@ class Hookean(FixConstraint):
         elif self._type == 'point':
             p1 = positions[self.index]
             p2 = self.origin
-        displace = find_mic([p2 -p1], atoms.cell, atoms._pbc)[0][0]
+        displace = find_mic([p2 - p1], atoms.cell, atoms._pbc)[0][0]
         bondlength = np.linalg.norm(displace)
         if bondlength > self.threshold:
             magnitude = self.spring * (bondlength - self.threshold)
@@ -949,7 +952,7 @@ class Hookean(FixConstraint):
         elif self._type == 'point':
             p1 = positions[self.index]
             p2 = self.origin
-        displace = find_mic([p2 -p1], atoms.cell, atoms._pbc)[0][0]
+        displace = find_mic([p2 - p1], atoms.cell, atoms._pbc)[0][0]
         bondlength = np.linalg.norm(displace)
         if bondlength > self.threshold:
             return 0.5 * self.spring * (bondlength - self.threshold)**2
@@ -1321,7 +1324,8 @@ class UnitCellFilter(Filter):
     def __init__(self, atoms, mask=None,
                  cell_factor=None,
                  hydrostatic_strain=False,
-                 constant_volume=False):
+                 constant_volume=False,
+                 scalar_pressure=0.0):
         """Create a filter that returns the atomic forces and unit cell
         stresses together, so they can simultaneously be minimized.
 
@@ -1389,6 +1393,10 @@ class UnitCellFilter(Filter):
             the volume and breaks energy/force consistency so can only be
             used with optimizers that do require do a line minimisation
             (e.g. FIRE).
+
+        scalar_pressure: float (default 0.0)
+            Applied pressure to use for enthalpy pV term. As above, this
+            breaks energy/force consistency.
         """
 
         Filter.__init__(self, atoms, indices=range(len(atoms)))
@@ -1412,6 +1420,7 @@ class UnitCellFilter(Filter):
             cell_factor = float(len(atoms))
         self.hydrostatic_strain = hydrostatic_strain
         self.constant_volume = constant_volume
+        self.scalar_pressure = scalar_pressure
         self.cell_factor = cell_factor
         self.copy = self.atoms.copy
         self.arrays = self.atoms.arrays
@@ -1451,6 +1460,14 @@ class UnitCellFilter(Filter):
         self.atoms.set_cell(np.dot(self.orig_cell, self.deform_grad.T),
                             scale_atoms=True)
 
+    def get_potential_energy(self, force_consistent=True):
+        '''
+        returns potential energy including enthalpy PV term.
+        '''
+        atoms_energy = self.atoms.get_potential_energy(
+            force_consistent=force_consistent)
+        return atoms_energy + self.scalar_pressure * self.atoms.get_volume()
+
     def get_forces(self, apply_constraint=False):
         '''
         returns an array with shape (natoms+3,3) of the atomic forces
@@ -1465,7 +1482,8 @@ class UnitCellFilter(Filter):
         stress = self.atoms.get_stress()
 
         volume = self.atoms.get_volume()
-        virial = -volume * voigt_6_to_full_3x3_stress(stress)
+        virial = -volume * (voigt_6_to_full_3x3_stress(stress) +
+                            np.diag([self.scalar_pressure] * 3))
         atoms_forces = np.dot(atoms_forces, self.deform_grad)
         dg_inv = np.linalg.inv(self.deform_grad)
         virial = np.dot(virial, dg_inv.T)
@@ -1488,6 +1506,253 @@ class UnitCellFilter(Filter):
         forces[natoms:] = virial / self.cell_factor
 
         self.stress = -full_3x3_to_voigt_6_stress(virial)/volume
+        return forces
+
+    def get_stress(self):
+        raise PropertyNotImplementedError
+
+    def has(self, x):
+        return self.atoms.has(x)
+
+    def __len__(self):
+        return (len(self.atoms) + 3)
+
+
+class ExpCellFilter(UnitCellFilter):
+    """Modify the supercell and the atom positions."""
+    def __init__(self, atoms, mask=None,
+                 cell_factor=None,
+                 hydrostatic_strain=False,
+                 constant_volume=False,
+                 scalar_pressure=0.0):
+        r"""Create a filter that returns the atomic forces and unit cell
+        stresses together, so they can simultaneously be minimized.
+
+        The first argument, atoms, is the atoms object. The optional second
+        argument, mask, is a list of booleans, indicating which of the six
+        independent components of the strain are relaxed.
+
+        - True = relax to zero
+        - False = fixed, ignore this component
+
+        Degrees of freedom are the positions in the original undeformed cell,
+        plus the log of the deformation tensor (extra 3 "atoms"). This gives forces
+        consistent with numerical derivatives of the potential energy
+        with respect to the cell degrees of freedom.
+
+        For full details see:
+            E. B. Tadmor, G. S. Smith, N. Bernstein, and E. Kaxiras,
+            Phys. Rev. B 59, 235 (1999)
+
+        You can still use constraints on the atoms, e.g. FixAtoms, to control
+        the relaxation of the atoms.
+
+        >>> # this should be equivalent to the StrainFilter
+        >>> atoms = Atoms(...)
+        >>> atoms.set_constraint(FixAtoms(mask=[True for atom in atoms]))
+        >>> ucf = UnitCellFilter(atoms)
+
+        You should not attach this UnitCellFilter object to a
+        trajectory. Instead, create a trajectory for the atoms, and
+        attach it to an optimizer like this:
+
+        >>> atoms = Atoms(...)
+        >>> ucf = UnitCellFilter(atoms)
+        >>> qn = QuasiNewton(ucf)
+        >>> traj = Trajectory('TiO2.traj', 'w', atoms)
+        >>> qn.attach(traj)
+        >>> qn.run(fmax=0.05)
+
+        Helpful conversion table:
+
+        - 0.05 eV/A^3   = 8 GPA
+        - 0.003 eV/A^3  = 0.48 GPa
+        - 0.0006 eV/A^3 = 0.096 GPa
+        - 0.0003 eV/A^3 = 0.048 GPa
+        - 0.0001 eV/A^3 = 0.02 GPa
+
+        Additional optional arguments:
+
+        cell_factor: (DEPRECATED)
+            Retained for backwards compatibility, but no longer used.
+
+        hydrostatic_strain: bool (default False)
+            Constrain the cell by only allowing hydrostatic deformation.
+            The virial tensor is replaced by np.diag([np.trace(virial)]*3).
+
+        constant_volume: bool (default False)
+            Project out the diagonal elements of the virial tensor to allow
+            relaxations at constant volume, e.g. for mapping out an
+            energy-volume curve.
+
+        scalar_pressure: float (default 0.0)
+            Applied pressure to use for enthalpy pV term. As above, this
+            breaks energy/force consistency.
+
+        Implementation details:
+
+        The implementation is based on that of Christoph Ortner in JuLIP.jl:
+        https://github.com/libAtoms/JuLIP.jl/blob/expcell/src/Constraints.jl#L244
+
+        We decompose the deformation gradient as
+
+            F = exp(U) F0
+            x =  F * F0^{-1} z  = exp(U) z
+
+        If we write the energy as a function of U we can transform the
+        stress associated with a perturbation V into a derivative using a linear map
+        V -> L(U, V).
+
+        \phi( exp(U+tV) (z+tv) ) ~ \phi'(x) . (exp(U) v) + \phi'(x) . ( L(U, V) exp(-U) exp(U) z )
+           >>> \nabla E(U) : V  =  [S exp(-U)'] : L(U,V)
+                                =  L'(U, S exp(-U)') : V
+                                =  L(U', S exp(-U)') : V
+                                =  L(U, S exp(-U)) : V     (provided U = U')
+
+        where the : operator represents double contraction, i.e. A:B = trace(A'B), and
+
+          F = deformation tensor - 3x3 matrix
+          F0 = reference deformation tensor - 3x3 matrix, np.eye(3) here
+          U = cell degrees of freedom used here - 3x3 matrix
+          V = perturbation to cell DoFs - 3x3 matrix
+          v = perturbation to position DoFs
+          x = atomic positions in deformed cell
+          z = atomic positions in original cell
+          \phi = potential energy
+          S = stress tensor [3x3 matrix]
+          L(U, V) = directional derivative of exp at U in direction V, i.e
+             d/dt exp(U + t V)|_{t=0} = L(U, V)
+
+         This means we can write
+            d/dt E(U + t V)|_{t=0} = L(U, S exp (-U)) : V
+
+         and therefore the contribution to the gradient of the energy is
+
+            \nabla E(U) / \nabla U_ij =  [L(U, S exp(-U))]_ij
+        """
+
+        Filter.__init__(self, atoms, indices=range(len(atoms)))
+        self.atoms = atoms
+        self.deform_grad = np.eye(3)
+        self.deform_grad_log = np.zeros((3,3))
+        self.atom_positions = atoms.get_positions()
+        self.orig_cell = atoms.get_cell()
+        self.stress = None
+
+        if mask is None:
+            mask = np.ones(6)
+        mask = np.asarray(mask)
+        if mask.shape == (6,):
+            self.mask = voigt_6_to_full_3x3_stress(mask)
+        elif mask.shape == (3, 3):
+            self.mask = mask
+        else:
+            raise ValueError('shape of mask should be (3,3) or (6,)')
+
+        if cell_factor is not None:
+            warn("cell_factor is no longer used")
+        self.hydrostatic_strain = hydrostatic_strain
+        self.constant_volume = constant_volume
+        self.scalar_pressure = scalar_pressure
+        self.copy = self.atoms.copy
+        self.arrays = self.atoms.arrays
+
+    def get_positions(self):
+        '''
+        this returns an array with shape (natoms + 3,3).
+
+        the first natoms rows are the positions of the atoms, the last
+        three rows are the log of the deformation tensor associated with
+        the unit cell.
+        '''
+
+        natoms = len(self.atoms)
+        pos = np.zeros((natoms + 3, 3))
+        pos[:natoms] = self.atom_positions
+        pos[natoms:] = self.deform_grad_log
+        return pos
+
+    def set_positions(self, new, **kwargs):
+        '''
+        new is an array with shape (natoms+3,3).
+
+        the first natoms rows are the positions of the atoms, the last
+        three rows are the deformation tensor used to change the cell shape.
+
+        the positions are first set with respect to the original
+        undeformed cell, and then the cell is transformed by the
+        current deformation gradient.
+        '''
+
+        natoms = len(self.atoms)
+        self.atom_positions[:] = new[:natoms]
+        self.deform_grad_log = new[natoms:]
+        self.deform_grad = expm(self.deform_grad_log)
+        self.atoms.set_positions(self.atom_positions, **kwargs)
+        self.atoms.set_cell(self.orig_cell, scale_atoms=False)
+        self.atoms.set_cell(np.dot(self.orig_cell, self.deform_grad.T),
+                            scale_atoms=True)
+
+    def get_potential_energy(self, force_consistent=True):
+        '''
+        returns potential energy including enthalpy PV term.
+        '''
+        atoms_energy = self.atoms.get_potential_energy(force_consistent=force_consistent)
+        return atoms_energy + self.scalar_pressure*self.atoms.get_volume()
+
+    def get_forces(self, apply_constraint=False):
+        '''
+        returns an array with shape (natoms+2,3) of the atomic forces
+        and unit cell stresses.
+
+        the first natoms rows are the forces on the atoms, the last
+        three rows are the forces on the unit cell, which are
+        computed from the stress tensor.
+        '''
+
+        atoms_forces = self.atoms.get_forces()
+        stress = self.atoms.get_stress()
+
+        volume = self.atoms.get_volume()
+        virial = -volume * voigt_6_to_full_3x3_stress(stress) - np.diag([self.scalar_pressure]*3)*volume
+        atoms_forces = np.dot(atoms_forces, self.deform_grad)
+
+        if self.hydrostatic_strain:
+            vtr = virial.trace()
+            virial = np.diag([vtr / 3.0, vtr / 3.0, vtr / 3.0])
+
+        # Zero out components corresponding to fixed lattice elements
+        if (self.mask != 1.0).any():
+            virial *= self.mask
+
+        Y = np.zeros((6,6))
+        Y[0:3,0:3] = self.deform_grad_log
+        Y[3:6,3:6] = self.deform_grad_log
+        Y[0:3,3:6] = -np.dot(virial,expm(-self.deform_grad_log))
+        deform_grad_log_force = -expm(Y)[0:3,3:6]
+        for (i1,i2) in [(0,1),(0,2),(1,2)]:
+            ff = 0.5*(deform_grad_log_force[i1,i2] + deform_grad_log_force[i2,i1])
+            deform_grad_log_force[i1,i2] = ff
+            deform_grad_log_force[i2,i1] = ff
+
+        if self.constant_volume:
+            dglf = deform_grad_log_force.trace()
+            np.fill_diagonal(deform_grad_log_force, np.diag(deform_grad_log_force) - dglf / 3.0)
+
+        natoms = len(self.atoms)
+        forces = np.zeros((natoms + 3, 3))
+        forces[:natoms] = atoms_forces
+        forces[natoms:] = deform_grad_log_force
+
+        # set for convergence testing purposes
+        conv_crit_stress = -(virial/volume)
+        if self.constant_volume:
+            # cofactor matrix
+            d_det_F = np.linalg.inv(self.deform_grad).T * np.linalg.det(self.deform_grad)
+            d_det_F_hat = d_det_F / np.sqrt(np.sum(d_det_F**2))
+            conv_crit_stress += np.sum(virial/volume * d_det_F_hat) * d_det_F_hat
+        self.stress = full_3x3_to_voigt_6_stress(conv_crit_stress)
+
         return forces
 
     def get_stress(self):

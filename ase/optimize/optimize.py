@@ -16,7 +16,7 @@ import collections
 class Dynamics:
     """Base-class for all MD and structure optimization classes."""
     def __init__(self, atoms, logfile, trajectory,
-                  append_trajectory=False, master=None):
+                 append_trajectory=False, master=None):
         """Dynamics object.
 
         Parameters:
@@ -34,9 +34,10 @@ class Dynamics:
             trajectory.
 
         append_trajectory: boolean
-            Defaults to False, which causes the trajectory file to be overwriten
-            each time the dynamics is restarted from scratch. If True, the new
-            structures are appended to the trajectory file instead.
+            Defaults to False, which causes the trajectory file to be
+            overwriten each time the dynamics is restarted from scratch.
+            If True, the new structures are appended to the trajectory
+            file instead.
 
         master: boolean
             Defaults to None, which causes only rank 0 to save files.  If

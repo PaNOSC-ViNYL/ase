@@ -48,6 +48,9 @@ def intkey(key):
 
 def numpyfy(obj):
     if isinstance(obj, dict):
+        if '__complex_ndarray__' in obj:
+            r, i = (np.array(x) for x in obj['__complex_ndarray__'])
+            return r + i * 1j
         return dict((intkey(key), numpyfy(value))
                     for key, value in obj.items())
     if isinstance(obj, list) and len(obj) > 0:

@@ -16,8 +16,8 @@ params = {
     'use resolution of identity': True,
     'ri memory': 1000,
     'force convergence': 0.001,
-    'geometry iterations': 50,
-    'maximum number of scf iterations': 100
+    'geometry optimization iterations': 50,
+    'scf iterations': 100
 }
 
 calc = Turbomole(**params)

@@ -1,0 +1,12 @@
+ xc:(LDA ->GGA)
+ energy_cutoff:(2040.8539518275434 ->4081.7079036550867)
+ stress:(False ->on)
+                Step[ FC]     Time          Energy          fmax
+*Force-consistent energies used in optimization.
+BFGSLineSearch:    0[  0] 19:45:32     -223.087941*       3.6147
+BFGSLineSearch:    1[  2] 19:48:02     -223.606240*       1.4284
+BFGSLineSearch:    2[  4] 19:50:27     -223.704947*       0.6890
+BFGSLineSearch:    3[  5] 19:51:37     -223.711997*       0.3507
+BFGSLineSearch:    4[  6] 19:52:44     -223.713887*       0.0367
+BFGSLineSearch:    5[  8] 19:54:42     -223.713900*       0.0281
+BFGSLineSearch:    6[ 10] 19:56:38     -223.713924*       0.0026
