@@ -109,6 +109,28 @@ def delete_data_group(data_group):
     execute(command, error_test=False, stdout_tofile=False)
 
 
+class TurbomoleOptimizer:
+    def __init__(self, atoms, calc):
+        self.atoms = atoms
+        self.calc = calc
+        self.atoms.calc = self.calc
+
+    def todict(self):
+        return {'type': 'optimization',
+                'optimizer': 'TurbomoleOptimizer'}
+
+    def run(self, fmax=None, steps=None):
+        if fmax is not None:
+            self.calc.parameters['force convergence'] = fmax
+            self.calc.verify_parameters()
+        if steps is not None:
+            self.calc.parameters['geometry optimization iterations'] = steps
+            self.calc.verify_parameters()
+        self.calc.calculate()
+        self.atoms.positions[:] = self.calc.atoms.positions
+        self.calc.parameters['task'] = 'energy'
+
+
 class Turbomole(FileIOCalculator):
 
     """constants"""
@@ -1905,6 +1927,12 @@ class Turbomole(FileIOCalculator):
             self.hostname = list(set(hostnames))
         else:
             self.hostname = hostnames[0]
+
+    def get_optimizer(self, atoms, trajectory=None, logfile=None):
+        """returns a TurbomoleOptimizer object"""
+        self.parameters['task'] = 'optimize'
+        self.verify_parameters()
+        return TurbomoleOptimizer(atoms, self)
 
     def get_results(self):
         """returns the results dictionary"""

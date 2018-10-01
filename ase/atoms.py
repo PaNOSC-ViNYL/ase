@@ -1207,7 +1207,6 @@ class Atoms(object):
         Rotate 90 degrees around the z-axis, so that the x-axis is
         rotated into the y-axis:
 
-        >>> from math import pi
         >>> atoms = Atoms()
         >>> atoms.rotate(90, 'z')
         >>> atoms.rotate(90, (0, 0, 1))
@@ -1432,7 +1431,6 @@ class Atoms(object):
         Example: the following defines a very crude
         ethane-like molecule and twists one half of it by 30 degrees.
 
-        >>> from math import pi
         >>> atoms = Atoms('HHCCHH', [[-1, 1, 0], [-1, -1, 0], [0, 0, 0],
         ...                          [1, 0, 0], [2, 1, 0], [2, -1, 0]])
         >>> atoms.set_dihedral(1, 2, 3, 4, 210, mask=[0, 0, 0, 1, 1, 1])

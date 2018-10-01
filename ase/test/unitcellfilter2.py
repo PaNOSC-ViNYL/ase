@@ -3,7 +3,7 @@ import numpy as np
 from ase.build import bulk
 from ase.calculators.test import gradient_test
 from ase.calculators.lj import LennardJones
-from ase.constraints import UnitCellFilter
+from ase.constraints import UnitCellFilter, ExpCellFilter
 
 a0 = bulk('Cu', cubic=True)
 
@@ -22,4 +22,12 @@ ucf = UnitCellFilter(atoms)
 
 # test all deritatives
 f, fn = gradient_test(ucf)
+assert abs(f - fn).max() < 1e-6
+
+atoms = a0.copy()
+atoms.set_calculator(LennardJones())
+ecf = ExpCellFilter(atoms)
+
+# test all deritatives
+f, fn = gradient_test(ecf)
 assert abs(f - fn).max() < 1e-6
