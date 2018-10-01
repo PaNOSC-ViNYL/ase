@@ -335,8 +335,7 @@ def row(project, value):
     except ValueError:
         pass
     row = db.get(**{key: value})
-    prfx = '{project}-{id}-'.format(project=project, id=row.id)
-    s = Summary(row, db.meta, SUBSCRIPT, prfx, tmpdir)
+    s = Summary(row, db.meta, SUBSCRIPT, tmpdir)
     atoms = Atoms(cell=row.cell, pbc=row.pbc)
     n1, n2, n3 = kptdensity2monkhorstpack(atoms,
                                           kptdensity=1.8,

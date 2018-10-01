@@ -19,10 +19,10 @@ def process_metadata(db, html=True):
         eval(compile(code, db.python, 'exec'), mod, mod)
 
     for key, default in [('title', 'ASE database'),
-                         ('default_columns', []),
+                         ('default_columns', None),
                          ('special_keys', []),
                          ('key_descriptions', {}),
-                         ('layout', []),
+                         ('layout', None),
                          ('unique_key', 'id')]:
         meta[key] = mod.get(key, meta.get(key, default))
 

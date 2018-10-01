@@ -1,16 +1,13 @@
 from __future__ import print_function
-import os
-import shutil
 import os.path as op
 
-from ase.data import atomic_masses, chemical_symbols
-from ase.db.core import float_to_time_string, now
+from ase.db.core import float_to_time_string, now, default_key_descriptions
 from ase.geometry import cell_to_cellpar
-from ase.utils import formula_metal, Lock
+from ase.utils import formula_metal
 
 
 class Summary:
-    def __init__(self, row, meta={}, subscript=None, prefix='', tmpdir='.'):
+    def __init__(self, row, meta={}, subscript=None, folder='.'):
         self.row = row
 
         self.cell = [['{:.3f}'.format(a) for a in axis] for axis in row.cell]
@@ -28,7 +25,7 @@ class Summary:
 
         kd = meta.get('key_descriptions', {})
         create_layout = meta.get('layout', default_layout)
-        self.layout = create_layout(row, kd)
+        self.layout = create_layout(row, kd, folder)
 
         self.dipole = row.get('dipole')
         if self.dipole is not None:
@@ -109,11 +106,13 @@ class Summary:
 
 
 def create_table(row, keys, title, key_descriptions, digits=3):
+    # types: (Row, List[str], str, Dict[str, Tuple[str, str, str]], int)
+    # -> Tuple[str, Dict[str, Any]]
     table = []
     for key in keys:
         value = row.get(key)
         if value:
-            if isinstance(valeu, float):
+            if isinstance(value, float):
                 value = '{:.{}f}'.format(value, digits)
             elif not isinstance(value, str):
                 value = str(value)
@@ -127,8 +126,8 @@ def create_table(row, keys, title, key_descriptions, digits=3):
     return ('table', {'rows': table, 'title': title})
 
 
-def default_layout(row, key_descriptions):
-    # types: (Row, Dict[str, Tuple[str, str, str]])
+def default_layout(row, key_descriptions, folder):
+    # types: (Row, Dict[str, Tuple[str, str, str]], str)
     # types -> List[Tuple[str, Dict[str, Any]]]
     keys = ['id',
             'energy', 'fmax', 'smax',
@@ -138,7 +137,7 @@ def default_layout(row, key_descriptions):
     layout = [('Basic properties', [[('atoms', {}),
                                      ('cell', {})],
                                     [table]])]
-    keys =
-    misc = create_table(row, keys, 'Items', key_descriptions)
+    keys = set(default_key_descriptions) - set(keys)
+    misc = create_table(row, sorted(keys), 'Items', key_descriptions)
     layout.append(('Miscellaneous', [[misc]]))
-    return
+    return layout
