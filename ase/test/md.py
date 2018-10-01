@@ -11,7 +11,7 @@ fcc = Atoms('Cu', positions=[(0, 0, 0)],
 fcc *= (2, 1, 1)
 fcc.set_calculator(EMT())
 fcc.set_momenta([(0.9, 0.0, 0.0), (-0.9, 0, 0)])
-md = VelocityVerlet(fcc, dt=0.1)
+md = VelocityVerlet(fcc, timestep=0.1)
 def f():
     print(fcc.get_potential_energy(), fcc.get_total_energy())
 md.attach(f)
