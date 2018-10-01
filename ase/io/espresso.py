@@ -275,6 +275,9 @@ def read_espresso_out(fileobj, index=-1, results_required=True):
                 weights = []
                 nkpts = int(pwo_lines[kpts_index].split()[4])
                 kpts_index += 2
+                # QE prints the k-points in units of 2*pi/alat
+                # with alat defined as the length of the first
+                # cell vector
                 cell = structure.get_cell()
                 alat = np.linalg.norm(cell[0])
                 for i in range(nkpts):
