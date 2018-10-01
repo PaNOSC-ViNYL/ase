@@ -5,18 +5,23 @@ from ase.db.core import default_key_descriptions
 
 
 def process_metadata(db, html=True):
-    meta = db.metadata
+    meta = {}
 
-    mod = {}
     if db.python:
-        with open(db.python) as fd:
-            code = fd.read()
-        path = os.path.dirname(db.python)
-        code = 'import sys; sys.path[:0] = ["{}"]; {}'.format(path, code)
+        if isinstance(db.python, str):
+            with open(db.python) as fd:
+                code = fd.read()
+            path = os.path.dirname(db.python)
+            mod = {}
+            code = 'import sys; sys.path[:0] = ["{}"]; {}'.format(path, code)
 
-        # We use eval here instead of exec because it works on both
-        # Python 2 and 3.
-        eval(compile(code, db.python, 'exec'), mod, mod)
+            # We use eval here instead of exec because it works on both
+            # Python 2 and 3.
+            eval(compile(code, db.python, 'exec'), mod, mod)
+        else:
+            mod = db.python
+    else:
+        mod = {}
 
     for key, default in [('title', 'ASE database'),
                          ('default_columns', None),

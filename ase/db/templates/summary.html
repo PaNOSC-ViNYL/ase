@@ -42,34 +42,6 @@
 {% endif %}
 {% endmacro %}
 
-{% macro forces() %}
-{% if s.forces %}
-<h4>Relaxtion forces in eV/Å</h4>
-<table class="table table-striped">
-<thead>
-<tr>
-<th>#</th>
-<th>symbol</th>
-<th>x</th>
-<th>y</th>
-<th>z</th>
-</tr>
-</thead>
-<tbody>
-                {% for f in s.forces %}
-<tr>
-<td>{{ f[0] }}</td>
-<td>{{ f[1] }}</td>
-<td>{{ f[2] }}</td>
-<td>{{ f[3] }}</td>
-<td>{{ f[4] }}</td>
-</tr>
-                {% endfor %}
-</tbody>
-</table>
-{% endif %}
-{% endmacro %}
-
 {% macro cell() %}
 <table class="table table-striped">
 <thead>
@@ -99,8 +71,7 @@
 </table>
 {% endmacro %}
 
-{% macro table(thing) %}
-{% set subtitle, rows = thing %}
+{% macro table(data) %}
 <table class="table table-striped">
 <colgroup>
 <col class="col-xs-7">
@@ -109,13 +80,13 @@
 </colgroup>
 <thead>
 <tr>
-<th>{{ subtitle }}</th>
+<th>{{ data.title }}</th>
 <th class="text-center">Value</th>
 <th class="text-center">Unit</th>
 </tr>
 </thead>
 <tbody>
-            {% for key, value, unit in rows %}
+            {% for key, value, unit in data.rows %}
 <tr>
 <td> {{ key|safe }} </td>
 <td class="text-center"> {{ value|safe }} </td>
@@ -174,24 +145,22 @@ jmol_isReady = function(applet)
         <div class="panel-body">
     {% for column in things %}
         <div class="col-md-6">
-    {% for thing in column %}
+    {% for type, data in column %}
             <div class="row">
-        {% if thing == 'ATOMS' %}
+        {% if type == 'atoms' %}
             {{ atoms() }}
-        {% elif thing == 'FORCES' %}
-            {{ forces() }}
-        {% elif thing == 'CELL' %}
+        {% elif type == 'cell' %}
             {{ cell() }}
-        {% elif thing is none %}
-        {% elif thing|length == 2 %}
-            {{ table(thing) }}
+        {% elif type == 'table' %}
+            {{ table(data) }}
         {% else %}
-                    <img
-                    src="/{{ project }}/plot/{{ d.id }}-{{ thing }}" width="100%">
+                <img
+                src="/{{ project }}/plot/{{ d.uid }}/{{ data.filename }}"
+                width="100%">
         {% endif %}
-                </div> <!--END ROW-->
+            </div> <!--END ROW-->
     {% endfor %}
-            </div> <!--END col-md-6-->
+        </div> <!--END col-md-6-->
     {% endfor %}
         </div> <!--END PANEL BODY-->
     </div> <!--END COLLAPSE-->

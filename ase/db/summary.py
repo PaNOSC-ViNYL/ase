@@ -1,5 +1,4 @@
 from __future__ import print_function
-import os.path as op
 
 from ase.db.core import float_to_time_string, now, default_key_descriptions
 from ase.geometry import cell_to_cellpar
@@ -24,7 +23,7 @@ class Summary:
             self.formula = subscript.sub(r'<sub>\1</sub>', self.formula)
 
         kd = meta.get('key_descriptions', {})
-        create_layout = meta.get('layout', default_layout)
+        create_layout = meta.get('layout') or default_layout
         self.layout = create_layout(row, kd, folder)
 
         self.dipole = row.get('dipole')
@@ -49,31 +48,23 @@ class Summary:
             if len(columns) == 2:
                 blocks += columns[1]
             print((' ' + headline + ' ').center(78, '='))
-            for block in blocks:
-                if block is None:
-                    pass
-                elif isinstance(block, tuple):
-                    title, keys = block
-                    print(title + ':')
-                    if not keys:
+            for type, data in blocks:
+                if type == 'table':
+                    print(data['title'] + ':')
+                    rows = data['rows']
+                    if not rows:
                         print()
                         continue
-                    width = max(len(name) for name, value, unit in keys)
+                    width = max(len(name) for name, value, unit in rows)
                     print('{:{width}}|value'.format('name', width=width))
-                    for name, value, unit in keys:
+                    for name, value, unit in rows:
                         print('{:{width}}|{} {}'.format(name, value, unit,
                                                         width=width))
                     print()
-                elif block.endswith('.png'):
-                    if op.isfile(block) and op.getsize(block) > 0:
-                        print(block)
+                elif type == 'figure':
+                    print(data['filename'])
                     print()
-                elif block.endswith('.csv'):
-                    if op.isfile(block) and op.getsize(block) > 0:
-                        with open(block) as f:
-                            print(f.read())
-                    print()
-                elif block == 'CELL':
+                elif type == 'cell':
                     print('Unit cell in Ang:')
                     print('axis|periodic|          x|          y|          z')
                     c = 1
@@ -85,11 +76,6 @@ class Summary:
                           .format(*self.lengths))
                     print('Angles:  {:>10}{:>10}{:>10}\n'
                           .format(*self.angles))
-                elif block == 'FORCES' and self.forces is not None:
-                    print('\nForces in ev/Ang:')
-                    for f in self.forces:
-                        print('{:4}|{:2}|{}|{}|{}'.format(*f))
-                    print()
 
         if self.stress:
             print('Stress tensor (xx, yy, zz, zy, zx, yx) in eV/Ang^3:')
@@ -110,18 +96,17 @@ def create_table(row, keys, title, key_descriptions, digits=3):
     # -> Tuple[str, Dict[str, Any]]
     table = []
     for key in keys:
+        if key == 'age':
+            age = float_to_time_string(now() - row.ctime, True)
+            table.append(('Age', age, ''))
+            continue
         value = row.get(key)
-        if value:
+        if value is not None:
             if isinstance(value, float):
                 value = '{:.{}f}'.format(value, digits)
             elif not isinstance(value, str):
                 value = str(value)
-            if key == 'age':
-                value = float_to_time_string(now() - row.ctime, True)
-                desc = 'Age'
-                unit = ''
-            else:
-                desc, unit = key_descriptions.get(key, ['', key, ''])[1:]
+            desc, unit = key_descriptions.get(key, ['', key, ''])[1:]
             table.append((desc, value, unit))
     return ('table', {'rows': table, 'title': title})
 
@@ -133,11 +118,15 @@ def default_layout(row, key_descriptions, folder):
             'energy', 'fmax', 'smax',
             'mass',
             'age']
-    table = create_table(row, keys, 'Key Value Pairs', key_descriptions)
+    table = create_table(row, keys, 'Key-value pairs', key_descriptions)
     layout = [('Basic properties', [[('atoms', {}),
                                      ('cell', {})],
                                     [table]])]
-    keys = set(default_key_descriptions) - set(keys)
-    misc = create_table(row, sorted(keys), 'Items', key_descriptions)
+
+    misckeys = set(default_key_descriptions)
+    misckeys.update(row.key_value_pairs)
+    print(misckeys)
+    misckeys -= set(keys)
+    misc = create_table(row, sorted(misckeys), 'Items', key_descriptions)
     layout.append(('Miscellaneous', [[misc]]))
     return layout

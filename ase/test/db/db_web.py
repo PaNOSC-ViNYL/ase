@@ -18,11 +18,10 @@ c.write(atoms,
               't1': t1,
               't2': t2})
 
-c.metadata = {'title': 'Test title',
-              'key_descriptions':
-                  {'foo': ('FOO', 'FOO ...', '`m_e`')},
-              'default_columns': ['foo', 'formula', 'bar']}
-c.python = None
+c.python = {'title': 'Test title',
+            'key_descriptions':
+                {'foo': ('FOO', 'FOO ...', '`m_e`')},
+            'default_columns': ['foo', 'formula', 'bar']}
 app.databases['default'] = c
 app.app.testing = True
 c = app.app.test_client()
