@@ -126,8 +126,8 @@ The FixCom class
 
 Example of use::
 
-  >>> from ase.constraints import FixedCom
-  >>> c = FixedCom()
+  >>> from ase.constraints import FixCom
+  >>> c = FixCom()
   >>> atoms.set_constraint(c)
 
 
