@@ -48,7 +48,7 @@ momenta[9, 1] += 2.
 atoms.set_momenta(momenta)
 
 # Propagate in Velocity Verlet (NVE).
-dyn = VelocityVerlet(atoms, dt=1.0*units.fs)
+dyn = VelocityVerlet(atoms, timestep=1.0*units.fs)
 energies = SaveEnergy(atoms)
 dyn.attach(energies)
 dyn.run(steps=100)

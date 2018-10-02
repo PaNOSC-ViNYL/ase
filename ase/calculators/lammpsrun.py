@@ -282,7 +282,7 @@ class LAMMPS:
         exitcode = lmp_handle.poll()
         if exitcode and exitcode != 0:
             cwd = os.getcwd()
-            raise RuntimeError('LAMMPS exited in {0} with exit code: {0}.'
+            raise RuntimeError('LAMMPS exited in {} with exit code: {}.'
                                ''.format(cwd, exitcode))
 
         # A few sanity checks
@@ -343,7 +343,7 @@ class LAMMPS:
                 parameters['boundary']).encode('utf-8'))
         else:
             f.write('boundary {0} {1} {2} \n'.format(
-                    *tuple('sp'[x] for x in pbc)).encode('utf-8'))
+                    *tuple('sp'[int(x)] for x in pbc)).encode('utf-8'))
         f.write('atom_modify sort 0 0.0 \n'.encode('utf-8'))
         for key in ('neighbor', 'newton'):
             if key in parameters:

@@ -84,7 +84,7 @@ def runtest_almost_no_magic(test):
             raise
 
 
-def run_single_test(filename):
+def run_single_test(filename, verbose):
     """Execute single test and return results as dictionary."""
     result = Result(name=filename)
 
@@ -96,7 +96,8 @@ def run_single_test(filename):
     os.chdir(testsubdir)
     t1 = time.time()
 
-    sys.stdout = devnull
+    if not verbose:
+        sys.stdout = devnull
     try:
         with warnings.catch_warnings():
             # We want all warnings to be errors.  Except some that are
@@ -153,7 +154,7 @@ class Result:
         self.__dict__ = d
 
 
-def runtests_subprocess(task_queue, result_queue):
+def runtests_subprocess(task_queue, result_queue, verbose):
     """Main test loop to be called within subprocess."""
 
     try:
@@ -176,7 +177,7 @@ def runtests_subprocess(task_queue, result_queue):
                 result_queue.put(result)
                 continue
 
-            result = run_single_test(test)
+            result = run_single_test(test, verbose)
 
             # Any subprocess that uses multithreading is unsafe in
             # subprocesses due to a fork() issue:
@@ -212,7 +213,7 @@ def print_test_result(result):
         print('=' * 78)
 
 
-def runtests_parallel(nprocs, tests):
+def runtests_parallel(nprocs, tests, verbose):
     # Test names will be sent, and results received, into synchronized queues:
     task_queue = Queue()
     result_queue = Queue()
@@ -229,7 +230,7 @@ def runtests_parallel(nprocs, tests):
         for i in range(nprocs):
             p = Process(target=runtests_subprocess,
                         name='ASE-test-worker-{}'.format(i),
-                        args=[task_queue, result_queue])
+                        args=[task_queue, result_queue, verbose])
             procs.append(p)
             p.start()
 
@@ -238,11 +239,11 @@ def runtests_parallel(nprocs, tests):
             if nprocs == 0:
                 # No external workers so we do everything.
                 task = task_queue.get()
-                result = run_single_test(task)
+                result = run_single_test(task, verbose)
             else:
                 result = result_queue.get()  # blocking call
                 if result.status == 'please run on master':
-                    result = run_single_test(result.name)
+                    result = run_single_test(result.name, verbose)
             print_test_result(result)
             yield result
 
@@ -281,7 +282,7 @@ def summary(results):
 
 
 def test(calculators=[], jobs=0,
-         stream=sys.stdout, files=None):
+         stream=sys.stdout, files=None, verbose=False):
     """Main test-runner for ASE."""
 
     if LooseVersion(np.__version__) >= '1.14':
@@ -311,6 +312,9 @@ def test(calculators=[], jobs=0,
 
     # Note: :25 corresponds to ase.cli indentation
     print('{:25}{}'.format('test directory', testdir))
+    if test_calculator_names:
+        print('{:25}{}'.format('Enabled calculators:',
+                               ' '.join(test_calculator_names)))
     print('{:25}{}'.format('number of processes',
                            jobs or '1 (multiprocessing disabled)'))
     print('{:25}{}'.format('time', time.strftime('%c')))
@@ -319,7 +323,7 @@ def test(calculators=[], jobs=0,
     t1 = time.time()
     results = []
     try:
-        for result in runtests_parallel(jobs, tests):
+        for result in runtests_parallel(jobs, tests, verbose):
             results.append(result)
     except KeyboardInterrupt:
         print('Interrupted by keyboard')
@@ -401,6 +405,9 @@ class CLICommand:
                             'By default use all available processors '
                             'up to a maximum of 32.  '
                             '0 disables multiprocessing.')
+        parser.add_argument('-v', '--verbose', action='store_true',
+                            help='Write test outputs to stdout.  '
+                            'Mostly useful when inspecting a single test.')
         parser.add_argument('tests', nargs='*',
                             help='Specify particular test files.  '
                             'Glob patterns are accepted.')
@@ -432,5 +439,5 @@ class CLICommand:
                 sys.exit(1)
 
         ntrouble = test(calculators=calculators, jobs=args.jobs,
-                        files=args.tests)
+                        files=args.tests, verbose=args.verbose)
         sys.exit(ntrouble)

@@ -40,10 +40,10 @@ def read_openmx(filename=None, debug=False):
     version 3.8.3, stress tensor are not written in the '.out' file. It only
     contained in the '.log' file. So... I implented reading '.log' file method
     """
-    log_data = read_file(get_file_name('.log', filename))
-    restart_data = read_file(get_file_name('.dat#', filename))
-    dat_data = read_file(get_file_name('.dat', filename))
-    out_data = read_file(get_file_name('.out', filename))
+    log_data = read_file(get_file_name('.log', filename), debug=debug)
+    restart_data = read_file(get_file_name('.dat#', filename), debug=debug)
+    dat_data = read_file(get_file_name('.dat', filename), debug=debug)
+    out_data = read_file(get_file_name('.out', filename), debug=debug)
     scfout_data = read_scfout_file(get_file_name('.scfout', filename))
     band_data = read_band_file(get_file_name('.Band', filename))
     # dos_data = read_dos_file(get_file_name('.Dos.val', filename))
@@ -125,7 +125,7 @@ def read_file(filename, debug=False):
                     out_data[get_standard_key(key)] = read_matrix(line, key, f)
             for key in patterns.keys():
                 if key in line:
-                    out_data[patterns[key][0]] = patterns[key][1](line, f)
+                    out_data[patterns[key][0]] = patterns[key][1](line, f, debug=debug)
             for key in special_patterns.keys():
                 if key in line:
                     a, b = special_patterns[key][1](line, f)
@@ -439,7 +439,7 @@ def read_matrix(line, key, f):
     return matrix
 
 
-def read_stress_tensor(line, f):
+def read_stress_tensor(line, f, debug=None):
     f.readline()  # passing empty line
     f.readline()
     line = f.readline()
@@ -452,7 +452,7 @@ def read_stress_tensor(line, f):
     return stress
 
 
-def read_magmoms_and_total_magmom(line, f):
+def read_magmoms_and_total_magmom(line, f, debug=None):
     total_magmom = read_float(line)
     f.readline()  # Skip empty lines
     f.readline()
@@ -464,7 +464,7 @@ def read_magmoms_and_total_magmom(line, f):
     return magmoms, total_magmom
 
 
-def read_energy(line, f):
+def read_energy(line, f, debug=None):
     # It has Hartree unit yet
     return read_float(line)
 
@@ -476,33 +476,75 @@ def read_eigenvalues(line, f, debug=False):
     the end('*****...').
 
         eigenvalues[spin][kpoint][nbands]
+
+    For symmetry reason, `.out` file prints the eigenvalues at the half of the
+    K points. Thus, we have to fill up the rest of the half.
+    However, if the caluclation was conducted only on the gamma point, it will
+    raise the 'gamma_flag' as true and it will returns the original samples.
     """
+    def prind(line):
+        if debug:
+            print(line)
     if 'Hartree' in line:
         return None
-    if(debug):
-        print("Read eigenvalue output")
+    prind("Read eigenvalue output")
+    current_line = f.tell()
+    f.seek(0)  # Seek for the kgrid information
+    while line != '':
+        line = f.readline().lower()
+        if 'scf.kgrid' in line:
+            break
+    f.seek(current_line)  # Retrun to the original position
+
+    kgrid = read_tuple_integer(line)
+    prind('scf.Kgrid is %d, %d, %d' % kgrid)
+
+    line = f.readline()
+    line = f.readline()
+    if '1' not in line:  # Non - Gamma point calculation
+        prind('Non-Gamma point calculation')
+        gamma_flag = False
+        f.seek(f.tell()+57)
+    else:                        # Gamma point calculation case
+        prind('Gamma point calculation')
+        gamma_flag = True
+
     eigenvalues = []
     eigenvalues.append([])
     eigenvalues.append([])  # Assume two spins
     i = 0
-    while '******' not in line:
+    while 'Mulliken' not in line:
         line = f.readline()
-        if 'kloop' in line:
+        prind(line)
+        eigenvalues[0].append([])
+        eigenvalues[1].append([])
+        while not (line == '' or line.isspace()):
+            eigenvalues[0][i].append(float(rn(line, 2)))
+            eigenvalues[1][i].append(float(rn(line, 1)))
             line = f.readline()
-            line = f.readline()
-            line = f.readline()
-            eigenvalues[0].append([])
-            eigenvalues[1].append([])
-            line = f.readline()
-            while not (line == '' or line.isspace()):
-                eigenvalues[0][i].append(float(rn(line, 2)))
-                eigenvalues[1][i].append(float(rn(line, 1)))
-                line = f.readline()
-            i += 1
-    return np.asarray(eigenvalues)
+            prind(line)
+        i += 1
+        f.readline()
+        f.readline()
+        line = f.readline()
+        prind(line)
+    if gamma_flag:
+        return np.asarray(eigenvalues)
+    eigen_half = np.asarray(eigenvalues)
+    prind(eigen_half)
+    # Fill up the half
+    spin, half_kpts, bands = eigen_half.shape
+    even_odd = np.array(kgrid).prod() % 2
+    eigen_values = np.zeros((spin, half_kpts*2-even_odd, bands))
+    for i in range(half_kpts):
+        eigen_values[0, i] = eigen_half[0, i, :]
+        eigen_values[1, i] = eigen_half[1, i, :]
+        eigen_values[0, 2*half_kpts-1-i-even_odd] = eigen_half[0, i, :]
+        eigen_values[1, 2*half_kpts-1-i-even_odd] = eigen_half[1, i, :]
+    return eigen_values
 
 
-def read_forces(line, f):
+def read_forces(line, f, debug=None):
     # It has Hartree per Bohr unit yet
     forces = []
     f.readline()  # Skip Empty line
@@ -513,7 +555,7 @@ def read_forces(line, f):
     return np.array(forces)
 
 
-def read_dipole(line, f):
+def read_dipole(line, f, debug=None):
     dipole = []
     while 'Total' not in line:
         line = f.readline()
@@ -521,7 +563,7 @@ def read_dipole(line, f):
     return dipole
 
 
-def read_scaled_positions(line, f):
+def read_scaled_positions(line, f, debug=None):
     scaled_positions = []
     f.readline()  # Skip Empty lines
     f.readline()
@@ -533,7 +575,7 @@ def read_scaled_positions(line, f):
     return scaled_positions
 
 
-def read_chemical_potential(line, f):
+def read_chemical_potential(line, f, debug=None):
     return read_float(line)
 
 
@@ -561,6 +603,7 @@ def get_parameters(out_data=None, log_data=None, restart_data=None,
     translated_parameters = get_standard_parameters(parameters)
     parameters.update(translated_parameters)
     return {k: v for k, v in parameters.items() if v is not None}
+
 
 def get_standard_key(key):
     """
@@ -696,4 +739,6 @@ def get_results(out_data=None, log_data=None, restart_data=None,
 
 def get_file_name(extension='.out', filename=None):
     directory, prefix = os.path.split(filename)
+    if directory == '':
+        directory = os.curdir
     return os.path.abspath(directory + '/' + prefix + extension)

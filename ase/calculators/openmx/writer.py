@@ -131,7 +131,7 @@ def parameters_to_keywords(label=None, atoms=None, parameters=None,
                                         scf_kgrid=parameters.get('scf_kgrid'),
                                         atoms=atoms)
     keywords['scf_eigenvaluesolver'] = get_eigensolver(atoms, parameters)
-    keywords['scf_spinpolarization'] = parameters.get('spinpol')
+    keywords['scf_spinpolarization'] = get_spinpol(atoms, parameters)
     keywords['scf_external_fields'] = parameters.get('external')
     keywords['scf_mixing_type'] = parameters.get('mixer')
     keywords['scf_electronic_temperature'] = parameters.get('smearing')
@@ -151,7 +151,8 @@ def parameters_to_keywords(label=None, atoms=None, parameters=None,
         get_matrix_key = globals()['get_'+get_standard_key(key)]
         keywords[get_standard_key(key)] = get_matrix_key(atoms, parameters)
     return OrderedDict([(k, v)for k, v in keywords.items()
-                        if not(v is None or v == [])])
+                        if not(v is None or
+                               (isinstance(v, list) and v == []))])
 
 
 def get_species(symbols):
@@ -179,6 +180,7 @@ def get_eigensolver(atoms, parameters):
     else:
         eigensolver = parameters.get('scf_eigenvaluesolver', 'Band')
         return parameters.get('eigensolver', eigensolver)
+
 
 def get_scf_kgrid(kpts=None, scf_kgrid=None, atoms=None):
     if isinstance(kpts, tuple) or isinstance(kpts, list):
@@ -356,9 +358,31 @@ def get_lda_u_switches():
     return lda_u_switches
 
 
+def get_spinpol(atoms, parameters):
+    ''' Judgeds the keyword 'scf.SpinPolarization'
+     If the keyword is not None, spinpol gets the keyword by following priority
+       1. standard_spinpol
+       2. scf_spinpolarization
+       3. magnetic moments of atoms
+    '''
+    standard_spinpol = parameters.get('spinpol', None)
+    scf_spinpolarization = parameters.get('scf_spinpolarization', None)
+    m = atoms.get_initial_magnetic_moments()
+    syn = {True: 'On', False: None, 'on': 'On', 'off': None,
+           None: None, 'nc': 'NC'}
+    spinpol = np.any(m >= 0.1)
+    if scf_spinpolarization is not None:
+        spinpol = scf_spinpolarization
+    if standard_spinpol is not None:
+        spinpol = standard_spinpol
+    if isinstance(spinpol, str):
+        spinpol = spinpol.lower()
+    return syn[spinpol]
+
+
 def get_atoms_unitvectors(atoms, parameters):
-    zero_vec = np.array([[0, 0, 0], [0, 0, 0], [0, 0, 0]]) 
-    if np.all(atoms.get_cell() == zero_vec) == True:
+    zero_vec = np.array([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
+    if np.all(atoms.get_cell() == zero_vec) is True:
         default_cell = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
         return parameters.get('atoms_unitvectors', default_cell)
     atoms_unitvectors = atoms.get_cell().T
