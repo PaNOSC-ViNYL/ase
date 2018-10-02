@@ -24,12 +24,7 @@ class Summary:
 
         kd = meta.get('key_descriptions', {})
         create_layout = meta.get('layout') or default_layout
-        layout = create_layout(row, kd, prefix)
-        # Transpose:
-        self.layout = [(title,
-                        [[row[0] for row in rows],
-                         [row[1] for row in rows if len(row) == 2]])
-                       for title, rows in layout]
+        self.layout = create_layout(row, kd, prefix)
 
         self.dipole = row.get('dipole')
         if self.dipole is not None:
@@ -124,8 +119,8 @@ def default_layout(row, key_descriptions, prefix):
             'mass',
             'age']
     table = create_table(row, keys, 'Key-value pairs', key_descriptions)
-    layout = [('Basic properties', [[{'type': 'atoms'}, table],
-                                    [{'type': 'cell'}]])]
+    layout = [('Basic properties', [[{'type': 'atoms'}, {'type': 'cell'}],
+                                    [table]])]
 
     misckeys = set(default_key_descriptions)
     misckeys.update(row.key_value_pairs)
