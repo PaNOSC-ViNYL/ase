@@ -91,7 +91,7 @@ class Summary:
             print('Data:', self.data, '\n')
 
 
-def create_table(row, keys, title, key_descriptions, digits=3):
+def create_table(row, title, keys, key_descriptions, digits=3):
     # types: (Row, List[str], str, Dict[str, Tuple[str, str, str]], int)
     # -> Dict[str, Any]
     table = []
@@ -118,13 +118,13 @@ def default_layout(row, key_descriptions, prefix):
             'energy', 'fmax', 'smax',
             'mass',
             'age']
-    table = create_table(row, keys, 'Key-value pairs', key_descriptions)
+    table = create_table(row, 'Key-value pairs', keys, key_descriptions)
     layout = [('Basic properties', [[{'type': 'atoms'}, {'type': 'cell'}],
                                     [table]])]
 
     misckeys = set(default_key_descriptions)
     misckeys.update(row.key_value_pairs)
     misckeys -= set(keys)
-    misc = create_table(row, sorted(misckeys), 'Items', key_descriptions)
+    misc = create_table(row, 'Items', sorted(misckeys), key_descriptions)
     layout.append(('Miscellaneous', [[misc]]))
     return layout
