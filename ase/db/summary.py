@@ -6,7 +6,7 @@ from ase.utils import formula_metal
 
 
 class Summary:
-    def __init__(self, row, meta={}, subscript=None, folder='.'):
+    def __init__(self, row, meta={}, subscript=None, prefix=''):
         self.row = row
 
         self.cell = [['{:.3f}'.format(a) for a in axis] for axis in row.cell]
@@ -24,7 +24,12 @@ class Summary:
 
         kd = meta.get('key_descriptions', {})
         create_layout = meta.get('layout') or default_layout
-        self.layout = create_layout(row, kd, folder)
+        layout = create_layout(row, kd, prefix)
+        # Transpose:
+        self.layout = [(title,
+                        [[row[0] for row in rows],
+                         [row[1] for row in rows if len(row) == 2]])
+                       for title, rows in layout]
 
         self.dipole = row.get('dipole')
         if self.dipole is not None:
@@ -48,10 +53,10 @@ class Summary:
             if len(columns) == 2:
                 blocks += columns[1]
             print((' ' + headline + ' ').center(78, '='))
-            for type, data in blocks:
-                if type == 'table':
-                    print(data['title'] + ':')
-                    rows = data['rows']
+            for block in blocks:
+                if block['type'] == 'table':
+                    print(block['title'] + ':')
+                    rows = block['rows']
                     if not rows:
                         print()
                         continue
@@ -61,10 +66,10 @@ class Summary:
                         print('{:{width}}|{} {}'.format(name, value, unit,
                                                         width=width))
                     print()
-                elif type == 'figure':
-                    print(data['filename'])
+                elif block['type'] == 'figure':
+                    print(block['filename'])
                     print()
-                elif type == 'cell':
+                elif block['type'] == 'cell':
                     print('Unit cell in Ang:')
                     print('axis|periodic|          x|          y|          z')
                     c = 1
@@ -93,7 +98,7 @@ class Summary:
 
 def create_table(row, keys, title, key_descriptions, digits=3):
     # types: (Row, List[str], str, Dict[str, Tuple[str, str, str]], int)
-    # -> Tuple[str, Dict[str, Any]]
+    # -> Dict[str, Any]
     table = []
     for key in keys:
         if key == 'age':
@@ -108,24 +113,22 @@ def create_table(row, keys, title, key_descriptions, digits=3):
                 value = str(value)
             desc, unit = key_descriptions.get(key, ['', key, ''])[1:]
             table.append((desc, value, unit))
-    return ('table', {'rows': table, 'title': title})
+    return {'type': 'table', 'rows': table, 'title': title}
 
 
-def default_layout(row, key_descriptions, folder):
+def default_layout(row, key_descriptions, prefix):
     # types: (Row, Dict[str, Tuple[str, str, str]], str)
-    # types -> List[Tuple[str, Dict[str, Any]]]
+    # types -> List[Tuple[str, List[List[Dict[str, Any]]]]]
     keys = ['id',
             'energy', 'fmax', 'smax',
             'mass',
             'age']
     table = create_table(row, keys, 'Key-value pairs', key_descriptions)
-    layout = [('Basic properties', [[('atoms', {}),
-                                     ('cell', {})],
-                                    [table]])]
+    layout = [('Basic properties', [[{'type': 'atoms'}, table],
+                                    [{'type': 'cell'}]])]
 
     misckeys = set(default_key_descriptions)
     misckeys.update(row.key_value_pairs)
-    print(misckeys)
     misckeys -= set(keys)
     misc = create_table(row, sorted(misckeys), 'Items', key_descriptions)
     layout.append(('Miscellaneous', [[misc]]))

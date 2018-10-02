@@ -17,16 +17,19 @@
         Open ASE's GUI</a>
         {% endif %}
         <div class="btn-group pull-right">
-            <button type="button" class="btn btn-link dropdown-toggle btn-sm" data-toggle="dropdown">
+            <button type="button" class="btn btn-link dropdown-toggle btn-sm"
+            data-toggle="dropdown">
                 Unit cell <span class="caret"></span>
             </button>
             <ul class="dropdown-menu">
                 <li><a onclick="repeatCell(1, 1, 1);">1x1x1</a></li>
-                <li><a onclick="repeatCell({{ n1 }}, {{ n2 }}, {{ n3 }});"> {{ n1 }}x{{ n2 }}x{{ n3 }}</a></li>
+                <li><a onclick="repeatCell({{ n1 }}, {{ n2 }}, {{ n3 }});">
+                {{ n1 }}x{{ n2 }}x{{ n3 }}</a></li>
             </ul>
         </div>
         <div class="btn-group pull-right">
-            <button type="button" class="btn btn-link dropdown-toggle btn-sm" data-toggle="dropdown">
+            <button type="button" class="btn btn-link dropdown-toggle btn-sm"
+            data-toggle="dropdown">
                 Download <span class="caret"></span>
             </button>
             <ul class="dropdown-menu">
@@ -112,7 +115,8 @@ jmol_isReady = function(applet)
 {
     Jmol._getElement(applet, "appletdiv").style.border="1px solid lightgray";
     Jmol.script(jmolApplet0, "set displaycellparameters false;")
-    Jmol.script(jmolApplet0, "load /{{ project }}/cif/{{ d.id }}.cif { {{ n1 }} {{ n2 }} {{ n3 }} };");
+    Jmol.script(jmolApplet0,
+    "load /{{ project }}/cif/{{ d.id }}.cif { {{ n1 }} {{ n2 }} {{ n3 }} };");
     }
 </script>
 
@@ -135,23 +139,25 @@ jmol_isReady = function(applet)
 <div class="panel panel-default">
     <div class="panel-heading">
         <h4 class="panel-title">
-        <a class="btn-block" data-toggle="collapse" href="#collapse{{ loop.index0 }}">
+        <a class="btn-block" data-toggle="collapse"
+        href="#collapse{{ loop.index0 }}">
         {{ title }}
         </a>
         </h4>
     </div>
 
-    <div id="collapse{{ loop.index0 }}" class="panel-collapse collapse {% if loop.index0 == 0 %}in{% endif %}">
+    <div id="collapse{{ loop.index0 }}"
+    class="panel-collapse collapse {% if loop.index0 == 0 %}in{% endif %}">
         <div class="panel-body">
     {% for column in things %}
         <div class="col-md-6">
-    {% for type, data in column %}
+    {% for data in column %}
             <div class="row">
-        {% if type == 'atoms' %}
+        {% if data.type == 'atoms' %}
             {{ atoms() }}
-        {% elif type == 'cell' %}
+        {% elif data.type == 'cell' %}
             {{ cell() }}
-        {% elif type == 'table' %}
+        {% elif data.type == 'table' %}
             {{ table(data) }}
         {% else %}
                 <img
