@@ -1597,7 +1597,7 @@ def write_espresso_in(fd, atoms, input_data=None, pseudopotentials=None,
             kgrid, shift = kpts2sizeandoffsets(atoms=atoms, **kpts)
             koffset = []
             for i, x in enumerate(shift):
-                assert x == 0 or x * kgrid[i] == 0.5
+                assert x == 0 or abs(x * kgrid[i] - 0.5) < 1e-14
                 koffset.append(0 if x == 0 else 1)
         else:
             kgrid = kpts
