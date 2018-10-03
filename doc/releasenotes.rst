@@ -17,6 +17,10 @@ Git master branch
 
 * Added calculator for :mod:`OpenMX <ase.calculators.openmx>`.
 
+* :class:`~ase.calculators.espresso.Espresso` now supports the
+  :class:`~ase.dft.band_structure.BandStructure` machinery
+  including ``get_eigenvalues()`` and friends.
+
 * Updated the :class:`~ase.calculators.castep.Castep` calculator as well as
   the related I/O methods in order to be more forgiving and less reliant on
   the presence of a CASTEP binary. The ``castep_keywords.py`` file has been
