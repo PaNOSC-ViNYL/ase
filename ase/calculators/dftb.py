@@ -358,20 +358,15 @@ class Dftb(FileIOCalculator):
                 index_eigval_begin = iline + 1
                 line1 = line.replace(':', ',')
                 ncol, nband, nkpt, nspin = map(int, line1.split(',')[-4:])
-                rows_per_kpt = int(np.ceil(nband * 1. / ncol))
                 break
         else:
             return None
 
-        index = index_eigval_begin
-        eigval = np.zeros((nkpt, nspin, nband)) 
-        for i in range(nspin):
-            for j in range(nkpt):
-                eigenvalues = []
-                for k in range(rows_per_kpt):
-                    eigenvalues += map(float, self.lines[index].split())
-                    index += 1
-                eigval[j, i] = eigenvalues
+        assert nkpt * nspin * nband % ncol == 0
+        nrow = nkpt * nspin * nband // ncol
+        index_eigval_end = index_eigval_begin + nrow
+        eigval = np.loadtxt(self.lines[index_eigval_begin:index_eigval_end])
+        eigval = eigval.flatten().reshape((nkpt, nspin, nband))
 
         return eigval * Hartree
 
