@@ -23,7 +23,7 @@ def get_sql_columns(columns):
         sql_columns[sql_columns.index('formula')] = 'numbers'
     if 'fmax' in columns:
         sql_columns[sql_columns.index('fmax')] = 'forces'
-    if 'max' in columns:
+    if 'smax' in columns:
         sql_columns[sql_columns.index('smax')] = 'stress'
     if 'volume' in columns:
         sql_columns[sql_columns.index('volume')] = 'cell'
