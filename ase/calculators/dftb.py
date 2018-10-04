@@ -35,7 +35,8 @@ import os
 
 import numpy as np
 
-from ase.calculators.calculator import FileIOCalculator, kpts2ndarray
+from ase.calculators.calculator import (FileIOCalculator, kpts2ndarray,
+                                        kpts2sizeandoffsets)
 from ase.units import Hartree, Bohr
 
 
@@ -127,22 +128,61 @@ class Dftb(FileIOCalculator):
 
         # kpoint stuff by ase
         self.kpts = kpts
-        self.kpts_coord = kpts2ndarray(self.kpts, atoms=atoms)
+        self.kpts_coord = None
 
         if self.kpts is not None:
             initkey = 'Hamiltonian_KPointsAndWeights'
-            self.parameters[initkey + '_'] = ''
+            mp_mesh = None
+            offsets = None
+ 
             if isinstance(self.kpts, dict):
-                self.parameters[initkey + '_'] = 'Klines '
-
-            for i, c in enumerate(self.kpts_coord):
-                key = initkey + '_empty%09d'  % i
-                c_str = ' '.join(map(str, c))
-                if isinstance(self.kpts, dict):
-                    c_str = '1 ' + c_str
+                if 'path' in self.kpts:
+                    # kpts is path in Brillouin zone
+                    self.parameters[initkey + '_'] = 'Klines '
+                    self.kpts_coord = kpts2ndarray(self.kpts, atoms=atoms)
                 else:
-                    c_str += ' 1.0'
-                self.parameters[key] = c_str
+                    # kpts is (implicit) definition of
+                    # Monkhorst-Pack grid
+                    self.parameters[initkey + '_'] = 'SupercellFolding '
+                    mp_mesh, offsets = kpts2sizeandoffsets(atoms=atoms,
+                                                           **self.kpts)
+            elif np.array(self.kpts).ndim == 1:
+                # kpts is Monkhorst-Pack grid
+                self.parameters[initkey + '_'] = 'SupercellFolding '
+                mp_mesh = self.kpts
+                offsets = [0.] * 3
+            elif np.array(self.kpts).ndim == 2:
+                # kpts is (N, 3) list/array of k-point coordinates
+                # each will be given equal weight
+                self.parameters[initkey + '_'] = ''
+                self.kpts_coord = np.array(self.kpts)
+            else:
+                raise ValueError('Illegal kpts definition:' + str(self.kpts))
+
+            if mp_mesh is not None:
+                for i in range(3):
+                    key = initkey + '_empty%03d'  % i
+                    val = [mp_mesh[i] if j == i else 0 for j in range(3)]
+                    self.parameters[key] = ' '.join(map(str, val))
+                    offsets[i] *= mp_mesh[i]
+                    assert offsets[i] in [0., 0.5]
+                    # DFTB+ uses a different offset convention, where
+                    # the k-point mesh is already Gamma-centered prior
+                    # to the addition of any offsets
+                    if mp_mesh[i] % 2 == 0:
+                        offsets[i] += 0.5
+                key = initkey + '_empty%03d' % 3
+                self.parameters[key] = ' '.join(map(str, offsets))
+
+            elif self.kpts_coord is not None:
+                for i, c in enumerate(self.kpts_coord):
+                    key = initkey + '_empty%09d'  % i
+                    c_str = ' '.join(map(str, c))
+                    if 'Klines' in self.parameters[initkey + '_']:
+                        c_str = '1 ' + c_str
+                    else:
+                        c_str += ' 1.0'
+                    self.parameters[key] = c_str
 
     def write_dftb_in(self, filename):
         """ Write the innput file for the dftb+ calculation.
