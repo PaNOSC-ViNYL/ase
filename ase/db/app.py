@@ -102,7 +102,7 @@ if 'ASE_DB_APP_CONFIG' in os.environ:
     download_button = app.config['ASE_DB_DOWNLOAD']
     open_ase_gui = False
 else:
-    tmpdir = tempfile.mkdtemp()  # used to cache png-files
+    tmpdir = tempfile.mkdtemp(prefix='ase-db-app-')  # used to cache png-files
 
 # Find numbers in formulas so that we can convert H2O to H<sub>2</sub>O:
 SUBSCRIPT = re.compile(r'(\d+)')
@@ -324,18 +324,18 @@ def gui(project, id):
     return '', 204, []
 
 
-@app.route('/<project>/row/<value>')
-def row(project, value):
+@app.route('/<project>/row/<uid>')
+def row(project, uid):
     db = databases[project]
     if not hasattr(db, 'meta'):
         db.meta = ase.db.web.process_metadata(db)
-    prefix = '{}/{}-{}-'.format(tmpdir, project, value)
+    prefix = '{}/{}-{}-'.format(tmpdir, project, uid)
     key = db.meta.get('unique_key', 'id')
     try:
-        value = int(value)
+        uid = int(uid)
     except ValueError:
         pass
-    row = db.get(**{key: value})
+    row = db.get(**{key: uid})
     s = Summary(row, db.meta, SUBSCRIPT, prefix)
     atoms = Atoms(cell=row.cell, pbc=row.pbc)
     n1, n2, n3 = kptdensity2monkhorstpack(atoms,
@@ -344,6 +344,7 @@ def row(project, value):
     return render_template('summary.html',
                            project=project,
                            s=s,
+                           uid=uid,
                            n1=n1,
                            n2=n2,
                            n3=n3,
