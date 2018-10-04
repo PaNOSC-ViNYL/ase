@@ -362,11 +362,17 @@ class Dftb(FileIOCalculator):
         else:
             return None
 
-        assert nkpt * nspin * nband % ncol == 0
-        nrow = nkpt * nspin * nband // ncol
+        # Take into account that the last row may lack 
+        # columns if nkpt * nspin * nband % ncol != 0
+        nrow = int(np.ceil(nkpt * nspin * nband * 1. / ncol))
         index_eigval_end = index_eigval_begin + nrow
+        ncol_last = len(self.lines[index_eigval_end - 1].split())
+        self.lines[index_eigval_end - 1] += ' 0.0 ' * (ncol - ncol_last)
+
         eigval = np.loadtxt(self.lines[index_eigval_begin:index_eigval_end])
-        eigval = eigval.flatten().reshape((nkpt, nspin, nband))
+        eigval = eigval.flatten()
+        eigval = np.reshape(eigval[:len(eigval) - ncol + ncol_last],
+                            (nkpt, nspin, nband))
 
         return eigval * Hartree
 
