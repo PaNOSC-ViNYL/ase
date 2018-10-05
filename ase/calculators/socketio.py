@@ -505,7 +505,7 @@ class SocketClient:
         finally:
             self.close()
 
-    def run(self, atoms, use_stress=True):
+    def run(self, atoms, use_stress=False):
         for _ in self.irun(atoms, use_stress=use_stress):
             pass
 
