@@ -17,16 +17,19 @@
         Open ASE's GUI</a>
         {% endif %}
         <div class="btn-group pull-right">
-            <button type="button" class="btn btn-link dropdown-toggle btn-sm" data-toggle="dropdown">
+            <button type="button" class="btn btn-link dropdown-toggle btn-sm"
+            data-toggle="dropdown">
                 Unit cell <span class="caret"></span>
             </button>
             <ul class="dropdown-menu">
                 <li><a onclick="repeatCell(1, 1, 1);">1x1x1</a></li>
-                <li><a onclick="repeatCell({{ n1 }}, {{ n2 }}, {{ n3 }});"> {{ n1 }}x{{ n2 }}x{{ n3 }}</a></li>
+                <li><a onclick="repeatCell({{ n1 }}, {{ n2 }}, {{ n3 }});">
+                {{ n1 }}x{{ n2 }}x{{ n3 }}</a></li>
             </ul>
         </div>
         <div class="btn-group pull-right">
-            <button type="button" class="btn btn-link dropdown-toggle btn-sm" data-toggle="dropdown">
+            <button type="button" class="btn btn-link dropdown-toggle btn-sm"
+            data-toggle="dropdown">
                 Download <span class="caret"></span>
             </button>
             <ul class="dropdown-menu">
@@ -39,34 +42,6 @@
       <div class="col-md-1"></div>
     </div>
 </div>
-{% endif %}
-{% endmacro %}
-
-{% macro forces() %}
-{% if s.forces %}
-<h4>Relaxtion forces in eV/Å</h4>
-<table class="table table-striped">
-<thead>
-<tr>
-<th>#</th>
-<th>symbol</th>
-<th>x</th>
-<th>y</th>
-<th>z</th>
-</tr>
-</thead>
-<tbody>
-                {% for f in s.forces %}
-<tr>
-<td>{{ f[0] }}</td>
-<td>{{ f[1] }}</td>
-<td>{{ f[2] }}</td>
-<td>{{ f[3] }}</td>
-<td>{{ f[4] }}</td>
-</tr>
-                {% endfor %}
-</tbody>
-</table>
 {% endif %}
 {% endmacro %}
 
@@ -99,8 +74,7 @@
 </table>
 {% endmacro %}
 
-{% macro table(thing) %}
-{% set subtitle, rows = thing %}
+{% macro table(data) %}
 <table class="table table-striped">
 <colgroup>
 <col class="col-xs-7">
@@ -109,13 +83,13 @@
 </colgroup>
 <thead>
 <tr>
-<th>{{ subtitle }}</th>
+<th>{{ data.title }}</th>
 <th class="text-center">Value</th>
 <th class="text-center">Unit</th>
 </tr>
 </thead>
 <tbody>
-            {% for key, value, unit in rows %}
+            {% for key, value, unit in data.rows %}
 <tr>
 <td> {{ key|safe }} </td>
 <td class="text-center"> {{ value|safe }} </td>
@@ -141,7 +115,8 @@ jmol_isReady = function(applet)
 {
     Jmol._getElement(applet, "appletdiv").style.border="1px solid lightgray";
     Jmol.script(jmolApplet0, "set displaycellparameters false;")
-    Jmol.script(jmolApplet0, "load /{{ project }}/cif/{{ d.id }}.cif { {{ n1 }} {{ n2 }} {{ n3 }} };");
+    Jmol.script(jmolApplet0,
+    "load /{{ project }}/cif/{{ d.id }}.cif { {{ n1 }} {{ n2 }} {{ n3 }} };");
     }
 </script>
 
@@ -164,34 +139,34 @@ jmol_isReady = function(applet)
 <div class="panel panel-default">
     <div class="panel-heading">
         <h4 class="panel-title">
-        <a class="btn-block" data-toggle="collapse" href="#collapse{{ loop.index0 }}">
+        <a class="btn-block" data-toggle="collapse"
+        href="#collapse{{ loop.index0 }}">
         {{ title }}
         </a>
         </h4>
     </div>
 
-    <div id="collapse{{ loop.index0 }}" class="panel-collapse collapse {% if loop.index0 == 0 %}in{% endif %}">
+    <div id="collapse{{ loop.index0 }}"
+    class="panel-collapse collapse {% if loop.index0 == 0 %}in{% endif %}">
         <div class="panel-body">
     {% for column in things %}
         <div class="col-md-6">
-    {% for thing in column %}
+    {% for data in column %}
             <div class="row">
-        {% if thing == 'ATOMS' %}
+        {% if data.type == 'atoms' %}
             {{ atoms() }}
-        {% elif thing == 'FORCES' %}
-            {{ forces() }}
-        {% elif thing == 'CELL' %}
+        {% elif data.type == 'cell' %}
             {{ cell() }}
-        {% elif thing is none %}
-        {% elif thing|length == 2 %}
-            {{ table(thing) }}
+        {% elif data.type == 'table' %}
+            {{ table(data) }}
         {% else %}
-                    <img
-                    src="/{{ project }}/plot/{{ d.id }}-{{ thing }}" width="100%">
+                <img
+                src="/{{ project }}/plot/{{ uid }}/{{ data.filename }}"
+                width="100%">
         {% endif %}
-                </div> <!--END ROW-->
+            </div> <!--END ROW-->
     {% endfor %}
-            </div> <!--END col-md-6-->
+        </div> <!--END col-md-6-->
     {% endfor %}
         </div> <!--END PANEL BODY-->
     </div> <!--END COLLAPSE-->

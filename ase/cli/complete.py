@@ -36,7 +36,9 @@ commands = {
     'convert':
         ['-v', '--verbose', '-i', '--input-format', '-o',
          '--output-format', '-f', '--force', '-n',
-         '--image-number'],
+         '--image-number', '-e', '--exec-code', '-E',
+         '--exec-file', '-a', '--arrays', '-I', '--info', '-s',
+         '--split-output'],
     'db':
         ['-v', '--verbose', '-q', '--quiet', '-n', '--count', '-l',
          '--long', '-i', '--insert-into', '-a',
@@ -48,7 +50,7 @@ commands = {
          '--analyse', '-j', '--json', '-m', '--show-metadata',
          '--set-metadata', '-M', '--metadata-from-python-script',
          '--unique', '--strip-data', '--show-keys',
-         '--show-values'],
+         '--show-values', '--write-summary-files'],
     'eos':
         ['-p', '--plot', '-t', '--type'],
     'find':
@@ -75,7 +77,7 @@ commands = {
          '--after'],
     'test':
         ['-c', '--calculators', '--list', '--list-calculators', '-j',
-         '--jobs'],
+         '--jobs', '-v', '--verbose'],
     'ulm':
         ['-n', '--index', '-d', '--delete', '-v', '--verbose']}
 # End of computer generated data
