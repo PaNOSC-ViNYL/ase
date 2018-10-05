@@ -166,8 +166,8 @@ class Displacement:
             for i in range(3):
                 for sign in [-1, 1]:
                     # Filename for atomic displacement
-                    filename = '%s.%d%s%s.pckl' % \
-                               (self.name, a, 'xyz'[i], ' +-'[sign])
+                    self.state = '%d%s%s.pckl' % (a, 'xyz'[i], ' +-'[sign])
+                    filename = self.name + '.' + self.state
                     # Wait for ranks before checking for file
                     # barrier()
                     fd = opencew(filename)
