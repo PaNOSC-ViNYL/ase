@@ -330,7 +330,9 @@ def main(args):
         ukey = db.meta.get('unique_key', 'id')
         for row in db.select(query):
             uid = row.get(ukey)
-            summary = Summary(row, db.meta, '{}-{}-'.format(prefix, uid))
+            summary = Summary(row,
+                              db.meta,
+                              prefix='{}-{}-'.format(prefix, uid))
         return
 
     columns = list(all_columns)
