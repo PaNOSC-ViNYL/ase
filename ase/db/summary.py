@@ -4,6 +4,58 @@ from ase.db.core import float_to_time_string, now, default_key_descriptions
 from ase.geometry import cell_to_cellpar
 from ase.utils import formula_metal
 
+# Predefined blocks:
+ATOMS = {'type': 'atoms'}
+UNITCELL = {'type': 'cell'}
+
+
+def create_table(row,  # type: AtomsRow
+                 title,  # type: str
+                 keys,  # type: List[str]
+                 key_descriptions,  # type: Dict[str, Tuple[str, str, str]]
+                 digits=3  # type: int
+                 ):  # -> Dict[str, Any]
+    """Create table-dict from row."""
+    table = []
+    for key in keys:
+        if key == 'age':
+            age = float_to_time_string(now() - row.ctime, True)
+            table.append(('Age', age, ''))
+            continue
+        value = row.get(key)
+        if value is not None:
+            if isinstance(value, float):
+                value = '{:.{}f}'.format(value, digits)
+            elif not isinstance(value, str):
+                value = str(value)
+            desc, unit = key_descriptions.get(key, ['', key, ''])[1:]
+            table.append((desc, value, unit))
+    return {'type': 'table', 'rows': table, 'title': title}
+
+
+def default_layout(row,  # type: AtomsRow
+                   key_descriptions,  # type: Dict[str, Tuple[str, str, str]]
+                   prefix  # type: str
+                   ):  # -> List[Tuple[str, List[List[Dict[str, Any]]]]]
+    """Default page layout.
+
+    "Basic properties" section and the rest in a "miscellaneous" section.
+    """
+    keys = ['id',
+            'energy', 'fmax', 'smax',
+            'mass',
+            'age']
+    table = create_table(row, 'Key-value pairs', keys, key_descriptions)
+    layout = [('Basic properties', [[ATOMS, UNITCELL],
+                                    [table]])]
+
+    misckeys = set(default_key_descriptions)
+    misckeys.update(row.key_value_pairs)
+    misckeys -= set(keys)
+    misc = create_table(row, 'Items', sorted(misckeys), key_descriptions)
+    layout.append(('Miscellaneous', [[misc]]))
+    return layout
+
 
 class Summary:
     def __init__(self, row, meta={}, subscript=None, prefix=''):
@@ -89,42 +141,3 @@ class Summary:
 
         if self.data:
             print('Data:', self.data, '\n')
-
-
-def create_table(row, title, keys, key_descriptions, digits=3):
-    # types: (Row, List[str], str, Dict[str, Tuple[str, str, str]], int)
-    # -> Dict[str, Any]
-    table = []
-    for key in keys:
-        if key == 'age':
-            age = float_to_time_string(now() - row.ctime, True)
-            table.append(('Age', age, ''))
-            continue
-        value = row.get(key)
-        if value is not None:
-            if isinstance(value, float):
-                value = '{:.{}f}'.format(value, digits)
-            elif not isinstance(value, str):
-                value = str(value)
-            desc, unit = key_descriptions.get(key, ['', key, ''])[1:]
-            table.append((desc, value, unit))
-    return {'type': 'table', 'rows': table, 'title': title}
-
-
-def default_layout(row, key_descriptions, prefix):
-    # types: (Row, Dict[str, Tuple[str, str, str]], str)
-    # types -> List[Tuple[str, List[List[Dict[str, Any]]]]]
-    keys = ['id',
-            'energy', 'fmax', 'smax',
-            'mass',
-            'age']
-    table = create_table(row, 'Key-value pairs', keys, key_descriptions)
-    layout = [('Basic properties', [[{'type': 'atoms'}, {'type': 'cell'}],
-                                    [table]])]
-
-    misckeys = set(default_key_descriptions)
-    misckeys.update(row.key_value_pairs)
-    misckeys -= set(keys)
-    misc = create_table(row, 'Items', sorted(misckeys), key_descriptions)
-    layout.append(('Miscellaneous', [[misc]]))
-    return layout
