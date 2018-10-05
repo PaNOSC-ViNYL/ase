@@ -105,7 +105,7 @@ class CLICommand:
             help='Show all keys.')
         add('--show-values', metavar='key1,key2,...',
             help='Show values for key(s).')
-        add('--write-summaries', metavar='prefix',
+        add('--write-summary-files', metavar='prefix',
             help='Write summary-files with a "<prefix>-<uid>-" prefix.')
 
     @staticmethod

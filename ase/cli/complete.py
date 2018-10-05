@@ -50,7 +50,7 @@ commands = {
          '--analyse', '-j', '--json', '-m', '--show-metadata',
          '--set-metadata', '-M', '--metadata-from-python-script',
          '--unique', '--strip-data', '--show-keys',
-         '--show-values', '--write-summaries'],
+         '--show-values', '--write-summary-files'],
     'eos':
         ['-p', '--plot', '-t', '--type'],
     'find':
