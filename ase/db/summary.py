@@ -141,3 +141,17 @@ class Summary:
 
         if self.data:
             print('Data:', self.data, '\n')
+
+
+def convert_old_layout(page):
+    def layout(row, kd, prefix):
+        def fix(block):
+            if isinstance(block, tuple):
+                title, keys = block
+                return create_table(row, title, keys, kd)
+            return block
+
+        return [(title, [[fix(block) for block in column]
+                         for column in columns])
+                for title, columns in page]
+    return layout
