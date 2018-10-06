@@ -391,11 +391,11 @@ class Dftb(FileIOCalculator):
         """ Read Eigenvalues from dftb output file (results.tag).
             Unfortunately, the order seems to be scrambled. """
         # Eigenvalue line indexes
-        index_eigval_begin = None
+        index_eig_begin = None
         for iline, line in enumerate(self.lines):
             fstring = 'eigenvalues   '
             if line.find(fstring) >= 0:
-                index_eigval_begin = iline + 1
+                index_eig_begin = iline + 1
                 line1 = line.replace(':', ',')
                 ncol, nband, nkpt, nspin = map(int, line1.split(',')[-4:])
                 break
@@ -405,16 +405,17 @@ class Dftb(FileIOCalculator):
         # Take into account that the last row may lack 
         # columns if nkpt * nspin * nband % ncol != 0
         nrow = int(np.ceil(nkpt * nspin * nband * 1. / ncol))
-        index_eigval_end = index_eigval_begin + nrow
-        ncol_last = len(self.lines[index_eigval_end - 1].split())
-        self.lines[index_eigval_end - 1] += ' 0.0 ' * (ncol - ncol_last)
+        index_eig_end = index_eig_begin + nrow
+        ncol_last = len(self.lines[index_eig_end - 1].split())
+        self.lines[index_eig_end - 1] += ' 0.0 ' * (ncol - ncol_last)
 
-        eigval = np.loadtxt(self.lines[index_eigval_begin:index_eigval_end])
-        eigval = eigval.flatten()
-        eigval = np.reshape(eigval[:len(eigval) - ncol + ncol_last],
-                            (nkpt, nspin, nband))
+        eig = np.loadtxt(self.lines[index_eig_begin:index_eig_end]).flatten()
+        eig *= Hartree
+        N = nkpt * nband
+        eigenvalues = [eig[i * N:(i + 1) * N].reshape((nkpt, nband))
+                       for i in range(nspin)]
 
-        return eigval * Hartree
+        return eigenvalues
 
     def read_fermi_levels(self):
         """ Read Fermi level(s) from dftb output file (results.tag). """
@@ -447,7 +448,7 @@ class Dftb(FileIOCalculator):
         return self.nspin
 
     def get_eigenvalues(self, kpt=0, spin=0): 
-        return self.results['eigenvalues'][kpt, spin].copy()
+        return self.results['eigenvalues'][spin][kpt].copy()
 
     def get_fermi_levels(self):
         return self.results['fermi_levels'].copy()
