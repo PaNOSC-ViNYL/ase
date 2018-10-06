@@ -160,12 +160,13 @@ class Dftb(FileIOCalculator):
                 raise ValueError('Illegal kpts definition:' + str(self.kpts))
 
             if mp_mesh is not None:
+                eps = 1e-10
                 for i in range(3):
                     key = initkey + '_empty%03d'  % i
                     val = [mp_mesh[i] if j == i else 0 for j in range(3)]
                     self.parameters[key] = ' '.join(map(str, val))
                     offsets[i] *= mp_mesh[i]
-                    assert offsets[i] in [0., 0.5]
+                    assert abs(offsets[i]) < eps or abs(offsets[i] - 0.5) < eps
                     # DFTB+ uses a different offset convention, where
                     # the k-point mesh is already Gamma-centered prior
                     # to the addition of any offsets
