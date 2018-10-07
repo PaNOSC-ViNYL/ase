@@ -60,17 +60,20 @@ class Dftb(FileIOCalculator):
             True: many steps are run by DFTB+,
             False:a single force&energy calculation at given positions
 
-        kpts: list/tuple or dict
-            When a list or tuple of 3 integers is given, 
-            k-points will be set according to a Monkhorst-Pack mesh 
-            with dimensions given by kpts.
+        kpts: (int, int, int), dict, or 2D-array
+            If kpts is a tuple (or list) of 3 integers, it is interpreted
+            as the dimensions of a Monkhorst-Pack grid.
 
-            This keyword can also be a dictionary, for the purpose of 
-            band structure calculations. The dict should contain the keys:
-              'path': string with the special k-points (for more info,
-                      see ase.dft.kpoints.special_points)
-              'npoints': the total number of k-points along the path
-            e.g. for an FCC lattice: kpts={'path':'GKLGX', 'npoints':100}
+            If kpts is a dict, it will either be interpreted as a path
+            in the Brillouin zone (*) if it contains the 'path' keyword,
+            otherwise it is converted to a Monkhorst-Pack grid (**).
+            (*) see ase.dft.kpoints.bandpath
+            (**) see ase.calculators.calculator.kpts2sizeandoffsets
+
+            The k-point coordinates can also be provided explicitly,
+            as a (N x 3) array with the scaled coordinates (relative
+            to the reciprocal unit cell vectors). Each of the N k-points
+            will be given equal weight.
 
         ---------
         Additional object (to be set by function embed)
@@ -152,7 +155,7 @@ class Dftb(FileIOCalculator):
                 mp_mesh = self.kpts
                 offsets = [0.] * 3
             elif np.array(self.kpts).ndim == 2:
-                # kpts is (N, 3) list/array of k-point coordinates
+                # kpts is (N x 3) list/array of k-point coordinates
                 # each will be given equal weight
                 self.parameters[initkey + '_'] = ''
                 self.kpts_coord = np.array(self.kpts)
