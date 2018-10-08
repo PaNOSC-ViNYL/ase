@@ -66,8 +66,8 @@ ase_db_footer = ''  # footer (for a license)
 open_ase_gui = True  # click image to open ASE's GUI
 download_button = True
 
-# List of (project-name, title) tuples (will be filled in at run-time):
-projects = []
+# List of (project-name, title, nrows) tuples (will be filled in at run-time):
+projects = []  # type: List[str, str, int]
 
 
 def connect_databases(uris):
@@ -146,7 +146,7 @@ def index(project):
         for proj, db in sorted(databases.items()):
             meta = ase.db.web.process_metadata(db)
             db.meta = meta
-            projects.append((proj, db.meta.get('title', proj)))
+            projects.append((proj, db.meta.get('title', proj), len(db)))
 
     if project is None and len(projects) > 1:
         return render_template('projects.html',
