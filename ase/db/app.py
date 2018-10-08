@@ -444,6 +444,11 @@ def robots():
             200)
 
 
+@app.route('/cif/<stuff>')
+def oldcif(stuff):
+    return 'Bad URL'
+
+
 def pages(page, nrows, limit):
     """Helper function for pagination stuff."""
     npages = (nrows + limit - 1) // limit
