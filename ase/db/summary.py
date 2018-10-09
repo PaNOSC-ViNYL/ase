@@ -1,6 +1,6 @@
 from __future__ import print_function
 
-from ase.db.core import float_to_time_string, now, default_key_descriptions
+from ase.db.core import float_to_time_string, now
 from ase.geometry import cell_to_cellpar
 from ase.utils import formula_metal
 
@@ -54,6 +54,10 @@ def default_layout(row,  # type: AtomsRow
 
 
 def miscellaneous_section(row, key_descriptions, exclude):
+    """Helper function for adding a "miscellaneous" section.
+
+    Create table with all keys except those in exclude.
+    """
     misckeys = (set(key_descriptions) |
                 set(row.key_value_pairs)) - set(exclude)
     misc = create_table(row, 'Items', sorted(misckeys), key_descriptions)
