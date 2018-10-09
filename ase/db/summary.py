@@ -46,15 +46,17 @@ def default_layout(row,  # type: AtomsRow
             'mass',
             'age']
     table = create_table(row, 'Key-value pairs', keys, key_descriptions)
+    misc = miscellaneous_section(row, key_descriptions, exclude=keys)
     layout = [('Basic properties', [[ATOMS, UNITCELL],
-                                    [table]])]
-
-    misckeys = set(default_key_descriptions)
-    misckeys.update(row.key_value_pairs)
-    misckeys -= set(keys)
-    misc = create_table(row, 'Items', sorted(misckeys), key_descriptions)
-    layout.append(('Miscellaneous', [[misc]]))
+                                    [table]]),
+              misc]
     return layout
+
+
+def miscellaneous_section(row, key_descriptions, exclude):
+    misckeys = set(key_descriptions) | set(row.key_value_pairs) - set(exclude)
+    misc = create_table(row, 'Items', sorted(misckeys), key_descriptions)
+    return ('Miscellaneous', [[misc]])
 
 
 class Summary:
