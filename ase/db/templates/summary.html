@@ -107,7 +107,6 @@
 {% set d = s.row %}
 
 {% block head %}
-
 {% if not open_ase_gui %}
 <script src="{{ url_for('static', filename='jsmol/JSmol.min.js') }}"></script>
 
@@ -126,8 +125,6 @@ jmol_isReady = function(applet)
 {% endblock %}
 
 {% block content %}
-
-
 
 <div class="container">
 
