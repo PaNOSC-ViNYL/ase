@@ -162,7 +162,20 @@ jmol_isReady = function(applet)
         {% elif data.type == 'table' %}
             {{ table(data) }}
         {% else %}
-                <img
+	    {% if data.link %}
+	        {% if data.link == 'empty' %}
+                    <br>
+	        {% else %}
+	            <center>
+		      <a target="_blank"
+			 rel="noopener noreferrer"
+			 href="/{{ project }}/plot/{{ uid }}/{{ data.link }}">
+			Interactive mode
+		      </a>
+		    </center>
+		{% endif %}
+	    {% endif %}
+             <img
                 src="/{{ project }}/plot/{{ uid }}/{{ data.filename }}"
                 width="100%">
         {% endif %}
