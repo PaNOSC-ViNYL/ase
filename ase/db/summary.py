@@ -10,7 +10,7 @@ UNITCELL = {'type': 'cell'}
 
 
 def create_table(row,  # type: AtomsRow
-                 title,  # type: str
+                 header,  # type: List[str]
                  keys,  # type: List[str]
                  key_descriptions,  # type: Dict[str, Tuple[str, str, str]]
                  digits=3  # type: int
@@ -20,7 +20,7 @@ def create_table(row,  # type: AtomsRow
     for key in keys:
         if key == 'age':
             age = float_to_time_string(now() - row.ctime, True)
-            table.append(('Age', age, ''))
+            table.append(('Age', age))
             continue
         value = row.get(key)
         if value is not None:
@@ -29,8 +29,12 @@ def create_table(row,  # type: AtomsRow
             elif not isinstance(value, str):
                 value = str(value)
             desc, unit = key_descriptions.get(key, ['', key, ''])[1:]
-            table.append((desc, value, unit))
-    return {'type': 'table', 'rows': table, 'title': title}
+            if unit:
+                value += ' ' + unit
+            table.append((desc, value))
+    return {'type': 'table',
+            'header': header,
+            'rows': table}
 
 
 def default_layout(row,  # type: AtomsRow
@@ -45,7 +49,7 @@ def default_layout(row,  # type: AtomsRow
             'energy', 'fmax', 'smax',
             'mass',
             'age']
-    table = create_table(row, 'Key-value pairs', keys, key_descriptions)
+    table = create_table(row, ['Key', 'Value'], keys, key_descriptions)
     misc = miscellaneous_section(row, key_descriptions, exclude=keys)
     layout = [('Basic properties', [[ATOMS, UNITCELL],
                                     [table]]),
@@ -60,7 +64,7 @@ def miscellaneous_section(row, key_descriptions, exclude):
     """
     misckeys = (set(key_descriptions) |
                 set(row.key_value_pairs)) - set(exclude)
-    misc = create_table(row, 'Items', sorted(misckeys), key_descriptions)
+    misc = create_table(row, ['Items', ''], sorted(misckeys), key_descriptions)
     return ('Miscellaneous', [[misc]])
 
 
@@ -99,8 +103,6 @@ class Summary:
                                          for c in self.constraints)
 
     def write(self):
-        row = self.row
-
         print(self.formula + ':')
         for headline, columns in self.layout:
             blocks = columns[0]
@@ -109,16 +111,16 @@ class Summary:
             print((' ' + headline + ' ').center(78, '='))
             for block in blocks:
                 if block['type'] == 'table':
-                    print(block['title'] + ':')
                     rows = block['rows']
                     if not rows:
                         print()
                         continue
-                    width = max(len(name) for name, value, unit in rows)
-                    print('{:{width}}|value'.format('name', width=width))
-                    for name, value, unit in rows:
-                        print('{:{width}}|{} {}'.format(name, value, unit,
-                                                        width=width))
+                    rows = [block['header']] + rows
+                    widths = [max(len(row[n]) for row in rows)
+                              for n in range(len(rows[0]))]
+                    for row in rows:
+                        print('|'.join('{:{}}'.format(word, width)
+                                       for word, width in zip(row, widths)))
                     print()
                 elif block['type'] == 'figure':
                     print(block['filename'])
@@ -128,7 +130,7 @@ class Summary:
                     print('axis|periodic|          x|          y|          z')
                     c = 1
                     fmt = '   {0}|     {1}|{2[0]:>11}|{2[1]:>11}|{2[2]:>11}'
-                    for p, axis in zip(row.pbc, self.cell):
+                    for p, axis in zip(self.row.pbc, self.cell):
                         print(fmt.format(c, [' no', 'yes'][p], axis))
                         c += 1
                     print('Lengths: {:>10}{:>10}{:>10}'
