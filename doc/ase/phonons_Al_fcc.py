@@ -63,9 +63,6 @@ for i, atoms in enumerate(trajectory):
     # Flatten images for better quality
     call(['convert', '-flatten', 'picture%02i.png' % i, 'picture%02i.png' % i])
 
-# Make static pdf image for pdflatex
-call(['convert', 'picture00.png', 'Al_mode.pdf'])
-
 # Concatenate to gif animation
 call(['convert', '-delay', '5', '-loop', '0', '-dispose', 'Previous',
       'picture*.png', 'Al_mode.gif'])

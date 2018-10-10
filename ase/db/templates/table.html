@@ -19,7 +19,7 @@
 
 
 <div class="well mt-2">
-  <form id="mainFormID" class="navbar-form navbar-default mt-2" role="search" action="/">
+  <form id="mainFormID" class="navbar-form navbar-default mt-2" role="search" action="/{{ project }}/">
     <input type="hidden" name="x" value="{{ x }}">
     <div class="form-group" style="margin-top:5px;">
       <input type="text" name="query" value="{{ con.query[0] }}" id="formula-result"
@@ -91,8 +91,8 @@
                 Download <span class="caret"></span>
             </button>
             <ul class="dropdown-menu">
-                <li><a href="/sqlite?x={{ x }}">Database file</a></li>
-                <li><a href="/json?x={{ x }}">JSON file</a></li>
+                <li><a href="/{{ project }}/sqlite?x={{ x }}">Database file</a></li>
+                <li><a href="/{{ project }}/json?x={{ x }}">JSON file</a></li>
             </ul>
         </div>
         {% endif %}
@@ -103,11 +103,11 @@
             <ul class="dropdown-menu">
 {% for key in addcolumns %}
     {% if key in meta %}
-                <li><a href="/?x={{ x }}&amp;toggle={{ key }}">
+                <li><a href="/{{ project }}/?x={{ x }}&amp;toggle={{ key }}">
                     {{ meta[key][1] }} ({{key}})
                 </a></li>
     {% else %}
-                <li><a href="/?x={{ x }}&toggle={{ key }}">
+                <li><a href="/{{ project }}/?x={{ x }}&toggle={{ key }}">
                     {{ key }}
                 </a></li>
     {% endif %}
@@ -120,11 +120,11 @@
                 Rows: {{ con.limit }} <span class="caret"></span>
             </button>
             <ul class="dropdown-menu">
-                <li><a href="/?x={{ x }}&limit=10">10</a></li>
-                <li><a href="/?x={{ x }}&limit=25">25</a></li>
-                <li><a href="/?x={{ x }}&limit=50">50</a></li>
-                <li><a href="/?x={{ x }}&limit=100">100</a></li>
-                <li><a href="/?x={{ x }}&limit=200">200</a></li>
+                <li><a href="/{{ project }}/?x={{ x }}&limit=10">10</a></li>
+                <li><a href="/{{ project }}/?x={{ x }}&limit=25">25</a></li>
+                <li><a href="/{{ project }}/?x={{ x }}&limit=50">50</a></li>
+                <li><a href="/{{ project }}/?x={{ x }}&limit=100">100</a></li>
+                <li><a href="/{{ project }}/?x={{ x }}&limit=200">200</a></li>
             </ul>
         </div>
     </div>
@@ -154,10 +154,10 @@
 {% if c == 'formula' %}
 <span data-toggle="tooltip" title="key: formul">Formula</span>
 {% else %}
-<a href="/?x={{ x }}&amp;sort={{ c }}"
+<a href="/{{ project }}/?x={{ x }}&amp;sort={{ c }}"
   data-toggle="tooltip" title="key: {{c}}">{{ colDisplay['col'] }}</a>
 {% endif %}
-<a href="/?x={{ x }}&amp;toggle={{ c }}">&#x2715;</a>
+<a href="/{{ project }}/?x={{ x }}&amp;toggle={{ c }}">&#x2715;</a>
 </th>
 {%- endfor %}
 </tr>
@@ -167,11 +167,11 @@
 <tr id="rowentry" class="rowentry">
 {%- autoescape false -%}
 {%- for s in row.strings -%}
-{% if s != "" %}
-<td class="text-center"><a href='/id/{{ row.dct.id }}?project={{ project }}'>{{ s }}</a></td>
-{% else %}
-<td class="text-center"><a href='/id/{{ row.dct.id }}?project={{ project }}'> - </a></td>
-{% endif %}
+<td class="text-center">
+  <a href='/{{ project }}/row/{{ row.uid }}'>
+    {%- if s != "" -%}{{ s }}{% else %}-{% endif %}
+  </a>
+</td>
 {% endfor %}
 {% endautoescape %}
 </tr>
@@ -193,7 +193,7 @@
 {% for page, name in pages %}
     {% set hrefstr="#" %}
     {% if page >= 0 %}
-        {% set hrefstr= '/?x=' + x|string + '&page=' + page|string  %}
+        {% set hrefstr= '/' + project|string + '/?x=' + x|string + '&page=' + page|string  %}
     {% endif %}
     {% if name=="previous" %}
         <li>

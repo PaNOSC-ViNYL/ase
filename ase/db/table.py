@@ -23,7 +23,7 @@ def get_sql_columns(columns):
         sql_columns[sql_columns.index('formula')] = 'numbers'
     if 'fmax' in columns:
         sql_columns[sql_columns.index('fmax')] = 'forces'
-    if 'max' in columns:
+    if 'smax' in columns:
         sql_columns[sql_columns.index('smax')] = 'stress'
     if 'volume' in columns:
         sql_columns[sql_columns.index('volume')] = 'cell'
@@ -59,7 +59,7 @@ def cutlist(lst, length):
 
 
 class Table:
-    def __init__(self, connection, verbosity=1, cut=35):
+    def __init__(self, connection, unique_key='id', verbosity=1, cut=35):
         self.connection = connection
         self.verbosity = verbosity
         self.cut = cut
@@ -68,12 +68,13 @@ class Table:
         self.id = None
         self.right = None
         self.keys = None
+        self.unique_key = unique_key
 
     def select(self, query, columns, sort, limit, offset):
         sql_columns = get_sql_columns(columns)
         self.limit = limit
         self.offset = offset
-        self.rows = [Row(row, columns)
+        self.rows = [Row(row, columns, self.unique_key)
                      for row in self.connection.select(
                          query, verbosity=self.verbosity,
                          limit=limit, offset=offset, sort=sort,
@@ -144,12 +145,13 @@ class Table:
 
 
 class Row:
-    def __init__(self, dct, columns):
+    def __init__(self, dct, columns, unique_key='id'):
         self.dct = dct
         self.values = None
         self.strings = None
         self.more = False
         self.set_columns(columns)
+        self.uid = dct[unique_key]
 
     def set_columns(self, columns):
         self.values = []

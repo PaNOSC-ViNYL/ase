@@ -1,5 +1,3 @@
-from ase.db.web import creates
-
 title = 'TEST'
 
 default_columns = ['formula', 'answer', 'kind']
@@ -14,7 +12,6 @@ key_descriptions = {
     'answer': ('Answer', 'Answer to question', 'eV')}
 
 
-@creates('xy.png', 'abc.png')
 def xy(row):
     import matplotlib.pyplot as plt
     ax = plt.figure().add_subplot(111)
@@ -25,7 +22,6 @@ def xy(row):
         plt.savefig('abc.png')
 
 
-@creates('table.csv')
 def table(row):
     with open('table.csv', 'w') as f:
         f.write('# Title\n')

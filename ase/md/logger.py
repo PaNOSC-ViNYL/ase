@@ -45,7 +45,7 @@ class MDLogger:
         self.peratom = peratom
         if self.dyn is not None:
             self.hdr = "%-9s " % ("Time[ps]",)
-            self.fmt = "%-9.3f "
+            self.fmt = "%-10.4f "
         else:
             self.hdr = ""
             self.fmt = ""

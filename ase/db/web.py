@@ -4,36 +4,31 @@ import os
 from ase.db.core import default_key_descriptions
 
 
-functions = []
-
-
-def creates(*filenames):
-    def decorator(func):
-        functions.append((func, filenames))
-        return func
-    return decorator
-
-
 def process_metadata(db, html=True):
-    meta = db.metadata
+    meta = {}
 
-    mod = {}
     if db.python:
-        with open(db.python) as fd:
-            code = fd.read()
-        path = os.path.dirname(db.python)
-        code = 'import sys; sys.path[:0] = ["{}"]; {}'.format(path, code)
+        if isinstance(db.python, str):
+            with open(db.python) as fd:
+                code = fd.read()
+            path = os.path.dirname(db.python)
+            mod = {}
+            code = 'import sys; sys.path[:0] = ["{}"]; {}'.format(path, code)
 
-        # We use eval here instead of exec because it works on both
-        # Python 2 and 3.
-        eval(compile(code, db.python, 'exec'), mod, mod)
+            # We use eval here instead of exec because it works on both
+            # Python 2 and 3.
+            eval(compile(code, db.python, 'exec'), mod, mod)
+        else:
+            mod = db.python
+    else:
+        mod = {}
 
     for key, default in [('title', 'ASE database'),
-                         ('external_libraries', []),
-                         ('default_columns', []),
+                         ('default_columns', None),
                          ('special_keys', []),
                          ('key_descriptions', {}),
-                         ('layout', [])]:
+                         ('layout', None),
+                         ('unique_key', 'id')]:
         meta[key] = mod.get(key, meta.get(key, default))
 
     if not meta['default_columns']:
@@ -54,7 +49,11 @@ def process_metadata(db, html=True):
         kind = special[0]
         if kind == 'SELECT':
             key = special[1]
-            choises = sorted({row.get(key) for row in db.select(key)})
+            choises = sorted({row.get(key)
+                              for row in
+                              db.select(key,
+                                        columns=['key_value_pairs'],
+                                        include_data=False)})
             if key in kd:
                 longkey = kd[key][1]
             else:
@@ -73,17 +72,6 @@ def process_metadata(db, html=True):
         sk.append(special)
     meta['special_keys'] = sk
 
-    if not meta['layout']:
-        keys = ['id', 'formula', 'age']
-        meta['layout'] = [
-            ('Basic properties',
-             [['ATOMS', 'CELL'],
-              [('Key Value Pairs', keys), 'FORCES']])]
-
-    if mod:
-        meta['functions'] = functions[:]
-        functions[:] = []
-
     sub = re.compile(r'`(.)_(.)`')
     sup = re.compile(r'`(.*)\^\{?(.*?)\}?`')
 
@@ -100,7 +88,7 @@ def process_metadata(db, html=True):
         meta['key_descriptions'][key] = (short, long, unit)
 
     all_keys1 = set(meta['key_descriptions'])
-    for row in db.select():
+    for row in db.select(columns=['key_value_pairs'], include_data=False):
         all_keys1.update(row._keys)
     all_keys2 = []
     for key in all_keys1:

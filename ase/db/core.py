@@ -30,11 +30,10 @@ default_key_descriptions = {
     'energy': ('Energy', 'Total energy', 'eV'),
     'fmax': ('Maximum force', '', 'eV/Ang'),
     'smax': ('Maximum stress', '', '`\\text{eV/Ang}^3`'),
-    'pbc': ('PBC', 'Periodic boundary conditions', ''),
     'charge': ('Charge', '', '|e|'),
     'mass': ('Mass', '', 'au'),
     'magmom': ('Magnetic moment', '', 'au'),
-    'unique_id': ('Unique ID', '', ''),
+    'unique_id': ('Unique ID', 'Random (unique) ID', ''),
     'volume': ('Volume', 'Volume of unit-cell', '`\\text{Ang}^3`')}
 
 

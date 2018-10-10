@@ -151,7 +151,8 @@ def parameters_to_keywords(label=None, atoms=None, parameters=None,
         get_matrix_key = globals()['get_'+get_standard_key(key)]
         keywords[get_standard_key(key)] = get_matrix_key(atoms, parameters)
     return OrderedDict([(k, v)for k, v in keywords.items()
-                        if not(v is None or v == [])])
+                        if not(v is None or
+                               (isinstance(v, list) and v == []))])
 
 
 def get_species(symbols):
