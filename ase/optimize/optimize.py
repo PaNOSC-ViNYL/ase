@@ -160,28 +160,46 @@ class Optimizer(Dynamics):
     def initialize(self):
         pass
 
+    def irun(self, fmax=0.05, steps=100000000):
+        """Run structure optimization algorithm as generator. This allows, e.g.,
+        to easily run two optimizers at the same time.
+
+        Examples:
+        >>> opt1 = BFGS(atoms)
+        >>> opt2 = BFGS(StrainFilter(atoms)).irun()
+        >>> for _ in opt2:
+        >>>     opt1.run()
+        """
+
+        if self.force_consistent is None:
+            self.set_force_consistent()
+        self.fmax = fmax
+        for _ in range(steps):
+            f = self.atoms.get_forces()
+            self.log(f)
+            self.call_observers()
+            if self.converged(f):
+                yield True
+                return
+            self.step(f)
+            yield
+            self.nsteps += 1
+
+        yield False
+        return
+
+
     def run(self, fmax=0.05, steps=100000000):
         """Run structure optimization algorithm.
 
         This method will return when the forces on all individual
         atoms are less than *fmax* or when the number of steps exceeds
-        *steps*."""
+        *steps*.
+        FloK: Move functionality into self.irun to be able to run as
+              generator."""
 
-        if self.force_consistent is None:
-            self.set_force_consistent()
-        self.fmax = fmax
-        step = 0
-        while step < steps:
-            f = self.atoms.get_forces()
-            self.log(f)
-            self.call_observers()
-            if self.converged(f):
-                return True
-            self.step(f)
-            self.nsteps += 1
-            step += 1
-
-        return False
+        for _ in self.irun(fmax, steps):
+            pass
 
     def converged(self, forces=None):
         """Did the optimization converge?"""
