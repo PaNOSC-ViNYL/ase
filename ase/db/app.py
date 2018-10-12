@@ -146,7 +146,10 @@ def index(project):
         for proj, db in sorted(databases.items()):
             meta = ase.db.web.process_metadata(db)
             db.meta = meta
-            projects.append((proj, db.meta.get('title', proj), len(db)))
+            nrows = len(db)
+            projects.append((proj, db.meta.get('title', proj), nrows))
+            print('Initialized {proj}: {nrows} rows'
+                  .format(proj=proj, nrows=nrows))
 
     if project is None and len(projects) > 1:
         return render_template('projects.html',
