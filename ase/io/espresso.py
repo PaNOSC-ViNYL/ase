@@ -1206,7 +1206,10 @@ def grep_valence(pseudopotential):
     """
 
     # Example lines
-    # Sr.pbe-spn-rrkjus_psl.1.0.0.UPF:             z_valence="1.000000000000000E+001"
+    # Sr.pbe-spn-rrkjus_psl.1.0.0.UPF:        z_valence="1.000000000000000E+001"
+    # C.pbe-n-kjpaw_psl.1.0.0.UPF (new ld1.x):
+    #                            ...PBC" z_valence="4.000000000000e0" total_p...
+    # C_ONCV_PBE-1.0.upf:                     z_valence="    4.00"
     # Ta_pbe_v1.uspp.F.UPF:   13.00000000000      Z valence
 
     with open(pseudopotential) as psfile:
@@ -1214,6 +1217,9 @@ def grep_valence(pseudopotential):
             if 'z valence' in line.lower():
                 return float(line.split()[0])
             elif 'z_valence' in line.lower():
+                if line.split()[0] == '<PP_HEADER':
+                    line = list(filter(lambda x: 'z_valence' in x,
+                                       line.split(' ')))[0]
                 return float(line.split('=')[-1].strip().strip('"'))
         else:
             raise ValueError('Valence missing in {}'.format(pseudopotential))
