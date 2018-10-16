@@ -7,7 +7,8 @@ from ase.build import bulk
 from ase.io import read, write
 from ase.visualize import view
 from ase.build import molecule
-from ase.atoms import Atoms, string2symbols
+from ase.atoms import Atoms
+from ase.symbols import string2symbols
 from ase.data import ground_state_magnetic_moments
 from ase.data import atomic_numbers, covalent_radii
 
