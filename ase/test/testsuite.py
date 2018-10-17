@@ -267,6 +267,13 @@ def summary(results):
     skip = [r for r in results if r.status == 'SKIPPED']
     ok = [r for r in results if r.status == 'OK']
 
+    if fail or err:
+        print()
+        print('Failures and errors:')
+        for r in err + fail:
+            print('{}: {}: {}'.format(r.name, r.exception.__class__.__name__,
+                                      r.exception))
+
     print('========== Summary ==========')
     print('Number of tests   {:3d}'.format(ntests))
     print('Passes:           {:3d}'.format(len(ok)))
