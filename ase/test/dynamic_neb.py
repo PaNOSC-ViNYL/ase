@@ -3,8 +3,17 @@ from time import time
 from ase import Atoms
 from ase.build import fcc111
 from ase.optimize import BFGS
-from ase.calculators.emt import EMT
+from ase.calculators.emt import EMT as OrigEMT
 from ase.neb import NEB
+
+# Global counter of force evaluations:
+force_evaluations = [0]
+
+class EMT(OrigEMT):
+    def calculate(self, *args, **kwargs):
+        force_evaluations[0] += 1
+        OrigEMT.calculate(self, *args, **kwargs)
+
 
 # Build Pt(111) slab with six surface atoms and add oxygen adsorbate
 initial = fcc111('Pt', size=(3, 2, 3), orthogonal=True)
@@ -47,12 +56,12 @@ for i in range(1, len(images)-1):
 neb = NEB(images, fmax=fmax, dynamic_relaxation=True)
 neb.interpolate()
 
-# Optimize and check walltime of dynamic NEB
-time_dyn_1 = time()
+# Optimize and check number of calculations with dynamic NEB.
+# We use a hack with a global counter to count the force evaluations:
+force_evaluations[0] = 0
 opt = BFGS(neb)
 opt.run(fmax=fmax)
-time_dyn_2 = time()
-time_dyn = time_dyn_2 - time_dyn_1
+ncalculations_dyn = force_evaluations[0]
 
 # Get potential energy of transition state
 Emax_dyn = np.sort([image.get_potential_energy()
@@ -62,19 +71,19 @@ Emax_dyn = np.sort([image.get_potential_energy()
 neb = NEB(images, dynamic_relaxation=False)
 neb.interpolate()
 
-# Optimize and check walltime of default NEB
-time_def_1 = time()
+# Optimize and check number of calculations for default NEB:
+force_evaluations[0] = 0
 opt = BFGS(neb)
 opt.run(fmax=fmax)
-time_def_2 = time()
-time_def = time_def_2 - time_def_1
+ncalculations_default = force_evaluations[0]
 
 # Get potential energy of transition state
 Emax_def = np.sort([image.get_potential_energy()
                     for image in images[1:-1]])[-1]
 
-# Check time for default and dynamic NEB implementations
-assert((time_dyn - time_def) < 0)
+# Check force calculation count for default and dynamic NEB implementations
+print(ncalculations_dyn, ncalculations_default)
+assert ncalculations_dyn < ncalculations_default
 
 # Assert reaction barriers are within 1 meV of each other
 assert(abs(Emax_dyn - Emax_def) < 1e-3)
