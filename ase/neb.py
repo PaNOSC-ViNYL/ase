@@ -18,9 +18,9 @@ from ase.utils import basestring
 
 
 class NEB:
-    def __init__(self, images, k=0.1, climb=False, parallel=False,
+    def __init__(self, images, k=0.1, fmax=0.05, climb=False, parallel=False,
                  remove_rotation_and_translation=False, world=None,
-                 method='aseneb'):
+                 method='aseneb', dynamic_relaxation=False):
         """Nudged elastic band.
 
         Paper I:
@@ -49,6 +49,16 @@ class NEB:
             TRUE actives NEB-TR for removing translation and
             rotation during NEB. By default applied non-periodic
             systems
+        dynamic_relaxation: bool
+            TRUE calculates the norm of the forces acting on each image
+            in the band. An image is optimized only if its norm is above
+            the convergence criterion. The list fmax_images is updated
+            every force call; if a previously converged image goes out
+            of tolerance (due to spring adjustments between the image
+            and its neighbors), it will be optimized again. This routine
+            can speed up calculations if convergence is non-uniform.
+            Convergence criterion should be the same as that given to
+            the optimizer. Not efficient when parallelizing over images.
         method: string of method
             Choice betweeen three method:
 
@@ -70,6 +80,8 @@ class NEB:
         self.emax = np.nan
 
         self.remove_rotation_and_translation = remove_rotation_and_translation
+        self.dynamic_relaxation = dynamic_relaxation
+        self.fmax = fmax
 
         if method in ['aseneb', 'eb', 'improvedtangent']:
             self.method = method
@@ -133,10 +145,35 @@ class NEB:
 
     def set_positions(self, positions):
         n1 = 0
-        for image in self.images[1:-1]:
-            n2 = n1 + self.natoms
-            image.set_positions(positions[n1:n2])
-            n1 = n2
+        for i, image in enumerate(self.images[1:-1]):
+            if self.dynamic_relaxation:
+                if self.parallel:
+                    msg = ('Dynamic relaxation does not work efficiently '
+                           'when parallelizing over images. Try AutoNEB '
+                           'routine for freezing images in parallel.')
+                    raise ValueError(msg)
+                else:
+                    forces_dyn = self.get_fmax_all(self.images)
+                    if forces_dyn[i] < self.fmax:
+                        n1 += self.natoms
+                    else:
+                        n2 = n1 + self.natoms
+                        image.set_positions(positions[n1:n2])
+                        n1 = n2
+            else:
+                n2 = n1 + self.natoms
+                image.set_positions(positions[n1:n2])
+                n1 = n2
+
+    def get_fmax_all(self, images):
+        n = self.natoms
+        f_i = self.get_forces()
+        fmax_images = []
+        for i in range(self.nimages-2):
+            n1 = n * i
+            n2 = n + n * i
+            fmax_images.append(np.sqrt((f_i[n1:n2]**2).sum(axis=1)).max())
+        return fmax_images
 
     def get_forces(self):
         """Evaluate and return the forces."""
