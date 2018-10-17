@@ -9,6 +9,12 @@ Git master branch
 
 :git:`master <>`.
 
+* `atoms.symbols` is now an array-like object which acts
+  as a view of `atoms.numbers` based on chemical symbols.
+  This enables convenient shortcuts such as
+  `mask = atoms.symbols == 'Au'` or
+  `atoms.symbols[4:8] = 'Mo'`.
+
 * New filter for lattice optimization,
   :class:`~ase.constraints.ExpCellFilter`, based on an exponential
   reformulation of the degrees of freedom pertaining to the cell.
@@ -98,7 +104,6 @@ Git master branch
 
 * Compare if two bulk structure are symmetrically equivalent with
   :class:`~ase.utils.structure_comparator.SymmetryEquivalenceCheck`
-
 
 Version 3.16.2
 ==============
