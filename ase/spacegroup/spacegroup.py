@@ -352,16 +352,20 @@ class Spacegroup(object):
         return hkl[imask]
 
     def equivalent_sites(self, scaled_positions, onduplicates='error',
-                         symprec=1e-3):
+                         symprec=1e-3, occupancies=None):
         """Returns the scaled positions and all their equivalent sites.
 
         Parameters:
 
         scaled_positions: list | array
             List of non-equivalent sites given in unit cell coordinates.
+
+        occupancies: list | array, optional (default=None)
+            List of occupancies corresponding to the respective sites.
+
         onduplicates : 'keep' | 'replace' | 'warn' | 'error'
             Action if `scaled_positions` contain symmetry-equivalent
-            positions:
+            positions of full occupancy:
 
             'keep'
                ignore additional symmetry-equivalent positions
@@ -403,7 +407,9 @@ class Spacegroup(object):
         """
         kinds = []
         sites = []
+
         scaled = np.array(scaled_positions, ndmin=2)
+
         for kind, pos in enumerate(scaled):
             for rot, trans in self.get_symop():
                 site = np.mod(np.dot(rot, pos) + trans, 1.)
@@ -415,27 +421,30 @@ class Spacegroup(object):
                 mask = np.all((abs(t) < symprec) |
                               (abs(abs(t) - 1.0) < symprec), axis=1)
                 if np.any(mask):
-                    ind = np.argwhere(mask)[0][0]
-                    if kinds[ind] == kind:
-                        pass
-                    elif onduplicates == 'keep':
-                        pass
-                    elif onduplicates == 'replace':
-                        kinds[ind] = kind
-                    elif onduplicates == 'warn':
-                        warnings.warn('scaled_positions %d and %d '
-                                      'are equivalent' % (kinds[ind], kind))
-                    elif onduplicates == 'error':
-                        raise SpacegroupValueError(
-                            'scaled_positions %d and %d are equivalent' % (
-                                kinds[ind], kind))
-                    else:
-                        raise SpacegroupValueError(
-                            'Argument "onduplicates" must be one of: '
-                            '"keep", "replace", "warn" or "error".')
+                    inds = np.argwhere(mask).flatten()
+                    for ind in inds:
+                        # then we would just add the same thing again -> skip
+                        if kinds[ind] == kind:
+                            pass
+                        elif onduplicates == 'keep':
+                            pass
+                        elif onduplicates == 'replace':
+                            kinds[ind] = kind
+                        elif onduplicates == 'warn':
+                            warnings.warn('scaled_positions %d and %d '
+                                          'are equivalent' % (kinds[ind], kind))
+                        elif onduplicates == 'error':
+                            raise SpacegroupValueError(
+                                'scaled_positions %d and %d are equivalent' % (
+                                    kinds[ind], kind))
+                        else:
+                            raise SpacegroupValueError(
+                                'Argument "onduplicates" must be one of: '
+                                '"keep", "replace", "warn" or "error".')
                 else:
                     sites.append(site)
                     kinds.append(kind)
+
         return np.array(sites), kinds
 
     def symmetry_normalised_sites(self, scaled_positions,

@@ -4,6 +4,7 @@ from os.path import basename
 
 import numpy as np
 
+from ase.data import atomic_numbers
 from ase.data.colors import jmol_colors
 from ase.geometry import complete_cell
 from ase.gui.repeat import Repeat
@@ -12,7 +13,6 @@ from ase.gui.render import Render
 from ase.gui.colors import ColorWindow
 from ase.gui.utils import get_magmoms
 from ase.utils import rotate
-
 
 GREEN = '#74DF00'
 PURPLE = '#AC58FA'
@@ -378,6 +378,10 @@ class View:
         offset[:2] -= 0.5 * self.window.size
         X = np.dot(self.X, axes) - offset
         n = len(self.atoms)
+
+        # extension for partial occupancies
+        tags = self.atoms.get_tags()
+
         # The indices enumerate drawable objects in z order:
         self.indices = X[:, 2].argsort()
         r = self.get_covalent_radii() * self.scale
@@ -407,6 +411,7 @@ class View:
 
         colors = self.get_colors()
         circle = self.window.circle
+        arc = self.window.arc
         line = self.window.line
         constrained = ~self.images.get_dynamic(self.atoms)
 
@@ -426,15 +431,37 @@ class View:
             if a < n:
                 ra = d[a]
                 if visible[a]:
-                    # Draw the atoms
-                    if (self.moving and a < len(self.move_atoms_mask)
-                        and self.move_atoms_mask[a]):
-                        circle(movecolor, False,
-                               A[a, 0] - 4, A[a, 1] - 4,
-                               A[a, 0] + ra + 4, A[a, 1] + ra + 4)
+                    try:
+                        site_occ = self.atoms.info['occupancy'][tags[a]]
+                        # first an empty circle if a site is not fully occupied
+                        if (np.sum([v for v in site_occ.values()])) < 1.0:
+                            fill = '#ffffff'
+                            circle(fill, selected[a],
+                                    A[a, 0], A[a, 1], A[a, 0] + ra, A[a, 1] + ra)
+                        start = 0
+                        # start with the dominant species
+                        for sym, occ in sorted(site_occ.items(), key=lambda x: x[1], reverse=True):
+                            if np.round(occ, decimals=4) == 1.0:
+                                circle(colors[a], selected[a],
+                                       A[a, 0], A[a, 1], A[a, 0] + ra, A[a, 1] + ra)
+                            else:
+                                # jmol colors for the moment
+                                extent = 360. * occ
+                                arc(self.colors[atomic_numbers[sym]], selected[a],
+                                    start, extent,
+                                    A[a, 0], A[a, 1], A[a, 0] + ra, A[a, 1] + ra)
+                                start += extent
+                    except KeyError:
+                        # legacy behavior
+                        # Draw the atoms
+                        if (self.moving and a < len(self.move_atoms_mask)
+                            and self.move_atoms_mask[a]):
+                            circle(movecolor, False,
+                                   A[a, 0] - 4, A[a, 1] - 4,
+                                   A[a, 0] + ra + 4, A[a, 1] + ra + 4)
 
-                    circle(colors[a], selected[a],
-                           A[a, 0], A[a, 1], A[a, 0] + ra, A[a, 1] + ra)
+                        circle(colors[a], selected[a],
+                            A[a, 0], A[a, 1], A[a, 0] + ra, A[a, 1] + ra)
 
                     # Draw labels on the atoms
                     if self.labels is not None:
