@@ -9,11 +9,11 @@ Git master branch
 
 :git:`master <>`.
 
-* `atoms.symbols` is now an array-like object which acts
-  as a view of `atoms.numbers` based on chemical symbols.
+* ``atoms.symbols`` is now an array-like object which works
+  like a view of ``atoms.numbers``, but based on chemical symbols.
   This enables convenient shortcuts such as
-  `mask = atoms.symbols == 'Au'` or
-  `atoms.symbols[4:8] = 'Mo'`.
+  ``mask = atoms.symbols == 'Au'`` or
+  ``atoms.symbols[4:8] = 'Mo'``.
 
 * New filter for lattice optimization,
   :class:`~ase.constraints.ExpCellFilter`, based on an exponential
@@ -86,6 +86,11 @@ Git master branch
 
 * :ref:`ase convert <cli>` now provides options to execute custom code
   on each processed image.
+
+* :class:`~ase.neb.NEB` now supports a boolean keyword,
+  ``dynamic_relaxation``, which will freeze or unfreeze images
+  according to the size of the spring forces so as to save
+  force evaluations.  Only implemented for serial NEB calculations.
 
 * Writing a trajectory file from a parallelized :class:`~ase.neb.NEB`
   calculation is now much simpler.  Works the same way as for the serial
