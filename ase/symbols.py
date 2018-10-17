@@ -86,12 +86,10 @@ class Symbols:
         return Symbols(num)
 
     def __setitem__(self, key, value):
-        if isinstance(value, basestring):
-            Z = atomic_numbers[value]
-        else:
-            Z = [atomic_numbers[v] for v in value]
-
-        self.numbers[key] = Z
+        numbers = symbols2numbers(value)
+        if len(numbers) == 1:
+            numbers = numbers[0]
+        self.numbers[key] = numbers
 
     def __len__(self):
         return len(self.numbers)
