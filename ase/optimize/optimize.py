@@ -174,7 +174,8 @@ class Optimizer(Dynamics):
         if self.force_consistent is None:
             self.set_force_consistent()
         self.fmax = fmax
-        for _ in range(steps):
+        step = 0
+        while step < steps:
             f = self.atoms.get_forces()
             self.log(f)
             self.call_observers()
@@ -182,11 +183,11 @@ class Optimizer(Dynamics):
                 yield True
                 return
             self.step(f)
-            yield
+            yield False
             self.nsteps += 1
+            step += 1
 
         yield False
-        return
 
 
     def run(self, fmax=0.05, steps=100000000):
