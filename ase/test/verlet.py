@@ -15,7 +15,7 @@ with seterr(all='raise'):
                          (0.1, 0.2, 0.7)],
               calculator=TestPotential())
     print(a.get_forces())
-    md = VelocityVerlet(a, dt=0.5 * fs, logfile='-', loginterval=500)
+    md = VelocityVerlet(a, timestep=0.5 * fs, logfile='-', loginterval=500)
     traj = Trajectory('4N.traj', 'w', a)
     md.attach(traj.write, 100)
     e0 = a.get_total_energy()

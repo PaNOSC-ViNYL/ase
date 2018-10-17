@@ -87,7 +87,7 @@ def get_atomtypes_from_formula(formula):
     """Return atom types from chemical formula (optionally prepended
     with and underscore).
     """
-    from ase.atoms import string2symbols
+    from ase.symbols import string2symbols
     symbols = string2symbols(formula.split('_')[0])
     atomtypes = [symbols[0]]
     for s in symbols[1:]:

@@ -9,11 +9,68 @@ Git master branch
 
 :git:`master <>`.
 
+General changes:
+
+* ``atoms.symbols`` is now an array-like object which works
+  like a view of ``atoms.numbers``, but based on chemical symbols.
+  This enables convenient shortcuts such as
+  ``mask = atoms.symbols == 'Au'`` or
+  ``atoms.symbols[4:8] = 'Mo'``.
+
+* Test suite now runs in parallel.
+
+* New :class:`~ase.dft.pdos.DOS` object for representing and plotting
+  densities and states.
+
+* Neighbor lists can now :meth:`get connectivity matrices
+  <ase.neighborlist.NeighborList.get_connectivity_matrix>`.
+
+* :ref:`ase convert <cli>` now provides options to execute custom code
+  on each processed image.
+
+* :class:`~ase.phonons.Phonons` class now uses
+  the :class:`~ase.dft.pdos.DOS` and
+  :class:`~ase.dft.band_structure.BandStructure` machinery.
+
+* Positions and velocities can now be initialized from phononic
+  force constant matrix; see
+  :func:`~ase.md.velocitydistribution.PhononHarmonics`.
+
+Algorithms:
+
+* New Gaussian Process (GP) regression optimizer
+  (:class:`~ase.optimize.GPMin`).  Check out this `performance test
+  <https://wiki.fysik.dtu.dk/gpaw/devel/ase_optimize/ase_optimize.html>`_.
+
 * New filter for lattice optimization,
   :class:`~ase.constraints.ExpCellFilter`, based on an exponential
   reformulation of the degrees of freedom pertaining to the cell.
   This is probably significantly faster than
   :class:`ase.constraints.UnitCellFilter`.
+
+* :class:`~ase.constraints.UnitCellFilter` now supports scalar pressure and
+  hydrostatic strain.
+
+* Compare if two bulk structure are symmetrically equivalent with
+  :class:`~ase.utils.structure_comparator.SymmetryEquivalenceCheck`.
+
+* :class:`~ase.neb.NEB` now supports a boolean keyword,
+  ``dynamic_relaxation``, which will freeze or unfreeze images
+  according to the size of the spring forces so as to save
+  force evaluations.  Only implemented for serial NEB calculations.
+
+* Writing a trajectory file from a parallelized :class:`~ase.neb.NEB`
+  calculation is now much simpler.  Works the same way as for the serial
+  case.
+
+Calculators:
+
+* Socked-based interface to certain calculators through the
+  :mod:`~ase.calculators.socketio` module:
+  Added support for
+  communicating coordinates, forces and other quantities over
+  sockets using the i-PI protocol.  This removes the overhead for
+  starting and stopping calculators for each geometry step.
 
 * Added calculator for :mod:`OpenMX <ase.calculators.openmx>`.
 
@@ -24,26 +81,13 @@ Git master branch
   be read and written if higher tolerance levels are set for the functions that
   manipulate them.
 
-* Optimized performance of ase db, with enhanced speed of
-  queries on key value pairs for large SQLite (.db) database files.
-  Also, The ase db server (PostgreSQL) backend now uses
-  native ARRAY and JSONB data types for storing NumPy arrays and
-  dictionaries instead of the BYTEA datatype. Note that backwards
-  compatibility is lost for the postgreSQL backend, and that
-  postgres version 9.4+ is required.
+* :class:`~ase.calculators.espresso.Espresso`
+  and :class:`~ase.calculators.dft.Dftb` now support the
+  :class:`~ase.dft.band_structure.BandStructure` machinery
+  including improved handling of kpoints, ``get_eigenvalues()``,
+  and friends.
 
-* New Gaussian Process (GP) regression optimizer
-  (:class:`~ase.optimize.GPMin`).  Check out this `performance test
-  <https://wiki.fysik.dtu.dk/gpaw/devel/ase_optimize/ase_optimize.html>`_.
-
-* Test suite now runs in parallel.
-
-* Socked-based interface to certain calculators through the
-  :mod:`~ase.calculators.socketio` module:
-  Added support for
-  communicating coordinates, forces and other quantities over
-  sockets using the i-PI protocol.  This removes the overhead for
-  starting and stopping calculators for each geometry step.
+Database:
 
 * The :meth:`ase.db.core.Database.write` method now takes a ``id`` that
   allows you to overwrite an existing row.
@@ -62,39 +106,21 @@ Git master branch
           for id in ids:
               db.update(id, ...)
 
-* Neighbor lists can now :meth:`get connectivity matrices
-  <ase.neighborlist.NeighborList.get_connectivity_matrix>`.
-
 * New ``--show-keys`` and ``--show-values=...`` options for the
   :ref:`ase db <cli>` command line interface.
 
+* Optimized performance of ase db, with enhanced speed of
+  queries on key value pairs for large SQLite (.db) database files.
+  Also, The ase db server (PostgreSQL) backend now uses
+  native ARRAY and JSONB data types for storing NumPy arrays and
+  dictionaries instead of the BYTEA datatype. Note that backwards
+  compatibility is lost for the postgreSQL backend, and that
+  postgres version 9.4+ is required.
+
+GUI:
+
 * Added callback method :meth:`ase.gui.gui.GUI.repeat_poll` to the GUI.
   Useful for programmatically updating the GUI.
-
-* :class:`~ase.constraints.UnitCellFilter` now supports scalar pressure and
-  hydrostatic strain.
-
-* :ref:`ase convert <cli>` now provides options to execute custom code
-  on each processed image.
-
-* Writing a trajectory file from a parallelized :class:`~ase.neb.NEB`
-  calculation is now much simpler.  Works the same way as for the serial
-  case.
-
-* New :class:`~ase.dft.pdos.DOS` object for representing and plotting
-  densities and states.
-
-* :class:`~ase.phonons.Phonons` class now uses
-  the :class:`~ase.dft.pdos.DOS` and
-  :class:`~ase.dft.band_structure.BandStructure` machinery.
-
-* Positions and velocities can now be initialized from phononic
-  force constant matrix; see
-  :func:`~ase.md.velocitydistribution.PhononHarmonics`.
-
-* Compare if two bulk structure are symmetrically equivalent with
-  :class:`~ase.utils.structure_comparator.SymmetryEquivalenceCheck`
-
 
 Version 3.16.2
 ==============

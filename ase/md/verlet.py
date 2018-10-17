@@ -4,9 +4,18 @@ from ase.md.md import MolecularDynamics
 
 
 class VelocityVerlet(MolecularDynamics):
-    def __init__(self, atoms, dt, trajectory=None, logfile=None,
-                 loginterval=1):
-        MolecularDynamics.__init__(self, atoms, dt, trajectory, logfile,
+    def __init__(self, atoms, timestep=None, trajectory=None, logfile=None,
+                 loginterval=1, dt=None):
+        # FloK: rename dt -> timestep and make sure nobody is affected
+        if dt is not None:
+            import warnings
+            warnings.warn('dt variable is deprecated; please use timestep.',
+                          DeprecationWarning)
+            timestep = dt
+        if timestep is None:
+            raise TypeError('Missing timestep argument')
+
+        MolecularDynamics.__init__(self, atoms, timestep, trajectory, logfile,
                                    loginterval)
 
     def step(self, f):

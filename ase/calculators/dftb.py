@@ -35,7 +35,8 @@ import os
 
 import numpy as np
 
-from ase.calculators.calculator import FileIOCalculator, kpts2ndarray
+from ase.calculators.calculator import (FileIOCalculator, kpts2ndarray,
+                                        kpts2sizeandoffsets)
 from ase.units import Hartree, Bohr
 
 
@@ -59,17 +60,20 @@ class Dftb(FileIOCalculator):
             True: many steps are run by DFTB+,
             False:a single force&energy calculation at given positions
 
-        kpts: list/tuple or dict
-            When a list or tuple of 3 integers is given, 
-            k-points will be set according to a Monkhorst-Pack mesh 
-            with dimensions given by kpts.
+        kpts: (int, int, int), dict, or 2D-array
+            If kpts is a tuple (or list) of 3 integers, it is interpreted
+            as the dimensions of a Monkhorst-Pack grid.
 
-            This keyword can also be a dictionary, for the purpose of 
-            band structure calculations. The dict should contain the keys:
-              'path': string with the special k-points (for more info,
-                      see ase.dft.kpoints.special_points)
-              'npoints': the total number of k-points along the path
-            e.g. for an FCC lattice: kpts={'path':'GKLGX', 'npoints':100}
+            If kpts is a dict, it will either be interpreted as a path
+            in the Brillouin zone (*) if it contains the 'path' keyword,
+            otherwise it is converted to a Monkhorst-Pack grid (**).
+            (*) see ase.dft.kpoints.bandpath
+            (**) see ase.calculators.calculator.kpts2sizeandoffsets
+
+            The k-point coordinates can also be provided explicitly,
+            as a (N x 3) array with the scaled coordinates (relative
+            to the reciprocal unit cell vectors). Each of the N k-points
+            will be given equal weight.
 
         ---------
         Additional object (to be set by function embed)
@@ -127,22 +131,62 @@ class Dftb(FileIOCalculator):
 
         # kpoint stuff by ase
         self.kpts = kpts
-        self.kpts_coord = kpts2ndarray(self.kpts, atoms=atoms)
+        self.kpts_coord = None
 
         if self.kpts is not None:
             initkey = 'Hamiltonian_KPointsAndWeights'
-            self.parameters[initkey + '_'] = ''
+            mp_mesh = None
+            offsets = None
+ 
             if isinstance(self.kpts, dict):
-                self.parameters[initkey + '_'] = 'Klines '
-
-            for i, c in enumerate(self.kpts_coord):
-                key = initkey + '_empty%09d'  % i
-                c_str = ' '.join(map(str, c))
-                if isinstance(self.kpts, dict):
-                    c_str = '1 ' + c_str
+                if 'path' in self.kpts:
+                    # kpts is path in Brillouin zone
+                    self.parameters[initkey + '_'] = 'Klines '
+                    self.kpts_coord = kpts2ndarray(self.kpts, atoms=atoms)
                 else:
-                    c_str += ' 1.0'
-                self.parameters[key] = c_str
+                    # kpts is (implicit) definition of
+                    # Monkhorst-Pack grid
+                    self.parameters[initkey + '_'] = 'SupercellFolding '
+                    mp_mesh, offsets = kpts2sizeandoffsets(atoms=atoms,
+                                                           **self.kpts)
+            elif np.array(self.kpts).ndim == 1:
+                # kpts is Monkhorst-Pack grid
+                self.parameters[initkey + '_'] = 'SupercellFolding '
+                mp_mesh = self.kpts
+                offsets = [0.] * 3
+            elif np.array(self.kpts).ndim == 2:
+                # kpts is (N x 3) list/array of k-point coordinates
+                # each will be given equal weight
+                self.parameters[initkey + '_'] = ''
+                self.kpts_coord = np.array(self.kpts)
+            else:
+                raise ValueError('Illegal kpts definition:' + str(self.kpts))
+
+            if mp_mesh is not None:
+                eps = 1e-10
+                for i in range(3):
+                    key = initkey + '_empty%03d'  % i
+                    val = [mp_mesh[i] if j == i else 0 for j in range(3)]
+                    self.parameters[key] = ' '.join(map(str, val))
+                    offsets[i] *= mp_mesh[i]
+                    assert abs(offsets[i]) < eps or abs(offsets[i] - 0.5) < eps
+                    # DFTB+ uses a different offset convention, where
+                    # the k-point mesh is already Gamma-centered prior
+                    # to the addition of any offsets
+                    if mp_mesh[i] % 2 == 0:
+                        offsets[i] += 0.5
+                key = initkey + '_empty%03d' % 3
+                self.parameters[key] = ' '.join(map(str, offsets))
+
+            elif self.kpts_coord is not None:
+                for i, c in enumerate(self.kpts_coord):
+                    key = initkey + '_empty%09d'  % i
+                    c_str = ' '.join(map(str, c))
+                    if 'Klines' in self.parameters[initkey + '_']:
+                        c_str = '1 ' + c_str
+                    else:
+                        c_str += ' 1.0'
+                    self.parameters[key] = c_str
 
     def write_dftb_in(self, filename):
         """ Write the innput file for the dftb+ calculation.
@@ -351,29 +395,31 @@ class Dftb(FileIOCalculator):
         """ Read Eigenvalues from dftb output file (results.tag).
             Unfortunately, the order seems to be scrambled. """
         # Eigenvalue line indexes
-        index_eigval_begin = None
+        index_eig_begin = None
         for iline, line in enumerate(self.lines):
             fstring = 'eigenvalues   '
             if line.find(fstring) >= 0:
-                index_eigval_begin = iline + 1
+                index_eig_begin = iline + 1
                 line1 = line.replace(':', ',')
                 ncol, nband, nkpt, nspin = map(int, line1.split(',')[-4:])
-                rows_per_kpt = int(np.ceil(nband * 1. / ncol))
                 break
         else:
             return None
 
-        index = index_eigval_begin
-        eigval = np.zeros((nkpt, nspin, nband)) 
-        for i in range(nspin):
-            for j in range(nkpt):
-                eigenvalues = []
-                for k in range(rows_per_kpt):
-                    eigenvalues += map(float, self.lines[index].split())
-                    index += 1
-                eigval[j, i] = eigenvalues
+        # Take into account that the last row may lack 
+        # columns if nkpt * nspin * nband % ncol != 0
+        nrow = int(np.ceil(nkpt * nspin * nband * 1. / ncol))
+        index_eig_end = index_eig_begin + nrow
+        ncol_last = len(self.lines[index_eig_end - 1].split())
+        self.lines[index_eig_end - 1] += ' 0.0 ' * (ncol - ncol_last)
 
-        return eigval * Hartree
+        eig = np.loadtxt(self.lines[index_eig_begin:index_eig_end]).flatten()
+        eig *= Hartree
+        N = nkpt * nband
+        eigenvalues = [eig[i * N:(i + 1) * N].reshape((nkpt, nband))
+                       for i in range(nspin)]
+
+        return eigenvalues
 
     def read_fermi_levels(self):
         """ Read Fermi level(s) from dftb output file (results.tag). """
@@ -406,7 +452,7 @@ class Dftb(FileIOCalculator):
         return self.nspin
 
     def get_eigenvalues(self, kpt=0, spin=0): 
-        return self.results['eigenvalues'][kpt, spin].copy()
+        return self.results['eigenvalues'][spin][kpt].copy()
 
     def get_fermi_levels(self):
         return self.results['fermi_levels'].copy()

@@ -66,8 +66,8 @@ ase_db_footer = ''  # footer (for a license)
 open_ase_gui = True  # click image to open ASE's GUI
 download_button = True
 
-# List of (project-name, title) tuples (will be filled in at run-time):
-projects = []
+# List of (project-name, title, nrows) tuples (will be filled in at run-time):
+projects = []  # type: List[str, str, int]
 
 
 def connect_databases(uris):
@@ -102,7 +102,7 @@ if 'ASE_DB_APP_CONFIG' in os.environ:
     download_button = app.config['ASE_DB_DOWNLOAD']
     open_ase_gui = False
 else:
-    tmpdir = tempfile.mkdtemp()  # used to cache png-files
+    tmpdir = tempfile.mkdtemp(prefix='ase-db-app-')  # used to cache png-files
 
 # Find numbers in formulas so that we can convert H2O to H<sub>2</sub>O:
 SUBSCRIPT = re.compile(r'(\d+)')
@@ -129,7 +129,7 @@ def error(e):
     raise e
 
 
-app.register_error_handler(Exception, error)
+# app.register_error_handler(Exception, error)
 
 
 @app.route('/', defaults={'project': None})
@@ -146,7 +146,10 @@ def index(project):
         for proj, db in sorted(databases.items()):
             meta = ase.db.web.process_metadata(db)
             db.meta = meta
-            projects.append((proj, db.meta.get('title', proj)))
+            nrows = len(db)
+            projects.append((proj, db.meta.get('title', proj), nrows))
+            print('Initialized {proj}: {nrows} rows'
+                  .format(proj=proj, nrows=nrows))
 
     if project is None and len(projects) > 1:
         return render_template('projects.html',
@@ -309,9 +312,9 @@ def cif(project, name):
     return send_from_directory(tmpdir, name)
 
 
-@app.route('/<project>/plot/<png>')
-def plot(project, png):
-    png = project + '-' + png
+@app.route('/<project>/plot/<uid>/<png>')
+def plot(project, uid, png):
+    png = project + '-' + uid + '-' + png
     return send_from_directory(tmpdir, png)
 
 
@@ -324,19 +327,19 @@ def gui(project, id):
     return '', 204, []
 
 
-@app.route('/<project>/row/<value>')
-def row(project, value):
+@app.route('/<project>/row/<uid>')
+def row(project, uid):
     db = databases[project]
     if not hasattr(db, 'meta'):
         db.meta = ase.db.web.process_metadata(db)
+    prefix = '{}/{}-{}-'.format(tmpdir, project, uid)
     key = db.meta.get('unique_key', 'id')
     try:
-        value = int(value)
+        uid = int(uid)
     except ValueError:
         pass
-    row = db.get(**{key: value})
-    prfx = '{project}-{id}-'.format(project=project, id=row.id)
-    s = Summary(row, db.meta, SUBSCRIPT, prfx, tmpdir)
+    row = db.get(**{key: uid})
+    s = Summary(row, db.meta, SUBSCRIPT, prefix)
     atoms = Atoms(cell=row.cell, pbc=row.pbc)
     n1, n2, n3 = kptdensity2monkhorstpack(atoms,
                                           kptdensity=1.8,
@@ -344,6 +347,7 @@ def row(project, value):
     return render_template('summary.html',
                            project=project,
                            s=s,
+                           uid=uid,
                            n1=n1,
                            n2=n2,
                            n3=n3,
@@ -441,6 +445,11 @@ def robots():
             'User-agent: SiteCheck-sitecrawl by Siteimprove.com\n'
             'Disallow: /\n',
             200)
+
+
+@app.route('/cif/<stuff>')
+def oldcif(stuff):
+    return 'Bad URL'
 
 
 def pages(page, nrows, limit):

@@ -10,11 +10,13 @@ List of databases
   <table id="rows" class="table table-striped">
     <tr>
       <th>Name</th>
+      <th># rows</th>
       <th>Description</th>
     </tr>
-{% for name, description in projects -%}
+{% for name, description, nrows in projects -%}
     <tr id="rowentry" class="rowentry">
       <td><a href='/{{ name }}/'>{{ name }}</a></td>
+      <td><a href='/{{ name }}/'>{{ nrows }}</a></td>
       <td><a href='/{{ name }}/'>{{ description }}</a></td>
     </tr>
 {% endfor %}

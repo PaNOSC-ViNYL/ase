@@ -177,7 +177,7 @@ Keyword                    Description
                            or CastepParam objects against the ones found in
                            castep_keywords. Levels are as following:
 
-                           0 = no tolerance, keywords not found in 
+                           0 = no tolerance, keywords not found in
                            castep_keywords will raise an exception
 
                            1 = keywords not found will be accepted but produce
@@ -371,7 +371,7 @@ End CASTEP Interface Documentation
     # Class attributes !
     # keys set through atoms object
     atoms_keys = [
-        'charge',
+        'charges',
         'ionic_constraints',
         'lattice_abs',
         'lattice_cart',

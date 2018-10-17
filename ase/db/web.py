@@ -4,35 +4,30 @@ import os
 from ase.db.core import default_key_descriptions
 
 
-functions = []
-
-
-def creates(*filenames):
-    def decorator(func):
-        functions.append((func, filenames))
-        return func
-    return decorator
-
-
 def process_metadata(db, html=True):
-    meta = db.metadata
+    meta = {}
 
-    mod = {}
     if db.python:
-        with open(db.python) as fd:
-            code = fd.read()
-        path = os.path.dirname(db.python)
-        code = 'import sys; sys.path[:0] = ["{}"]; {}'.format(path, code)
+        if isinstance(db.python, str):
+            with open(db.python) as fd:
+                code = fd.read()
+            path = os.path.dirname(db.python)
+            mod = {}
+            code = 'import sys; sys.path[:0] = ["{}"]; {}'.format(path, code)
 
-        # We use eval here instead of exec because it works on both
-        # Python 2 and 3.
-        eval(compile(code, db.python, 'exec'), mod, mod)
+            # We use eval here instead of exec because it works on both
+            # Python 2 and 3.
+            eval(compile(code, db.python, 'exec'), mod, mod)
+        else:
+            mod = db.python
+    else:
+        mod = {}
 
     for key, default in [('title', 'ASE database'),
-                         ('default_columns', []),
+                         ('default_columns', None),
                          ('special_keys', []),
                          ('key_descriptions', {}),
-                         ('layout', []),
+                         ('layout', None),
                          ('unique_key', 'id')]:
         meta[key] = mod.get(key, meta.get(key, default))
 
@@ -76,17 +71,6 @@ def process_metadata(db, html=True):
             pass
         sk.append(special)
     meta['special_keys'] = sk
-
-    if not meta['layout']:
-        keys = ['id', 'formula', 'age']
-        meta['layout'] = [
-            ('Basic properties',
-             [['ATOMS', 'CELL'],
-              [('Key Value Pairs', keys), 'FORCES']])]
-
-    if mod:
-        meta['functions'] = functions[:]
-        functions[:] = []
 
     sub = re.compile(r'`(.)_(.)`')
     sup = re.compile(r'`(.*)\^\{?(.*?)\}?`')

@@ -1,16 +1,75 @@
 from __future__ import print_function
-import os
-import shutil
-import os.path as op
 
-from ase.data import atomic_masses, chemical_symbols
 from ase.db.core import float_to_time_string, now
 from ase.geometry import cell_to_cellpar
-from ase.utils import formula_metal, Lock
+from ase.utils import formula_metal
+
+# Predefined blocks:
+ATOMS = {'type': 'atoms'}
+UNITCELL = {'type': 'cell'}
+
+
+def create_table(row,  # type: AtomsRow
+                 header,  # type: List[str]
+                 keys,  # type: List[str]
+                 key_descriptions,  # type: Dict[str, Tuple[str, str, str]]
+                 digits=3  # type: int
+                 ):  # -> Dict[str, Any]
+    """Create table-dict from row."""
+    table = []
+    for key in keys:
+        if key == 'age':
+            age = float_to_time_string(now() - row.ctime, True)
+            table.append(('Age', age))
+            continue
+        value = row.get(key)
+        if value is not None:
+            if isinstance(value, float):
+                value = '{:.{}f}'.format(value, digits)
+            elif not isinstance(value, str):
+                value = str(value)
+            desc, unit = key_descriptions.get(key, ['', key, ''])[1:]
+            if unit:
+                value += ' ' + unit
+            table.append((desc, value))
+    return {'type': 'table',
+            'header': header,
+            'rows': table}
+
+
+def default_layout(row,  # type: AtomsRow
+                   key_descriptions,  # type: Dict[str, Tuple[str, str, str]]
+                   prefix  # type: str
+                   ):  # -> List[Tuple[str, List[List[Dict[str, Any]]]]]
+    """Default page layout.
+
+    "Basic properties" section and the rest in a "miscellaneous" section.
+    """
+    keys = ['id',
+            'energy', 'fmax', 'smax',
+            'mass',
+            'age']
+    table = create_table(row, ['Key', 'Value'], keys, key_descriptions)
+    misc = miscellaneous_section(row, key_descriptions, exclude=keys)
+    layout = [('Basic properties', [[ATOMS, UNITCELL],
+                                    [table]]),
+              misc]
+    return layout
+
+
+def miscellaneous_section(row, key_descriptions, exclude):
+    """Helper function for adding a "miscellaneous" section.
+
+    Create table with all keys except those in exclude.
+    """
+    misckeys = (set(key_descriptions) |
+                set(row.key_value_pairs)) - set(exclude)
+    misc = create_table(row, ['Items', ''], sorted(misckeys), key_descriptions)
+    return ('Miscellaneous', [[misc]])
 
 
 class Summary:
-    def __init__(self, row, meta={}, subscript=None, prefix='', tmpdir='.'):
+    def __init__(self, row, meta={}, subscript=None, prefix=''):
         self.row = row
 
         self.cell = [['{:.3f}'.format(a) for a in axis] for axis in row.cell]
@@ -18,117 +77,17 @@ class Summary:
         self.lengths = par[:3]
         self.angles = par[3:]
 
-        forces = row.get('constrained_forces')
-        if forces is None:
-            fmax = None
-            self.forces = None
-        else:
-            fmax = (forces**2).sum(1).max()**0.5
-            N = len(forces)
-            self.forces = []
-            for n, f in enumerate(forces):
-                if n < 5 or n >= N - 5:
-                    f = tuple('{0:10.3f}'.format(x) for x in f)
-                    symbol = chemical_symbols[row.numbers[n]]
-                    self.forces.append((n, symbol) + f)
-                elif n == 5:
-                    self.forces.append((' ...', '',
-                                        '       ...',
-                                        '       ...',
-                                        '       ...'))
-
         self.stress = row.get('stress')
         if self.stress is not None:
             self.stress = ', '.join('{0:.3f}'.format(s) for s in self.stress)
 
-        if 'masses' in row:
-            mass = row.masses.sum()
-        else:
-            mass = atomic_masses[row.numbers].sum()
-
         self.formula = formula_metal(row.numbers)
-
         if subscript:
             self.formula = subscript.sub(r'<sub>\1</sub>', self.formula)
 
-        age = float_to_time_string(now() - row.ctime, True)
-
-        table = dict((key, value)
-                     for key, value in [
-                         ('id', row.id),
-                         ('age', age),
-                         ('formula', self.formula),
-                         ('user', row.user),
-                         ('calculator', row.get('calculator')),
-                         ('energy', row.get('energy')),
-                         ('fmax', fmax),
-                         ('charge', row.get('charge')),
-                         ('mass', mass),
-                         ('magmom', row.get('magmom')),
-                         ('unique id', row.unique_id),
-                         ('volume', row.get('volume'))]
-                     if value is not None)
-
-        table.update(row.key_value_pairs)
-
-        for key, value in table.items():
-            if isinstance(value, float):
-                table[key] = '{:.3f}'.format(value)
-
         kd = meta.get('key_descriptions', {})
-
-        misc = set(table.keys())
-        self.layout = []
-        for headline, columns in meta['layout']:
-            empty = True
-            newcolumns = []
-            for column in columns:
-                newcolumn = []
-                for block in column:
-                    if block is None:
-                        pass
-                    elif isinstance(block, tuple):
-                        title, keys = block
-                        rows = []
-                        for key in keys:
-                            value = table.get(key, None)
-                            if value is not None:
-                                if key in misc:
-                                    misc.remove(key)
-                                desc, unit = kd.get(key, [0, key, ''])[1:]
-                                rows.append((desc, value, unit))
-                        if rows:
-                            block = (title, rows)
-                        else:
-                            continue
-                    elif any(block.endswith(ext) for ext in ['.png', '.csv']):
-                        name = op.join(tmpdir, prefix + block)
-                        if not op.isfile(name):
-                            self.create_figures(row, prefix, tmpdir,
-                                                meta['functions'])
-                        if op.getsize(name) == 0:
-                            # Skip empty files:
-                            block = None
-                        elif block.endswith('.csv'):
-                            block = read_csv_table(name)
-                    else:
-                        assert block in ['ATOMS', 'CELL', 'FORCES'], block
-
-                    newcolumn.append(block)
-                    if block is not None:
-                        empty = False
-                newcolumns.append(newcolumn)
-
-            if not empty:
-                self.layout.append((headline, newcolumns))
-
-        if misc:
-            rows = []
-            for key in sorted(misc):
-                value = table[key]
-                desc, unit = kd.get(key, [0, key, ''])[1:]
-                rows.append((desc, value, unit))
-            self.layout.append(('Miscellaneous', [[('Items', rows)]]))
+        create_layout = meta.get('layout') or default_layout
+        self.layout = create_layout(row, kd, prefix)
 
         self.dipole = row.get('dipole')
         if self.dipole is not None:
@@ -143,27 +102,7 @@ class Summary:
             self.constraints = ', '.join(c.__class__.__name__
                                          for c in self.constraints)
 
-    def create_figures(self, row, prefix, tmpdir, functions):
-        with Lock('ase.db.web.lock'):
-            for func, filenames in functions:
-                for filename in filenames:
-                    try:
-                        os.remove(filename)
-                    except OSError:  # Python 3 only: FileNotFoundError
-                        pass
-                func(row)
-                for filename in filenames:
-                    path = os.path.join(tmpdir, prefix + filename)
-                    if os.path.isfile(filename):
-                        shutil.move(filename, path)
-                    else:
-                        # Create an empty file:
-                        with open(path, 'w'):
-                            pass
-
     def write(self):
-        row = self.row
-
         print(self.formula + ':')
         for headline, columns in self.layout:
             blocks = columns[0]
@@ -171,46 +110,33 @@ class Summary:
                 blocks += columns[1]
             print((' ' + headline + ' ').center(78, '='))
             for block in blocks:
-                if block is None:
-                    pass
-                elif isinstance(block, tuple):
-                    title, keys = block
-                    print(title + ':')
-                    if not keys:
+                if block['type'] == 'table':
+                    rows = block['rows']
+                    if not rows:
                         print()
                         continue
-                    width = max(len(name) for name, value, unit in keys)
-                    print('{:{width}}|value'.format('name', width=width))
-                    for name, value, unit in keys:
-                        print('{:{width}}|{} {}'.format(name, value, unit,
-                                                        width=width))
+                    rows = [block['header']] + rows
+                    widths = [max(len(row[n]) for row in rows)
+                              for n in range(len(rows[0]))]
+                    for row in rows:
+                        print('|'.join('{:{}}'.format(word, width)
+                                       for word, width in zip(row, widths)))
                     print()
-                elif block.endswith('.png'):
-                    if op.isfile(block) and op.getsize(block) > 0:
-                        print(block)
+                elif block['type'] == 'figure':
+                    print(block['filename'])
                     print()
-                elif block.endswith('.csv'):
-                    if op.isfile(block) and op.getsize(block) > 0:
-                        with open(block) as f:
-                            print(f.read())
-                    print()
-                elif block == 'CELL':
+                elif block['type'] == 'cell':
                     print('Unit cell in Ang:')
                     print('axis|periodic|          x|          y|          z')
                     c = 1
                     fmt = '   {0}|     {1}|{2[0]:>11}|{2[1]:>11}|{2[2]:>11}'
-                    for p, axis in zip(row.pbc, self.cell):
+                    for p, axis in zip(self.row.pbc, self.cell):
                         print(fmt.format(c, [' no', 'yes'][p], axis))
                         c += 1
                     print('Lengths: {:>10}{:>10}{:>10}'
                           .format(*self.lengths))
                     print('Angles:  {:>10}{:>10}{:>10}\n'
                           .format(*self.angles))
-                elif block == 'FORCES' and self.forces is not None:
-                    print('\nForces in ev/Ang:')
-                    for f in self.forces:
-                        print('{:4}|{:2}|{}|{}|{}'.format(*f))
-                    print()
 
         if self.stress:
             print('Stress tensor (xx, yy, zz, zy, zx, yx) in eV/Ang^3:')
@@ -226,7 +152,15 @@ class Summary:
             print('Data:', self.data, '\n')
 
 
-def read_csv_table(name):
-    with open(name) as f:
-        title = f.readline()[1:].strip()
-        return (title, [line.rsplit(',', 2) for line in f])
+def convert_old_layout(page):
+    def layout(row, kd, prefix):
+        def fix(block):
+            if isinstance(block, tuple):
+                title, keys = block
+                return create_table(row, title, keys, kd)
+            return block
+
+        return [(title, [[fix(block) for block in column]
+                         for column in columns])
+                for title, columns in page]
+    return layout

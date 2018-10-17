@@ -1,6 +1,5 @@
 from __future__ import print_function
 import json
-import os
 import sys
 from collections import defaultdict
 from random import randint
@@ -106,6 +105,8 @@ class CLICommand:
             help='Show all keys.')
         add('--show-values', metavar='key1,key2,...',
             help='Show values for key(s).')
+        add('--write-summary-files', metavar='prefix',
+            help='Write summary-files with a "<prefix>-<uid>-" prefix.')
 
     @staticmethod
     def run(args):
@@ -312,50 +313,55 @@ def main(args):
 
     if args.long:
         db.meta = process_metadata(db, html=args.open_web_browser)
-        # Remove .png files so that new ones will be created.
-        for func, filenames in db.meta.get('functions', []):
-            for filename in filenames:
-                try:
-                    os.remove(filename)
-                except OSError:  # Python 3 only: FileNotFoundError
-                    pass
-
         row = db.get(query)
         summary = Summary(row, db.meta)
         summary.write()
-    else:
-        if args.open_web_browser:
-            import ase.db.app as app
-            app.databases['default'] = db
-            app.app.run(host='0.0.0.0', debug=True)
-        else:
-            columns = list(all_columns)
-            c = args.columns
-            if c and c.startswith('++'):
-                keys = set()
-                for row in db.select(query,
-                                     limit=args.limit, offset=args.offset,
-                                     include_data=False):
-                    keys.update(row._keys)
-                columns.extend(keys)
-                if c[2:3] == ',':
-                    c = c[3:]
-                else:
-                    c = ''
-            if c:
-                if c[0] == '+':
-                    c = c[1:]
-                elif c[0] != '-':
-                    columns = []
-                for col in c.split(','):
-                    if col[0] == '-':
-                        columns.remove(col[1:])
-                    else:
-                        columns.append(col.lstrip('+'))
+        return
 
-            table = Table(db, verbosity=verbosity, cut=args.cut)
-            table.select(query, columns, args.sort, args.limit, args.offset)
-            if args.csv:
-                table.write_csv()
+    if args.open_web_browser:
+        import ase.db.app as app
+        app.databases['default'] = db
+        app.app.run(host='0.0.0.0', debug=True)
+        return
+
+    if args.write_summary_files:
+        prefix = args.write_summary_files
+        db.meta = process_metadata(db, html=args.open_web_browser)
+        ukey = db.meta.get('unique_key', 'id')
+        for row in db.select(query):
+            uid = row.get(ukey)
+            summary = Summary(row,
+                              db.meta,
+                              prefix='{}-{}-'.format(prefix, uid))
+        return
+
+    columns = list(all_columns)
+    c = args.columns
+    if c and c.startswith('++'):
+        keys = set()
+        for row in db.select(query,
+                             limit=args.limit, offset=args.offset,
+                             include_data=False):
+            keys.update(row._keys)
+        columns.extend(keys)
+        if c[2:3] == ',':
+            c = c[3:]
+        else:
+            c = ''
+    if c:
+        if c[0] == '+':
+            c = c[1:]
+        elif c[0] != '-':
+            columns = []
+        for col in c.split(','):
+            if col[0] == '-':
+                columns.remove(col[1:])
             else:
-                table.write(query)
+                columns.append(col.lstrip('+'))
+
+    table = Table(db, verbosity=verbosity, cut=args.cut)
+    table.select(query, columns, args.sort, args.limit, args.offset)
+    if args.csv:
+        table.write_csv()
+    else:
+        table.write(query)

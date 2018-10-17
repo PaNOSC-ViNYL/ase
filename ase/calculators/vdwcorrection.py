@@ -136,12 +136,12 @@ def get_logging_file_descriptor(calculator):
             return fd.fd
     if hasattr(calculator, 'txt'):
         return calculator.txt
-            
-            
+
+
 class vdWTkatchenko09prl(Calculator):
     """vdW correction after Tkatchenko and Scheffler PRL 102 (2009) 073005."""
     implemented_properties = ['energy', 'forces']
-    
+
     def __init__(self,
                  hirshfeld=None, vdwradii=None, calculator=None,
                  Rmax=10.,  # maximal radius for periodic calculations
@@ -161,7 +161,7 @@ class vdWTkatchenko09prl(Calculator):
             self.calculator = self.hirshfeld.get_calculator()
         else:
             self.calculator = calculator
-            
+
         if txt is None:
             txt = get_logging_file_descriptor(self.calculator)
         self.txt = convert_string_to_fd(txt)
@@ -184,6 +184,10 @@ class vdWTkatchenko09prl(Calculator):
 
         Calculator.__init__(self)
 
+    @property
+    def implemented_properties(self):
+        return self.calculator.implemented_properties
+
     def calculation_required(self, atoms, quantities):
         if self.calculator.calculation_required(atoms, quantities):
             return True
@@ -192,7 +196,7 @@ class vdWTkatchenko09prl(Calculator):
                 return True
         return False
 
-    def calculate(self, atoms=None, properties=['energy'],
+    def calculate(self, atoms=None, properties=['energy', 'forces'],
                   system_changes=[]):
         Calculator.calculate(self, atoms, properties, system_changes)
         self.update(atoms, properties)
@@ -203,8 +207,14 @@ class vdWTkatchenko09prl(Calculator):
 
         if atoms is None:
             atoms = self.calculator.get_atoms()
-        self.results['energy'] = self.calculator.get_potential_energy(atoms)
-        self.results['forces'] = self.calculator.get_forces(atoms)
+
+        properties = list(properties)
+        for name in 'energy', 'forces':
+            if name not in properties:
+                properties.append(name)
+
+        for name in properties:
+            self.results[name] = self.calculator.get_property(name, atoms)
         self.atoms = atoms.copy()
 
         if self.vdwradii is not None:
@@ -215,7 +225,7 @@ class vdWTkatchenko09prl(Calculator):
             vdwradii = []
             for atom in atoms:
                 self.vdwradii.append(vdWDB_Grimme06jcc[atom.symbol][1])
- 
+
         if self.hirshfeld is None:
             volume_ratios = [1.] * len(atoms)
         elif hasattr(self.hirshfeld, '__len__'):  # a list
@@ -302,7 +312,7 @@ class vdWTkatchenko09prl(Calculator):
                                             sR=self.sR)
                 if pbc_c.any():
                     smooth = 0.5 * erfc((r - self.Rmax) / self.Ldecay)
-                    smooth_der = -1. / np.sqrt(np.pi) / self.Ldecay * np.exp( 
+                    smooth_der = -1. / np.sqrt(np.pi) / self.Ldecay * np.exp(
                                   -((r - self.Rmax) / self.Ldecay)**2 )
                 else:
                     smooth = 1.
@@ -343,7 +353,7 @@ class vdWTkatchenko09prl(Calculator):
                       ((ia, symbol) + tuple(self.results['forces'][ia])),
                       file=self.txt)
             self.txt.flush()
-        
+
     def damping(self, RAB, R0A, R0B,
                 d=20,   # steepness of the step function for PBE
                 sR=0.94):
