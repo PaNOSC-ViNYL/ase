@@ -14,19 +14,6 @@ from functools import total_ordering
 import numpy as np
 from ase.utils import basestring
 
-# check if we have access to get_spacegroup from spglib
-# https://atztogo.github.io/spglib/
-has_spglib = False
-try:
-    import spglib                   # For version 1.9 or later
-    has_spglib = True
-except ImportError:
-    try:
-        from pyspglib import spglib  # For versions 1.8.x or before
-        has_spglib = True
-    except ImportError:
-        pass
-
 __all__ = ['Spacegroup']
 
 
@@ -784,11 +771,10 @@ def spacegroup_from_data(no=None, symbol=None, setting=None,
     return spg
 
 
-def get_spacegroup(atoms, symprec=1e-5, method='phonopy'):
+def get_spacegroup(atoms, symprec=1e-5):
     """Determine the spacegroup to which belongs the Atoms object.
 
-    When PhonoPy/SPGlib is NOT available, a pure ASE python implementation is
-    used. The pure ASE method is NOT recommended for large systems (SLOW).
+    This requires spglib: https://atztogo.github.io/spglib/ .
 
     Parameters:
 
@@ -797,43 +783,50 @@ def get_spacegroup(atoms, symprec=1e-5, method='phonopy'):
     symprec: float
         Symmetry tolerance, i.e. distance tolerance in Cartesian
         coordinates to find crystal symmetry.
-    method: str
-        'phonopy' or 'spglib' when available, or 'ase' (fallback).
 
     The Spacegroup object is returned.
-
-    Example:
-
-    >>> from ase.build import bulk
-    >>> atoms = bulk("Cu", "fcc", a=3.6, cubic=True)
-    >>> sg = get_spacegroup(atoms)
-    >>> sg
-    Spacegroup(225, setting=1)
-    >>> sg.no
-    225
     """
 
-    # use spglib when it is available (and return)
-    if has_spglib and method in ['phonopy', 'spglib']:
-        cell = (atoms.cell, atoms.get_scaled_positions(), atoms.numbers)
-        sg = spglib.get_spacegroup(cell, symprec=symprec)
-        sg_no = int(sg[sg.find('(') + 1:sg.find(')')])
-        return Spacegroup(sg_no)
+    # Example:
+    # (We don't include the example in docstring to appease doctests
+    #  when import fails)
+    # >>> from ase.build import bulk
+    # >>> atoms = bulk("Cu", "fcc", a=3.6, cubic=True)
+    # >>> sg = get_spacegroup(atoms)
+    # >>> sg
+    # Spacegroup(225, setting=1)
+    # >>> sg.no
+    # 225
+
+    try:
+        import spglib  # For version 1.9 or later
+    except ImportError:
+        from pyspglib import spglib  # For versions 1.8.x or before
+
+    sg = spglib.get_spacegroup(atoms.get_cell(),
+                               atoms.get_scaled_positions(),
+                               atoms.get_atomic_numbers(),
+                               symprec=symprec)
+    sg_no = int(sg[sg.find('(') + 1:sg.find(')')])
+    return Spacegroup(sg_no)
 
     # no spglib, we use our own spacegroup finder. Not as fast as spglib.
     # we center the Atoms positions on each atom in the cell, and find the
     # spacegroup of highest symmetry
-    found = None
-    for kind, pos in enumerate(atoms.get_scaled_positions()):
-        sg = _get_spacegroup(atoms, symprec=symprec, center=kind)
-        if found is None or sg.no > found.no:
-            found = sg
+    #
+    # XXX That function is not finished.
+    # found = None
+    # for kind, pos in enumerate(atoms.get_scaled_positions()):
+    #     sg = _get_spacegroup(atoms, symprec=symprec, center=kind)
+    #     if found is None or sg.no > found.no:
+    #         found = sg
 
-    return found
+    # return found
 
 
 def _get_spacegroup(atoms, symprec=1e-5, center=None):
     """ASE implementation of get_spacegroup, pure python."""
+    raise NotImplementedError('get_spacegroup() is not finished')
 
     # we try all available spacegroups from 230 to 1, backwards
     # a Space group is the collection of all symmetry operations which lets the

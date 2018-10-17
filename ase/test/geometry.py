@@ -81,8 +81,11 @@ assert np.allclose(correct_pos, al.positions)
 # Create an Ag(111)/Si(111) interface
 ag = crystal(['Ag'], basis=[(0, 0, 0)], spacegroup=225, cellpar=4.09)
 si = crystal(['Si'], basis=[(0, 0, 0)], spacegroup=227, cellpar=5.43)
-assert get_spacegroup(ag).no == 225
-assert get_spacegroup(si).no == 227
+try:
+    assert get_spacegroup(ag).no == 225
+    assert get_spacegroup(si).no == 227
+except ImportError:
+    pass
 
 ag111 = cut(ag, a=(4, -4, 0), b=(4, 4, -8), nlayers=5)
 si111 = cut(si, a=(3, -3, 0), b=(3, 3, -6), nlayers=5)
