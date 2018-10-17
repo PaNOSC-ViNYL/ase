@@ -434,7 +434,7 @@ class View:
                     try:
                         site_occ = self.atoms.info['occupancy'][tags[a]]
                         # first an empty circle if a site is not fully occupied
-                        if (np.sum(site_occ.values())) < 1.0:
+                        if (np.sum([v for v in site_occ.values()])) < 1.0:
                             fill = '#ffffff'
                             circle(fill, selected[a],
                                     A[a, 0], A[a, 1], A[a, 0] + ra, A[a, 1] + ra)
