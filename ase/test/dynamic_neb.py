@@ -1,5 +1,4 @@
 import numpy as np
-from time import time
 from ase import Atoms
 from ase.build import fcc111
 from ase.optimize import BFGS
