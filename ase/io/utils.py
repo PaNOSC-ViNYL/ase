@@ -162,9 +162,9 @@ def make_patch_list(writer):
     indices = writer.positions[:, 2].argsort()
     patch_list = []
     for a in indices:
-        xy = writer.positions[a, :2]
-        r = writer.d[a] / 2
         if a < writer.natoms:
+            xy = writer.positions[a, :2]
+            r = writer.d[a] / 2
             if writer.frac_occ:
                 site_occ = writer.occs[writer.tags[a]]
                 # first an empty circle if a site is not fully occupied
