@@ -219,7 +219,6 @@ class FixCom(FixConstraint):
         self.removed_dof = 3
 
     def adjust_positions(self, atoms, new):
-        old = atoms.positions
         masses = atoms.get_masses()
         old_cm = atoms.get_center_of_mass()
         new_cm = np.dot(masses, new) / masses.sum()
