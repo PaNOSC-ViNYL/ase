@@ -207,10 +207,10 @@ class FixAtoms(FixConstraint):
 
 class FixCom(FixConstraint):
     """Constraint class for fixing the center of mass.
-       
+
     References
     ----------
-    https://pubs.acs.org/doi/abs/10.1021/jp9722824 
+    https://pubs.acs.org/doi/abs/10.1021/jp9722824
 
     """
 
@@ -219,7 +219,12 @@ class FixCom(FixConstraint):
         self.removed_dof = 3
 
     def adjust_positions(self, atoms, new):
-        pass
+        old = atoms.positions
+        masses = atoms.get_masses()
+        old_cm = atoms.get_center_of_mass()
+        new_cm = np.dot(masses, new) / masses.sum()
+        d = old_cm - new_cm
+        new += d
 
     def adjust_forces(self, atoms, forces):
         m = atoms.get_masses()
