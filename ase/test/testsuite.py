@@ -172,7 +172,7 @@ def runtests_subprocess(task_queue, result_queue, verbose):
 
             if test in ['bandstructure.py', 'doctests.py', 'gui/run.py',
                         'matplotlib_plot.py', 'fio/oi.py', 'fio/v_sim.py',
-                        'db/db_web.py']:
+                        'fio/animate.py', 'db/db_web.py']:
                 result = Result(name=test, status='please run on master')
                 result_queue.put(result)
                 continue
