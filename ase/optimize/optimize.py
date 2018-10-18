@@ -199,8 +199,9 @@ class Optimizer(Dynamics):
         FloK: Move functionality into self.irun to be able to run as
               generator."""
 
-        for _ in self.irun(fmax, steps):
+        for converged in self.irun(fmax, steps):
             pass
+        return converged
 
     def converged(self, forces=None):
         """Did the optimization converge?"""
