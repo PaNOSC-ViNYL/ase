@@ -1,4 +1,3 @@
-from functools import partial
 from ase.visualize.plot import animate
 
 
