@@ -36,6 +36,10 @@ General changes:
   force constant matrix; see
   :func:`~ase.md.velocitydistribution.PhononHarmonics`.
 
+* Sequences of atoms objects can now be saved as animations using
+  the mechanisms offered by matplotlib.  ``gif`` and ``mp4`` are now
+  recognized output formats.
+
 Algorithms:
 
 * New Gaussian Process (GP) regression optimizer
