@@ -1,6 +1,5 @@
 import io
 import numpy as np
-import tempfile
 import warnings
 
 from ase.io import read
@@ -268,12 +267,12 @@ for a in natoms:
         assert len(natoms.info['occupancy'][a.tag]) == 1
 
 # read/write
-out = tempfile.NamedTemporaryFile(delete=False)
-write(out, natoms, format='cif')
+fname = 'testfile.cif'
+with open(fname, 'w') as fd:
+    write(fd, natoms, format='cif')
 
-# go to beginning
-out.seek(0)
-natoms = read(out, format='cif', fractional_occupancies=True)
+with open(fname) as fd:
+    natoms = read(fd, format='cif', fractional_occupancies=True)
 
 assert natoms.info['occupancy']
 for a in natoms:
