@@ -253,12 +253,15 @@ class GUI(View, Status):
         if expr is not None:
             g.plot(expr=expr)
 
-    def pipe(self, module, data):
-        process = subprocess.Popen([sys.executable, '-m', module],
+    def pipe(self, task, data):
+        process = subprocess.Popen([sys.executable, '-m', 'ase.gui.pipe'],
                                    stdin=subprocess.PIPE)
-        pickle.dump(data, process.stdin)
+        pickle.dump((task, data), process.stdin)
         process.stdin.close()
         self.subprocesses.append(process)
+
+    def bad_plot(self, err, msg):
+        ui.error(_('Plotting failed'), '{}\n{}'.format(err, msg))
 
     def neb(self):
         from ase.neb import NEBtools
@@ -266,21 +269,23 @@ class GUI(View, Status):
             nebtools = NEBtools(self.images)
             fit = nebtools.get_fit()
         except Exception as err:
-            ui.error('Cannot create NEB plot',
-                     'NEB plot requires all images to have both energies '
-                     'and forces.  Error was: {}'.format(err))
+            self.bad_plot(err, _('Images must have energies and forces, '
+                                 'and atoms must not be stationary.'))
         else:
-            self.pipe('ase.neb', fit)
+            self.pipe('neb', fit)
 
     def bulk_modulus(self):
-        process = subprocess.Popen([sys.executable, '-m', 'ase', 'eos',
-                                    '--plot', '-'],
-                                   stdin=subprocess.PIPE)
-        v = [abs(np.linalg.det(atoms.cell)) for atoms in self.images]
-        e = [self.images.get_energy(a) for a in self.images]
-        pickle.dump((v, e), process.stdin, protocol=0)
-        process.stdin.close()
-        self.subprocesses.append(process)
+        try:
+            v = [abs(np.linalg.det(atoms.cell)) for atoms in self.images]
+            e = [self.images.get_energy(a) for a in self.images]
+            from ase.eos import EquationOfState
+            eos = EquationOfState(v, e)
+            plotdata = eos.getplotdata()
+        except Exception as err:
+            self.bad_plot(err, _('Images must have energies '
+                                 'and varying cells.'))
+        else:
+            self.pipe('eos', plotdata)
 
     def reciprocal(self):
         fd, filename = tempfile.mkstemp('.xyz', 'ase.gui-')
