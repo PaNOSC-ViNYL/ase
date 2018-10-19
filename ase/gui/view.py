@@ -16,7 +16,7 @@ from ase.utils import rotate
 
 GREEN = '#74DF00'
 PURPLE = '#AC58FA'
-
+BLACKISH = '#151515'
 
 def get_cell_coordinates(cell, shifted=False):
     """Get start and end points of lines segments used to draw cell."""
@@ -330,10 +330,11 @@ class View:
                     for _rgb in self.get_colors()]
 
         if self.colormode == 'jmol':
-            return [self.colors[Z] for Z in self.atoms.numbers]
+            return [self.colors.get(Z, BLACKISH) for Z in self.atoms.numbers]
 
         if self.colormode == 'neighbors':
-            return [self.colors[Z] for Z in self.get_color_scalars()]
+            return [self.colors.get(Z, BLACKISH)
+                    for Z in self.get_color_scalars()]
 
         colorscale, cmin, cmax = self.colormode_data
         N = len(colorscale)
