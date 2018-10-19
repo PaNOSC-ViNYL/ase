@@ -186,7 +186,7 @@ def parse_cif(fileobj):
 
 
 def tags2atoms(tags, store_tags=False, primitive_cell=False,
-               subtrans_included=True, fractional_occupancies=False):
+               subtrans_included=True, fractional_occupancies=True):
     """Returns an Atoms object from a cif tags dictionary.  See read_cif()
     for a description of the arguments."""
     if primitive_cell and subtrans_included:
@@ -304,11 +304,12 @@ def tags2atoms(tags, store_tags=False, primitive_cell=False,
             # no warnings in this case
             kwargs['onduplicates'] = 'keep'
         except KeyError:
-            warnings.warn('Requested mixed occupancy mode but there are no mixed occupancies')
+            pass
     else:
         try:
             if not np.allclose(tags['_atom_site_occupancy'], 1.):
                 warnings.warn('Cif file containes mixed/fractional occupancies. Consider using `fractional_occupancies=True`')
+                kwargs['onduplicates'] = 'keep'
         except KeyError:
             pass
 
@@ -330,7 +331,7 @@ def tags2atoms(tags, store_tags=False, primitive_cell=False,
 
 
 def read_cif(fileobj, index, store_tags=False, primitive_cell=False,
-             subtrans_included=True, fractional_occupancies=False):
+             subtrans_included=True, fractional_occupancies=True):
     """Read Atoms object from CIF file. *index* specifies the data
     block number or name (if string) to return.
 
@@ -354,10 +355,7 @@ def read_cif(fileobj, index, store_tags=False, primitive_cell=False,
     cell.
 
     If *fractional_occupancies* is true, the resulting atoms object will be tagged
-    equipped with an array `occupancy`. If the cif file contains miced occupancies,
-    atoms of differentnt species will be put on identical sites. Make sure that
-    you know what your are doing with them. The `write_cif` utility respects
-    this.
+    equipped with an array `occupancy`.
     """
     blocks = parse_cif(fileobj)
     # Find all CIF blocks with valid crystal data
