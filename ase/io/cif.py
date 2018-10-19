@@ -355,7 +355,8 @@ def read_cif(fileobj, index, store_tags=False, primitive_cell=False,
     cell.
 
     If *fractional_occupancies* is true, the resulting atoms object will be tagged
-    equipped with an array `occupancy`.
+    equipped with an array `occupancy`. Also, in case of mixed occupancies, the
+    atom's chemical symbol will be that of the most dominant species.
     """
     blocks = parse_cif(fileobj)
     # Find all CIF blocks with valid crystal data

@@ -41,7 +41,8 @@ def crystal(symbols=None, basis=None, occupancies=None, spacegroup=1, setting=1,
         object.
     occupancies : list of site occupancies
         Occupancies of the unique sites. Defaults to 1.0 and thus no mixed
-        occupancies are considered if not explicitly asked for.
+        occupancies are considered if not explicitly asked for. If occupancies
+        are given, the most dominant species will yield the atomic number.
     spacegroup : int | string | Spacegroup instance
         Space group given either as its number in International Tables
         or as its Hermann-Mauguin symbol.
