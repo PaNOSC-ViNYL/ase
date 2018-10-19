@@ -14,7 +14,6 @@ import numpy as np
 
 from ase import __version__
 import ase.gui.ui as ui
-from ase.gui.calculator import SetCalculator
 from ase.gui.crystal import SetupBulkCrystal
 from ase.gui.defaults import read_defaults
 from ase.gui.graphene import SetupGraphene
@@ -254,21 +253,24 @@ class GUI(View, Status):
         if expr is not None:
             g.plot(expr=expr)
 
-    def neb(self):
-        if len(self.images) <= 1:
-            return
-        N = self.images.repeat.prod()
-        natoms = len(self.images[0]) // N
-        R = [a.positions[:natoms] for a in self.images]
-        E = [self.images.get_energy(a) for a in self.images]
-        F = [self.images.get_forces(a) for a in self.images]
-        A = self.images[0].cell
-        pbc = self.images[0].pbc
-        process = subprocess.Popen([sys.executable, '-m', 'ase.neb'],
+    def pipe(self, module, data):
+        process = subprocess.Popen([sys.executable, '-m', module],
                                    stdin=subprocess.PIPE)
-        pickle.dump((E, F, R, A, pbc), process.stdin, protocol=0)
+        pickle.dump(data, process.stdin)
         process.stdin.close()
         self.subprocesses.append(process)
+
+    def neb(self):
+        from ase.neb import NEBtools
+        try:
+            nebtools = NEBtools(self.images)
+            fit = nebtools.get_fit()
+        except Exception as err:
+            ui.error('Cannot create NEB plot',
+                     'NEB plot requires all images to have both energies '
+                     'and forces.  Error was: {}'.format(err))
+        else:
+            self.pipe('ase.neb', fit)
 
     def bulk_modulus(self):
         process = subprocess.Popen([sys.executable, '-m', 'ase', 'eos',
