@@ -17,10 +17,8 @@ import ase.gui.ui as ui
 from ase.gui.calculator import SetCalculator
 from ase.gui.crystal import SetupBulkCrystal
 from ase.gui.defaults import read_defaults
-from ase.gui.energyforces import EnergyForces
 from ase.gui.graphene import SetupGraphene
 from ase.gui.images import Images
-from ase.gui.minimize import Minimize
 from ase.gui.nanoparticle import SetupNanoparticle
 from ase.gui.nanotube import SetupNanotube
 from ase.gui.save import save_dialog
@@ -60,8 +58,7 @@ class GUI(View, Status):
         View.__init__(self, rotations)
         Status.__init__(self)
 
-        self.graphs = []  # list of matplotlib processes
-        self.graph_wref = []  # list of weakrefs to Graph objects
+        self.subprocesses = []  # list of external processes
         self.movie_window = None
         self.vulnerable_windows = []
         self.simulation = {}  # Used by modules on Calculate menu.
@@ -256,20 +253,6 @@ class GUI(View, Status):
         g = Graphs(self)
         if expr is not None:
             g.plot(expr=expr)
-        self.graph_wref.append(weakref.ref(g))
-
-    def plot_graphs_newatoms(self):
-        "Notify any Graph objects that they should make new plots."
-        new_wref = []
-        found = 0
-        for wref in self.graph_wref:
-            ref = wref()
-            if ref is not None:
-                ref.plot()
-                new_wref.append(wref)  # Preserve weakrefs that still work.
-                found += 1
-        self.graph_wref = new_wref
-        return found
 
     def neb(self):
         if len(self.images) <= 1:
@@ -285,7 +268,7 @@ class GUI(View, Status):
                                    stdin=subprocess.PIPE)
         pickle.dump((E, F, R, A, pbc), process.stdin, protocol=0)
         process.stdin.close()
-        self.graphs.append(process)
+        self.subprocesses.append(process)
 
     def bulk_modulus(self):
         process = subprocess.Popen([sys.executable, '-m', 'ase', 'eos',
@@ -295,7 +278,7 @@ class GUI(View, Status):
         e = [self.images.get_energy(a) for a in self.images]
         pickle.dump((v, e), process.stdin, protocol=0)
         process.stdin.close()
-        self.graphs.append(process)
+        self.subprocesses.append(process)
 
     def reciprocal(self):
         fd, filename = tempfile.mkstemp('.xyz', 'ase.gui-')
@@ -351,15 +334,6 @@ class GUI(View, Status):
     def nanotube_window(self):
         return SetupNanotube(self)
 
-    def calculator_window(self, menuitem):
-        SetCalculator(self)
-
-    def energy_window(self, menuitem):
-        EnergyForces(self)
-
-    def energy_minimize_window(self, menuitem):
-        Minimize(self)
-
     def new_atoms(self, atoms, init_magmom=False):
         "Set a new atoms object."
         rpt = getattr(self.images, 'repeat', None)
@@ -369,16 +343,6 @@ class GUI(View, Status):
         self.images.repeat_images(rpt)
         self.set_frame(frame=0, focus=True)
         self.notify_vulnerable()
-
-    def prepare_new_atoms(self):
-        "Marks that the next call to append_atoms should clear the images."
-        self.images.prepare_new_atoms()
-
-    def append_atoms(self, atoms):
-        "Set a new atoms object."
-        # self.notify_vulnerable()   # Do this manually after last frame.
-        frame = self.images.append_atoms(atoms)
-        self.set_frame(frame=frame - 1, focus=True)
 
     def notify_vulnerable(self):
         """Notify windows that would break when new_atoms is called.
@@ -404,7 +368,7 @@ class GUI(View, Status):
         self.vulnerable_windows.append(weakref.ref(obj))
 
     def exit(self, event=None):
-        for process in self.graphs:
+        for process in self.subprocesses:
             process.terminate()
         self.window.close()
 
@@ -526,11 +490,11 @@ class GUI(View, Status):
               M(_('Nano_tube'), self.nanotube_window),
               M(_('Graphene'), self.graphene_window, disabled=True)]),
 
-            (_('_Calculate'),
-             [M(_('Set _Calculator'), self.calculator_window, disabled=True),
-              M(_('_Energy and Forces'), self.energy_window, disabled=True),
-              M(_('Energy Minimization'), self.energy_minimize_window,
-                disabled=True)]),
+            # (_('_Calculate'),
+            # [M(_('Set _Calculator'), self.calculator_window, disabled=True),
+            #  M(_('_Energy and Forces'), self.energy_window, disabled=True),
+            #  M(_('Energy Minimization'), self.energy_minimize_window,
+            #    disabled=True)]),
 
             (_('_Help'),
              [M(_('_About'), partial(ui.about, 'ASE-GUI',

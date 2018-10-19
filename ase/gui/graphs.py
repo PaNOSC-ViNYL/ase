@@ -65,7 +65,7 @@ class Graphs:
         pickledata = (data, self.gui.frame, expr, type)
         pickle.dump(pickledata, process.stdin, protocol=0)
         process.stdin.close()
-        self.gui.graphs.append(process)
+        self.gui.subprocesses.append(process)
 
     def save(self):
         dialog = ui.SaveFileDialog(self.gui.window.win,
@@ -78,9 +78,9 @@ class Graphs:
 
     def clear(self):
         import matplotlib.pyplot as plt
-        for fig in self.gui.graphs:
+        for fig in self.gui.subprocesses:
             plt.close(fig)
-        self.gui.graphs = []
+        self.gui.subprocesses = []
 
 
 def make_plot(data, i, expr, type):
