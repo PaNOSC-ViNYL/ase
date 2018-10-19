@@ -209,7 +209,7 @@ class FixCom(FixConstraint):
     """Constraint class for fixing the center of mass.
 
     References
-    ----------
+
     https://pubs.acs.org/doi/abs/10.1021/jp9722824
 
     """
