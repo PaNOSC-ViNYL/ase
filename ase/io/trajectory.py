@@ -268,7 +268,7 @@ class TrajectoryReader:
             calc.name = b.calculator.name
 
             if 'parameters' in c:
-                calc.parameters = c.parameters
+                calc.parameters.update(c.parameters)
             atoms.set_calculator(calc)
 
         return atoms
