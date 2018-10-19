@@ -768,7 +768,8 @@ def write_xyz(fileobj, images, comment='', columns=None, write_info=True,
             symbols = atoms.arrays[fr_cols[0]]
         else:
             symbols = atoms.get_chemical_symbols()
-        if not isinstance(symbols[0], basestring):
+
+        if natoms > 0 and not isinstance(symbols[0], basestring):
             raise ValueError('First column must be symbols-like')
 
         # Check second column "looks like" atomic positions
