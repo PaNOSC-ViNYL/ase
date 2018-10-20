@@ -9,6 +9,88 @@ from ase.dft.kpoints import (get_special_points, special_paths,
 from ase.dft.bz import bz1d_plot, bz2d_plot, bz3d_plot
 
 
+def plot_reciprocal_cell(atoms, path='default',
+                         k_points=False,
+                         ibz_k_points=False,
+                         plot_vectors=True, dimension=3, output=None,
+                         verbose=False):
+    cell = atoms.get_cell()
+    icell = atoms.get_reciprocal_cell()
+
+    try:
+        cs = crystal_structure_from_cell(cell)
+    except ValueError:
+        cs = None
+
+    if verbose:
+        if cs:
+            print('Crystal:', cs)
+            print('Special points:', special_paths[cs])
+        print('Lattice vectors:')
+        for i, v in enumerate(cell):
+            print('{}: ({:16.9f},{:16.9f},{:16.9f})'.format(i + 1, *v))
+        print('Reciprocal vectors:')
+        for i, v in enumerate(icell):
+            print('{}: ({:16.9f},{:16.9f},{:16.9f})'.format(i + 1, *v))
+
+    # band path
+    if path:
+        if path == 'default':
+            path = special_paths[cs]
+        paths = []
+        special_points = get_special_points(cell)
+        for names in parse_path_string(path):
+            points = []
+            for name in names:
+                points.append(np.dot(icell.T, special_points[name]))
+            paths.append((names, points))
+    else:
+        paths = None
+
+    # k points
+    points = None
+    if atoms.calc is not None and hasattr(atoms.calc, 'get_bz_k_points'):
+        bzk = atoms.calc.get_bz_k_points()
+        if path is None:
+            try:
+                size, offset = get_monkhorst_pack_size_and_offset(bzk)
+            except ValueError:
+                # This was not a MP-grid.  Must be a path in the BZ:
+                path = ''.join(labels_from_kpts(bzk, cell)[2])
+
+        if k_points:
+            points = bzk
+        elif ibz_k_points:
+            points = atoms.calc.get_ibz_k_points()
+        if points is not None:
+            for i in range(len(points)):
+                points[i] = np.dot(icell.T, points[i])
+
+    # get the correct backend
+    if not output:
+        import matplotlib
+        matplotlib.use('Qt4Agg')
+    import matplotlib.pyplot as plt
+
+    kwargs = {'cell': cell,
+              'vectors': plot_vectors,
+              'paths': paths,
+              'points': points}
+
+    if dimension == 1:
+        bz1d_plot(**kwargs)
+    elif dimension == 2:
+        bz2d_plot(**kwargs)
+    else:
+        bz3d_plot(interactive=True, **kwargs)
+
+    if output:
+        plt.savefig(output)
+    else:
+        plt.show()
+
+
+
 class CLICommand:
     short_description = 'Show the reciprocal space'
 
@@ -34,76 +116,11 @@ class CLICommand:
     def run(args, parser):
         atoms = read(args.name)
 
-        cell = atoms.get_cell()
-        icell = atoms.get_reciprocal_cell()
-
-        try:
-            cs = crystal_structure_from_cell(cell)
-        except ValueError:
-            cs = None
-
-        if args.verbose:
-            if cs:
-                print('Crystal:', cs)
-                print('Special points:', special_paths[cs])
-            print('Lattice vectors:')
-            for i, v in enumerate(cell):
-                print('{}: ({:16.9f},{:16.9f},{:16.9f})'.format(i + 1, *v))
-            print('Reciprocal vectors:')
-            for i, v in enumerate(icell):
-                print('{}: ({:16.9f},{:16.9f},{:16.9f})'.format(i + 1, *v))
-
-        # band path
-        if args.path:
-            if args.path == 'default':
-                args.path = special_paths[cs]
-            paths = []
-            special_points = get_special_points(cell)
-            for names in parse_path_string(args.path):
-                points = []
-                for name in names:
-                    points.append(np.dot(icell.T, special_points[name]))
-                paths.append((names, points))
-        else:
-            paths = None
-
-        # k points
-        points = None
-        if atoms.calc is not None and hasattr(atoms.calc, 'get_bz_k_points'):
-            bzk = atoms.calc.get_bz_k_points()
-            if args.path is None:
-                try:
-                    size, offset = get_monkhorst_pack_size_and_offset(bzk)
-                except ValueError:
-                    # This was not a MP-grid.  Must be a path in the BZ:
-                    args.path = ''.join(labels_from_kpts(bzk, cell)[2])
-
-            if args.k_points:
-                points = bzk
-            elif args.ibz_k_points:
-                points = atoms.calc.get_ibz_k_points()
-            if points is not None:
-                for i in range(len(points)):
-                    points[i] = np.dot(icell.T, points[i])
-
-        # get the correct backend
-        if not args.output:
-            import matplotlib
-            matplotlib.use('Qt4Agg')
-        import matplotlib.pyplot as plt
-
-        kwargs = {'cell': cell,
-                  'vectors': not args.no_vectors,
-                  'paths': paths,
-                  'points': points}
-        if args.dimension == 1:
-            bz1d_plot(**kwargs)
-        elif args.dimension == 2:
-            bz2d_plot(**kwargs)
-        else:
-            bz3d_plot(interactive=True, **kwargs)
-
-        if args.output:
-            plt.savefig(args.output)
-        else:
-            plt.show()
+        plot_reciprocal_cell(atoms,
+                             output=args.output,
+                             verbose=args.verbose,
+                             path=args.path,
+                             dimension=args.dimension,
+                             plot_vectors=not args.no_vectors,
+                             k_points=args.k_points,
+                             ibz_k_points=args.ibz_k_points)
