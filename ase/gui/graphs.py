@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 import pickle
-import subprocess
 import sys
 
 import numpy as np

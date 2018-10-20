@@ -6,7 +6,6 @@ import ase.gui.ui as ui
 from ase.gui.simulation import Simulation
 import ase
 import ase.optimize
-import numpy as np
 
 
 pack = _ = AseGuiCancelException = 42

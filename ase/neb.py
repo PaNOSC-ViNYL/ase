@@ -7,7 +7,6 @@ from math import sqrt
 import numpy as np
 
 import ase.parallel as mpi
-from ase import Atoms
 from ase.build import minimize_rotation_and_translation
 from ase.calculators.calculator import Calculator
 from ase.calculators.singlepoint import SinglePointCalculator
@@ -628,7 +627,8 @@ class NEBTools:
     def plot_band(self, ax=None):
         """Plots the NEB band on matplotlib axes object 'ax'. If ax=None
         returns a new figure object."""
-        return plot_band_from_fit(*self.get_fit(), ax=ax)
+        ax = plot_band_from_fit(*self.get_fit(), ax=ax)
+        return ax.figure
 
     def get_fmax(self, **kwargs):
         """Returns fmax, as used by optimizers with NEB."""
