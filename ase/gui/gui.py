@@ -259,19 +259,15 @@ class GUI(View, Status):
                                    stdin=subprocess.PIPE)
         pickle.dump((task, data), process.stdin)
         process.stdin.close()
-        # Subprocess should always write GUI:OK or crash
-        try:
-            line = process.stdout.readline().strip()
-        except Exception as err:
-            self.bad_plot(err)
+        # Either process writes a line, or it crashes and line becomes ''
+        line = process.stdout.readline().decode('utf8').strip()
+
+        if line != 'GUI:OK':
+            if line == '':  # Subprocess probably crashed
+                line = _('Failure in subprocess')
+            self.bad_plot(line)
         else:
-            if line != 'GUI:OK':
-                if not line:
-                    # Subprocess never responded
-                    line = _('Failure in subprocess')
-                self.bad_plot(line)
-            else:
-                self.subprocesses.append(process)
+            self.subprocesses.append(process)
 
     def bad_plot(self, err, msg=''):
         ui.error(_('Plotting failed'), '\n'.join([str(err), msg]).strip())
@@ -296,7 +292,7 @@ class GUI(View, Status):
             plotdata = eos.getplotdata()
         except Exception as err:
             self.bad_plot(err, _('Images must have energies '
-                                 'and varying cells.'))
+                                 'and varying cell.'))
         else:
             self.pipe('eos', plotdata)
 

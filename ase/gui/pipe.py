@@ -3,9 +3,12 @@ import pickle
 import sys
 
 
-if __name__ == '__main__':
+def main():
     import matplotlib.pyplot as plt
-    task, data = pickle.load(sys.stdin)
+    stdin = sys.stdin
+    if sys.version_info[0] == 3:
+        stdin = stdin.buffer
+    task, data = pickle.load(stdin)
     if task == 'eos':
         from ase.eos import plot
         plot(*data)
@@ -15,11 +18,18 @@ if __name__ == '__main__':
     elif task == 'reciprocal':
         from ase.dft.bz import bz3d_plot
         bz3d_plot(**data)
+    elif task == 'graph':
+        from ase.gui.graphs import make_plot
+        make_plot(show=False, *data)
     else:
         print('Invalid task {}'.format(task))
         sys.exit(17)
 
     # Magic string to tell GUI that things went okay:
     print('GUI:OK')
+    sys.stdout.close()
 
     plt.show()
+
+if __name__ == '__main__':
+    main()

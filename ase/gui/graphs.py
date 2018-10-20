@@ -43,8 +43,7 @@ class Graphs:
                  ' x, y1, y2, ...'], 'w')
         win.add([ui.Button(_('Plot'), self.plot, 'y'),
                  ' y1, y2, ...'], 'w')
-        win.add([ui.Button(_('Save'), self.save),
-                 ui.Button(_('Clear'), self.clear)], 'w')
+        win.add([ui.Button(_('Save'), self.save)], 'w')
 
         self.gui = gui
 
@@ -56,16 +55,12 @@ class Graphs:
 
         try:
             data = self.gui.images.graph(expr)
-        except (SyntaxError, NameError) as ex:
+        except Exception as ex:
             ui.error(ex)
             return
 
-        process = subprocess.Popen([sys.executable, '-m', 'ase.gui.graphs'],
-                                   stdin=subprocess.PIPE)
         pickledata = (data, self.gui.frame, expr, type)
-        pickle.dump(pickledata, process.stdin, protocol=0)
-        process.stdin.close()
-        self.gui.subprocesses.append(process)
+        self.gui.pipe('graph', pickledata)
 
     def save(self):
         dialog = ui.SaveFileDialog(self.gui.window.win,
@@ -76,14 +71,8 @@ class Graphs:
             data = self.gui.images.graph(expr)
             np.savetxt(filename, data.T, header=expr)
 
-    def clear(self):
-        import matplotlib.pyplot as plt
-        for fig in self.gui.subprocesses:
-            plt.close(fig)
-        self.gui.subprocesses = []
 
-
-def make_plot(data, i, expr, type):
+def make_plot(data, i, expr, type, show=True):
     import matplotlib.pyplot as plt
     basesize = 4
     plt.figure(figsize=(basesize * 2.5**0.5, basesize))
@@ -104,7 +93,8 @@ def make_plot(data, i, expr, type):
             plt.plot(data[0], data[j])
             plt.plot([data[0, i]], [data[j, i]], 'o')
     plt.title(expr)
-    plt.show()
+    if show:
+        plt.show()
 
 
 if __name__ == '__main__':
