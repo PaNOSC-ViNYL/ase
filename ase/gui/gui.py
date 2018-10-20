@@ -255,13 +255,26 @@ class GUI(View, Status):
 
     def pipe(self, task, data):
         process = subprocess.Popen([sys.executable, '-m', 'ase.gui.pipe'],
+                                   stdout=subprocess.PIPE,
                                    stdin=subprocess.PIPE)
         pickle.dump((task, data), process.stdin)
         process.stdin.close()
-        self.subprocesses.append(process)
+        # Subprocess should always write GUI:OK or crash
+        try:
+            line = process.stdout.readline().strip()
+        except Exception as err:
+            self.bad_plot(err)
+        else:
+            if line != 'GUI:OK':
+                if not line:
+                    # Subprocess never responded
+                    line = _('Failure in subprocess')
+                self.bad_plot(line)
+            else:
+                self.subprocesses.append(process)
 
-    def bad_plot(self, err, msg):
-        ui.error(_('Plotting failed'), '{}\n{}'.format(err, msg))
+    def bad_plot(self, err, msg=''):
+        ui.error(_('Plotting failed'), '\n'.join([str(err), msg]).strip())
 
     def neb(self):
         from ase.neb import NEBtools
@@ -288,14 +301,12 @@ class GUI(View, Status):
             self.pipe('eos', plotdata)
 
     def reciprocal(self):
-        fd, filename = tempfile.mkstemp('.xyz', 'ase.gui-')
-        os.close(fd)
-        self.images.write(filename)
-        os.system('(sleep 60; rm %s) &' % filename)
-        process = subprocess.Popen([sys.executable, '-m', 'ase', 'reciprocal',
-                                    filename],
-                                   stdin=subprocess.PIPE)
-        process.stdin.close()
+        if self.atoms.number_of_lattice_vectors != 3:
+            self.bad_plot(_('Requires 3D cell.'))
+            return
+
+        kwargs = dict(cell=self.atoms.cell, vectors=True)
+        self.pipe('reciprocal', kwargs)
 
     def open(self, button=None, filename=None):
         chooser = ui.ASEFileChooser(self.window.win)
