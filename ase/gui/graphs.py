@@ -47,7 +47,7 @@ class Graphs:
 
         self.gui = gui
 
-    def plot(self, type=None, expr=None):
+    def plot(self, type=None, expr=None, ignore_if_nan=False):
         if expr is None:
             expr = self.expr.value
         else:
@@ -59,6 +59,8 @@ class Graphs:
             ui.error(ex)
             return
 
+        if ignore_if_nan and len(data) == 2 and np.isnan(data[1]).all():
+            return
         pickledata = (data, self.gui.frame, expr, type)
         self.gui.pipe('graph', pickledata)
 
