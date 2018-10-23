@@ -728,3 +728,25 @@ def stringify(filename):
     if isinstance(filename, PurePath):
         return basestring(filename)
     return filename
+
+
+def reader(format):
+    """Auxilary function to access a specific read function"""
+    def _read(*args, **kwargs):
+        return read(*args, format=format, **kwargs)
+    if format is None:
+        _read.__name__ = 'read_'
+    else:
+        _read.__name__ = 'read_{}'.format(format.replace('-', '_'))
+    return _read
+
+
+def writer(format):
+    """Auxilary function to access a particular write function"""
+    def _write(*args, **kwargs):
+        return write(*args, format=format, **kwargs)
+    if format is None:
+        _write.__name__ = 'write_'
+    else:
+        _write.__name__ = '_write_{}'.format(format.replace('-', '_'))
+    return _write

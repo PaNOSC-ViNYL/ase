@@ -8,24 +8,19 @@ import os
 import re
 import ase.units
 
-from ase.utils import basestring
 from ase.io import read, write
+from ase.io.formats import reader, writer
 
 
 # Shorthand functions for accessing readers through ase.io.read
-def read_vasp(filename, **kwargs):
-    return read(filename, **kwargs)
 
-def read_vasp_xml(filename='vasprun.xml', index=-1):
-    return read(filename, format='vasp-xml', index=index)
-
-def read_vasp_out(filename='OUTCAR', index=-1, force_consistent=False):
-    return read(filename, format='vasp-out', index=index, force_consistent=force_consistent)
-
+read_vasp = reader(None)            # Default VASP reader
+read_vasp_pos = reader('vasp')      # Read POSCAR/CONTCAR
+read_vasp_xml = reader('vasp-xml')  # read vasprun.xml
+read_vasp_out = reader('vasp-out')  # read OUTCAR
 
 # Shorthand functions for accessing writer through ase.io.read write
-def write_vasp(filename, **kwargs):
-    return write(filename, **kwargs)
+write_vasp = writer('vasp')          # Default VASP writer
 
 
 def get_atomtypes(fname):
