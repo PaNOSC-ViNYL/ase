@@ -248,12 +248,10 @@ class GUI(View, Status):
         self.movie_window = Movie(self)
 
     def plot_graphs(self, key=None, expr=None, ignore_if_nan=False):
-        if expr is None:
-            return
-
         from ase.gui.graphs import Graphs
         g = Graphs(self)
-        g.plot(expr=expr, ignore_if_nan=ignore_if_nan)
+        if expr is not None:
+            g.plot(expr=expr, ignore_if_nan=ignore_if_nan)
 
     def pipe(self, task, data):
         process = subprocess.Popen([sys.executable, '-m', 'ase.gui.pipe'],
