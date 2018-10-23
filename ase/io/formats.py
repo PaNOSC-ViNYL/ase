@@ -31,7 +31,7 @@ import os
 import sys
 
 from ase.atoms import Atoms
-from ase.utils import import_module, basestring, PurePath
+from ase.utils import import_module, basestring, PurePath, convert_string_to_fd
 from ase.parallel import parallel_function, parallel_generator
 
 
@@ -201,8 +201,15 @@ def initialize(format):
         raise ValueError('File format not recognized: %s.  Error: %s'
                          % (format, err))
 
-    read = getattr(module, 'read_' + _format, None)
-    write = getattr(module, 'write_' + _format, None)
+    read = getattr(module, '_read_' + _format, None)
+    # Try old way instead
+    if read is None:
+        read = getattr(module, 'read_' + _format, None)
+
+    write = getattr(module, '_write_' + _format, None)
+    # Try old way instead
+    if write is None:
+        write = getattr(module, 'write_' + _format, None)
 
     if read and not inspect.isgeneratorfunction(read):
         read = functools.partial(wrap_read_function, read)
@@ -453,8 +460,7 @@ def read(filename, index=None, format=None, parallel=True, **kwargs):
     of ``filename``. In this case the format cannot be auto-decected,
     so the ``format`` argument should be explicitly given."""
 
-    if isinstance(filename, PurePath):
-        filename = str(filename)
+    filename = stringify(filename)
     if isinstance(index, basestring):
         try:
             index = string2index(index)
@@ -466,6 +472,7 @@ def read(filename, index=None, format=None, parallel=True, **kwargs):
         index = -1
     format = format or filetype(filename)
     io = get_ioformat(format)
+
     if isinstance(index, (slice, basestring)):
         return list(_iread(filename, index, format, io, parallel=parallel,
                            **kwargs))
@@ -713,3 +720,11 @@ def filetype(filename, read=True, guess=True):
         raise UnknownFileTypeError('Could not guess file type')
 
     return format
+
+
+def stringify(filename):
+    if hasattr(filename, '__fspath__'):
+        return filename.__fspath__()
+    if isinstance(filename, PurePath):
+        return basestring(filename)
+    return filename

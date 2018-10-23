@@ -9,6 +9,23 @@ import re
 import ase.units
 
 from ase.utils import basestring
+from ase.io import read, write
+
+
+# Shorthand functions for accessing readers through ase.io.read
+def read_vasp(filename, **kwargs):
+    return read(filename, **kwargs)
+
+def read_vasp_xml(filename='vasprun.xml', index=-1):
+    return read(filename, format='vasp-xml', index=index)
+
+def read_vasp_out(filename='OUTCAR', index=-1, force_consistent=False):
+    return read(filename, format='vasp-out', index=index, force_consistent=force_consistent)
+
+
+# Shorthand functions for accessing writer through ase.io.read write
+def write_vasp(filename, **kwargs):
+    return write(filename, **kwargs)
 
 
 def get_atomtypes(fname):
@@ -96,7 +113,7 @@ def get_atomtypes_from_formula(formula):
     return atomtypes
 
 
-def read_vasp(filename='CONTCAR'):
+def _read_vasp(filestream):
     """Import POSCAR/CONTCAR type file.
 
     Reads unitcell, atom positions and constraints from the POSCAR/CONTCAR
@@ -109,10 +126,7 @@ def read_vasp(filename='CONTCAR'):
     from ase.data import chemical_symbols
     import numpy as np
 
-    if isinstance(filename, basestring):
-        f = open(filename)
-    else:  # Assume it's a file-like object
-        f = filename
+    f = filestream              # Shorthand
 
     # The first line is in principle a comment line, however in VASP
     # 4.x a common convention is to have it contain the atom symbols,
@@ -203,9 +217,7 @@ def read_vasp(filename='CONTCAR'):
             for flag in ac[3:6]:
                 curflag.append(flag == 'F')
             selective_flags[atom] = curflag
-    # Done with all reading
-    if isinstance(filename, basestring):
-        f.close()
+
     if cartesian:
         atoms_pos *= lattice_constant
     atoms = Atoms(symbols=atom_symbols, cell=basis_vectors, pbc=True)
@@ -228,7 +240,7 @@ def read_vasp(filename='CONTCAR'):
     return atoms
 
 
-def read_vasp_out(filename='OUTCAR', index=-1, force_consistent=False):
+def _read_vasp_out(filestream, index=-1, force_consistent=False):
     """Import OUTCAR type file.
 
     Reads unitcell, atom positions, energies, and forces from the OUTCAR file
@@ -246,10 +258,8 @@ def read_vasp_out(filename='OUTCAR', index=-1, force_consistent=False):
         except Exception:
             constr = None
 
-    if isinstance(filename, basestring):
-        f = open(filename)
-    else:  # Assume it's a file-like object
-        f = filename
+    f = filestream
+
     data = f.readlines()
     natoms = 0
     images = []
@@ -365,7 +375,7 @@ def read_vasp_out(filename='OUTCAR', index=-1, force_consistent=False):
         return [images[i] for i in range(start, stop, step)]
 
 
-def read_vasp_xdatcar(filename, index=-1):
+def _read_vasp_xdatcar(filename, index=-1):
     """Import XDATCAR file
 
        Reads all positions from the XDATCAR and returns a list of
@@ -453,7 +463,7 @@ def __get_xml_parameter(par):
         return var_type(text.strip())
 
 
-def read_vasp_xml(filename='vasprun.xml', index=-1):
+def _read_vasp_xml(filestream, index=-1):
     """Parse vasprun.xml file.
 
     Reads unit cell, atom positions, energies, forces, and constraints
@@ -469,7 +479,7 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
     from ase.units import GPa
     from collections import OrderedDict
 
-    tree = ET.iterparse(filename, events=['start', 'end'])
+    tree = ET.iterparse(filestream, events=['start', 'end'])
 
     atoms_init = None
     calculation = []
@@ -670,9 +680,9 @@ def read_vasp_xml(filename='vasprun.xml', index=-1):
         yield atoms
 
 
-def write_vasp(filename, atoms, label='', direct=False, sort=None,
-               symbol_count=None, long_format=True, vasp5=False,
-               ignore_constraints=False):
+def _write_vasp(filestream, atoms, label='', direct=False, sort=None,
+                symbol_count=None, long_format=True, vasp5=False,
+                ignore_constraints=False):
     """Method to write VASP position (POSCAR/CONTCAR) files.
 
     Writes label, scalefactor, unitcell, # of various kinds of atoms,
@@ -684,10 +694,7 @@ def write_vasp(filename, atoms, label='', direct=False, sort=None,
     import numpy as np
     from ase.constraints import FixAtoms, FixScaled, FixedPlane, FixedLine
 
-    if isinstance(filename, basestring):
-        f = open(filename, 'w')
-    else:  # Assume it's a 'file-like object'
-        f = filename
+    f = filestream
 
     if isinstance(atoms, (list, tuple)):
         if len(atoms) > 1:
@@ -815,6 +822,3 @@ def write_vasp(filename, atoms, label='', direct=False, sort=None,
                     s = 'T'
                 f.write('%4s' % s)
         f.write('\n')
-
-    if isinstance(filename, basestring):
-        f.close()
