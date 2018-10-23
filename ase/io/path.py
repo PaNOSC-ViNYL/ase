@@ -41,9 +41,9 @@ def open_fd(name, mode='w'):
 
 class ASEbuffer:
     def __init__ (self, filename, mode='w'):
-    """Class for keeping track of internally opened files.
-    Should be used as a context manager.
-    Only closes filename if we opened file internally."""
+        """Class for keeping track of internally opened files.
+        Should be used as a context manager.
+        Only closes filename if we opened file internally."""
         self.mode = mode
         self.opened_internally = False
         self.filename = pathify(filename)
