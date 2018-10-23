@@ -7,6 +7,8 @@ import ase.gui.ui as ui
 #from ase import Atoms
 #from ase.constraints import FixAtoms
 
+raise NotImplementedError('Module not ported to tkinter')
+
 pack = error = 42
 
 

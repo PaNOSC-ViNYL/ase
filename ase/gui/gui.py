@@ -14,13 +14,10 @@ import numpy as np
 
 from ase import __version__
 import ase.gui.ui as ui
-from ase.gui.calculator import SetCalculator
 from ase.gui.crystal import SetupBulkCrystal
 from ase.gui.defaults import read_defaults
-from ase.gui.energyforces import EnergyForces
 from ase.gui.graphene import SetupGraphene
 from ase.gui.images import Images
-from ase.gui.minimize import Minimize
 from ase.gui.nanoparticle import SetupNanoparticle
 from ase.gui.nanotube import SetupNanotube
 from ase.gui.save import save_dialog
@@ -60,8 +57,7 @@ class GUI(View, Status):
         View.__init__(self, rotations)
         Status.__init__(self)
 
-        self.graphs = []  # list of matplotlib processes
-        self.graph_wref = []  # list of weakrefs to Graph objects
+        self.subprocesses = []  # list of external processes
         self.movie_window = None
         self.vulnerable_windows = []
         self.simulation = {}  # Used by modules on Calculate menu.
@@ -84,7 +80,7 @@ class GUI(View, Status):
             expr = self.config['gui_graphs_string']
 
         if expr is not None and expr != '' and len(self.images) > 1:
-            self.plot_graphs(expr=expr)
+            self.plot_graphs(expr=expr, ignore_if_nan=True)
 
     @property
     def moving(self):
@@ -251,61 +247,64 @@ class GUI(View, Status):
         from ase.gui.movie import Movie
         self.movie_window = Movie(self)
 
-    def plot_graphs(self, x=None, expr=None):
+    def plot_graphs(self, key=None, expr=None, ignore_if_nan=False):
+        if expr is None:
+            return
+
         from ase.gui.graphs import Graphs
         g = Graphs(self)
-        if expr is not None:
-            g.plot(expr=expr)
-        self.graph_wref.append(weakref.ref(g))
+        g.plot(expr=expr, ignore_if_nan=ignore_if_nan)
 
-    def plot_graphs_newatoms(self):
-        "Notify any Graph objects that they should make new plots."
-        new_wref = []
-        found = 0
-        for wref in self.graph_wref:
-            ref = wref()
-            if ref is not None:
-                ref.plot()
-                new_wref.append(wref)  # Preserve weakrefs that still work.
-                found += 1
-        self.graph_wref = new_wref
-        return found
+    def pipe(self, task, data):
+        process = subprocess.Popen([sys.executable, '-m', 'ase.gui.pipe'],
+                                   stdout=subprocess.PIPE,
+                                   stdin=subprocess.PIPE)
+        pickle.dump((task, data), process.stdin)
+        process.stdin.close()
+        # Either process writes a line, or it crashes and line becomes ''
+        line = process.stdout.readline().decode('utf8').strip()
+
+        if line != 'GUI:OK':
+            if line == '':  # Subprocess probably crashed
+                line = _('Failure in subprocess')
+            self.bad_plot(line)
+        else:
+            self.subprocesses.append(process)
+
+    def bad_plot(self, err, msg=''):
+        ui.error(_('Plotting failed'), '\n'.join([str(err), msg]).strip())
 
     def neb(self):
-        if len(self.images) <= 1:
-            return
-        N = self.images.repeat.prod()
-        natoms = len(self.images[0]) // N
-        R = [a.positions[:natoms] for a in self.images]
-        E = [self.images.get_energy(a) for a in self.images]
-        F = [self.images.get_forces(a) for a in self.images]
-        A = self.images[0].cell
-        pbc = self.images[0].pbc
-        process = subprocess.Popen([sys.executable, '-m', 'ase.neb'],
-                                   stdin=subprocess.PIPE)
-        pickle.dump((E, F, R, A, pbc), process.stdin, protocol=0)
-        process.stdin.close()
-        self.graphs.append(process)
+        from ase.neb import NEBtools
+        try:
+            nebtools = NEBtools(self.images)
+            fit = nebtools.get_fit()
+        except Exception as err:
+            self.bad_plot(err, _('Images must have energies and forces, '
+                                 'and atoms must not be stationary.'))
+        else:
+            self.pipe('neb', fit)
 
     def bulk_modulus(self):
-        process = subprocess.Popen([sys.executable, '-m', 'ase', 'eos',
-                                    '--plot', '-'],
-                                   stdin=subprocess.PIPE)
-        v = [abs(np.linalg.det(atoms.cell)) for atoms in self.images]
-        e = [self.images.get_energy(a) for a in self.images]
-        pickle.dump((v, e), process.stdin, protocol=0)
-        process.stdin.close()
-        self.graphs.append(process)
+        try:
+            v = [abs(np.linalg.det(atoms.cell)) for atoms in self.images]
+            e = [self.images.get_energy(a) for a in self.images]
+            from ase.eos import EquationOfState
+            eos = EquationOfState(v, e)
+            plotdata = eos.getplotdata()
+        except Exception as err:
+            self.bad_plot(err, _('Images must have energies '
+                                 'and varying cell.'))
+        else:
+            self.pipe('eos', plotdata)
 
     def reciprocal(self):
-        fd, filename = tempfile.mkstemp('.xyz', 'ase.gui-')
-        os.close(fd)
-        self.images.write(filename)
-        os.system('(sleep 60; rm %s) &' % filename)
-        process = subprocess.Popen([sys.executable, '-m', 'ase', 'reciprocal',
-                                    filename],
-                                   stdin=subprocess.PIPE)
-        process.stdin.close()
+        if self.atoms.number_of_lattice_vectors != 3:
+            self.bad_plot(_('Requires 3D cell.'))
+            return
+
+        kwargs = dict(cell=self.atoms.cell, vectors=True)
+        self.pipe('reciprocal', kwargs)
 
     def open(self, button=None, filename=None):
         chooser = ui.ASEFileChooser(self.window.win)
@@ -351,15 +350,6 @@ class GUI(View, Status):
     def nanotube_window(self):
         return SetupNanotube(self)
 
-    def calculator_window(self, menuitem):
-        SetCalculator(self)
-
-    def energy_window(self, menuitem):
-        EnergyForces(self)
-
-    def energy_minimize_window(self, menuitem):
-        Minimize(self)
-
     def new_atoms(self, atoms, init_magmom=False):
         "Set a new atoms object."
         rpt = getattr(self.images, 'repeat', None)
@@ -369,16 +359,6 @@ class GUI(View, Status):
         self.images.repeat_images(rpt)
         self.set_frame(frame=0, focus=True)
         self.notify_vulnerable()
-
-    def prepare_new_atoms(self):
-        "Marks that the next call to append_atoms should clear the images."
-        self.images.prepare_new_atoms()
-
-    def append_atoms(self, atoms):
-        "Set a new atoms object."
-        # self.notify_vulnerable()   # Do this manually after last frame.
-        frame = self.images.append_atoms(atoms)
-        self.set_frame(frame=frame - 1, focus=True)
 
     def notify_vulnerable(self):
         """Notify windows that would break when new_atoms is called.
@@ -404,7 +384,7 @@ class GUI(View, Status):
         self.vulnerable_windows.append(weakref.ref(obj))
 
     def exit(self, event=None):
-        for process in self.graphs:
+        for process in self.subprocesses:
             process.terminate()
         self.window.close()
 
@@ -526,11 +506,11 @@ class GUI(View, Status):
               M(_('Nano_tube'), self.nanotube_window),
               M(_('Graphene'), self.graphene_window, disabled=True)]),
 
-            (_('_Calculate'),
-             [M(_('Set _Calculator'), self.calculator_window, disabled=True),
-              M(_('_Energy and Forces'), self.energy_window, disabled=True),
-              M(_('Energy Minimization'), self.energy_minimize_window,
-                disabled=True)]),
+            # (_('_Calculate'),
+            # [M(_('Set _Calculator'), self.calculator_window, disabled=True),
+            #  M(_('_Energy and Forces'), self.energy_window, disabled=True),
+            #  M(_('Energy Minimization'), self.energy_minimize_window,
+            #    disabled=True)]),
 
             (_('_Help'),
              [M(_('_About'), partial(ui.about, 'ASE-GUI',

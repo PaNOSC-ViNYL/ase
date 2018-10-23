@@ -287,6 +287,18 @@ class EquationOfState:
 
         return self.v0, self.e0, self.B
 
+    def getplotdata(self):
+        if self.v0 is None:
+            self.fit()
+
+        x = np.linspace(min(self.v), max(self.v), 100)
+        if self.eos_string == 'sj':
+            y = self.fit0(x**-(1 / 3))
+        else:
+            y = self.func(x, *self.eos_parameters)
+
+        return self.eos_string, self.e0, self.v0, self.B, x, y, self.v, self.e
+
     def plot(self, filename=None, show=None, ax=None):
         """Plot fitted energy curve.
 
@@ -296,43 +308,18 @@ class EquationOfState:
 
         import matplotlib.pyplot as plt
 
-        if self.v0 is None:
-            self.fit()
-
         if filename is None and show is None:
             show = True
 
-        if ax is None:
-            ax = plt.gca()
+        plotdata = self.getplotdata()
 
-        x = np.linspace(min(self.v), max(self.v), 100)
-        if self.eos_string == 'sj':
-            y = self.fit0(x**-(1 / 3))
-        else:
-            y = self.func(x, *self.eos_parameters)
-
-        ax.plot(x, y, '-r')
-        ax.plot(self.v, self.e, 'o')
-
-        try:
-            ax.set_xlabel(u'volume [Å$^3$]')
-            ax.set_ylabel(u'energy [eV]')
-            ax.set_title(u'%s: E: %.3f eV, V: %.3f Å$^3$, B: %.3f GPa' %
-                         (self.eos_string, self.e0, self.v0,
-                          self.B / kJ * 1.e24))
-
-        except ImportError:  # XXX what would cause this error?  LaTeX?
-            ax.set_xlabel(u'volume [L(length)^3]')
-            ax.set_ylabel(u'energy [E(energy)]')
-            ax.set_title(u'%s: E: %.3f E, V: %.3f L^3, B: %.3e E/L^3' %
-                         (self.eos_string, self.e0, self.v0, self.B))
+        ax = plot(*plotdata, ax=ax)
 
         if show:
             plt.show()
         if filename is not None:
             fig = ax.get_figure()
             fig.savefig(filename)
-
         return ax
 
     def fit_sjeos(self):
@@ -365,6 +352,32 @@ class EquationOfState:
         self.fit0 = fit0
 
         return self.v0, self.e0, self.B
+
+
+def plot(eos_string, e0, v0, B, x, y, v, e, ax=None):
+    if ax is None:
+        import matplotlib.pyplot as plt
+        ax = plt.gca()
+
+    ax.plot(x, y, '-r')
+    ax.plot(v, e, 'o')
+
+    try:
+        ax.set_xlabel(u'volume [Å$^3$]')
+        ax.set_ylabel(u'energy [eV]')
+        ax.set_title(u'%s: E: %.3f eV, V: %.3f Å$^3$, B: %.3f GPa' %
+                     (eos_string, e0, v0,
+                      B / kJ * 1.e24))
+
+    except ImportError:  # XXX what would cause this error?  LaTeX?
+        import warnings
+        warnings.warn('Could not use LaTeX formatting')
+        ax.set_xlabel(u'volume [L(length)^3]')
+        ax.set_ylabel(u'energy [E(energy)]')
+        ax.set_title(u'%s: E: %.3f E, V: %.3f L^3, B: %.3e E/L^3' %
+                     (eos_string, e0, v0, B))
+
+    return ax
 
 
 def calculate_eos(atoms, npoints=5, eps=0.04, trajectory=None, callback=None):

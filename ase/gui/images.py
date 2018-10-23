@@ -134,17 +134,6 @@ class Images:
         radii *= self.atom_scale
         return radii
 
-    def prepare_new_atoms(self):
-        "Marks that the next call to append_atoms should clear the images."
-        self.next_append_clears = True
-
-    def append_atoms(self, atoms, filename=None):
-        "Append an atoms object to the images already stored."
-        self.images.append(atoms)
-        self.filenames.append(filename)
-        self.initialize(self.images, filenames=self.filenames)
-        return
-
     def read(self, filenames, default_index=':', filetype=None):
         from ase.utils import basestring
         if isinstance(default_index, basestring):

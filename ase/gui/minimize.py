@@ -6,7 +6,6 @@ import ase.gui.ui as ui
 from ase.gui.simulation import Simulation
 import ase
 import ase.optimize
-import numpy as np
 
 
 pack = _ = AseGuiCancelException = 42
@@ -135,12 +134,13 @@ class Minimize(Simulation, MinimizeMixin):
             self.gui.notify_vulnerable()
 
         # Open movie window and energy graph
-        if self.gui.images.nimages > 1:
-            self.gui.movie()
-            assert not np.isnan(self.gui.images.E[0])
-            if not self.gui.plot_graphs_newatoms():
-                expr = 'i, e - E[-1]'
-                self.gui.plot_graphs(expr=expr)
+        # XXX disabled 2018-10-19.  --askhl
+        #if self.gui.images.nimages > 1:
+        #    self.gui.movie()
+        #    assert not np.isnan(self.gui.images.E[0])
+        #    if not self.gui.plot_graphs_newatoms():
+        #        expr = 'i, e - E[-1]'
+        #        self.gui.plot_graphs(expr=expr)
 
     def notify_atoms_changed(self):
         "When atoms have changed, check for the number of images."

@@ -7,7 +7,6 @@ from math import sqrt
 import numpy as np
 
 import ase.parallel as mpi
-from ase import Atoms
 from ase.build import minimize_rotation_and_translation
 from ase.calculators.calculator import Calculator
 from ase.calculators.singlepoint import SinglePointCalculator
@@ -628,27 +627,8 @@ class NEBTools:
     def plot_band(self, ax=None):
         """Plots the NEB band on matplotlib axes object 'ax'. If ax=None
         returns a new figure object."""
-        if not ax:
-            import matplotlib.pyplot as plt
-            fig = plt.figure()
-            ax = fig.add_subplot(111)
-        else:
-            fig = None
-        s, E, Sfit, Efit, lines = self.get_fit()
-        ax.plot(s, E, 'o')
-        for x, y in lines:
-            ax.plot(x, y, '-g')
-        ax.plot(Sfit, Efit, 'k-')
-        ax.set_xlabel(r'path [$\AA$]')
-        ax.set_ylabel('energy [eV]')
-        Ef = max(Efit) - E[0]
-        Er = max(Efit) - E[-1]
-        dE = E[-1] - E[0]
-        ax.set_title('$E_\\mathrm{f} \\approx$ %.3f eV; '
-                     '$E_\\mathrm{r} \\approx$ %.3f eV; '
-                     '$\\Delta E$ = %.3f eV'
-                     % (Ef, Er, dE))
-        return fig
+        ax = plot_band_from_fit(*self.get_fit(), ax=ax)
+        return ax.figure
 
     def get_fmax(self, **kwargs):
         """Returns fmax, as used by optimizers with NEB."""
@@ -666,6 +646,27 @@ class NEBTools:
         pbc = images[0].pbc
         s, E, Sfit, Efit, lines = fit0(E, F, R, A, pbc)
         return s, E, Sfit, Efit, lines
+
+
+def plot_band_from_fit(s, E, Sfit, Efit, lines, ax=None):
+    if ax is None:
+        import matplotlib.pyplot as plt
+        ax = plt.gca()
+
+    ax.plot(s, E, 'o')
+    for x, y in lines:
+        ax.plot(x, y, '-g')
+    ax.plot(Sfit, Efit, 'k-')
+    ax.set_xlabel(r'path [$\AA$]')
+    ax.set_ylabel('energy [eV]')
+    Ef = max(Efit) - E[0]
+    Er = max(Efit) - E[-1]
+    dE = E[-1] - E[0]
+    ax.set_title('$E_\\mathrm{f} \\approx$ %.3f eV; '
+                 '$E_\\mathrm{r} \\approx$ %.3f eV; '
+                 '$\\Delta E$ = %.3f eV'
+                 % (Ef, Er, dE))
+    return ax
 
 
 NEBtools = NEBTools  # backwards compatibility
@@ -687,16 +688,6 @@ def interpolate(images, mic=False):
 if __name__ == '__main__':
     # This stuff is used by ASE's GUI
     import matplotlib.pyplot as plt
-    if sys.version_info[0] == 2:
-        E, F, R, A, pbc = pickle.load(sys.stdin)
-    else:
-        E, F, R, A, pbc = pickle.load(sys.stdin.buffer)
-    symbols = 'X' * len(R[0])
-    images = []
-    for e, r, f in zip(E, R, F):
-        atoms = Atoms(symbols, r, cell=A, pbc=pbc)
-        atoms.calc = SinglePointCalculator(atoms, energy=e, forces=f)
-        images.append(atoms)
-    nebtools = NEBtools(images)
-    fig = nebtools.plot_band()
+    fit = pickle.load(sys.stdin)
+    plot_band_from_fit(*fit)
     plt.show()
