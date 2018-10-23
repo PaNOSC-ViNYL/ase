@@ -1,7 +1,7 @@
 import numpy as np
 from math import sqrt
 from ase.utils import rotate
-from ase.data import covalent_radii
+from ase.data import covalent_radii, atomic_numbers
 from ase.data.colors import jmol_colors
 from ase.utils import basestring
 
@@ -107,6 +107,18 @@ def generate_writer_variables(writer, atoms, rotation='', show_unit_cell=0,
     writer.natoms = natoms
     writer.d = 2 * scale * radii
 
+    # extension for partial occupancies
+    writer.frac_occ = False
+    writer.tags = None
+    writer.occs = None
+
+    try:
+        writer.occs = atoms.info['occupancy']
+        writer.tags = atoms.get_tags()
+        writer.frac_occ = True
+    except KeyError:
+        pass
+
 
 def cell_to_lines(writer, cell):
     # XXX this needs to be updated for cell vectors that are zero.
@@ -143,9 +155,9 @@ def make_patch_list(writer):
         from matplotlib.path import Path
     except ImportError:
         Path = None
-        from matplotlib.patches import Circle, Polygon
+        from matplotlib.patches import Circle, Polygon, Wedge
     else:
-        from matplotlib.patches import Circle, PathPatch
+        from matplotlib.patches import Circle, PathPatch, Wedge
 
     indices = writer.positions[:, 2].argsort()
     patch_list = []
@@ -153,11 +165,38 @@ def make_patch_list(writer):
         xy = writer.positions[a, :2]
         if a < writer.natoms:
             r = writer.d[a] / 2
-            if ((xy[1] + r > 0) and (xy[1] - r < writer.h) and
-                (xy[0] + r > 0) and (xy[0] - r < writer.w)):
-                patch = Circle(xy, r, facecolor=writer.colors[a],
-                               edgecolor='black')
-                patch_list.append(patch)
+            if writer.frac_occ:
+                site_occ = writer.occs[writer.tags[a]]
+                # first an empty circle if a site is not fully occupied
+                if (np.sum([v for v in site_occ.values()])) < 1.0:
+                    # fill with white
+                    fill = '#ffffff'
+                    patch = Circle(xy, r, facecolor=fill,
+                                   edgecolor='black')
+                    patch_list.append(patch)
+
+                start = 0
+                # start with the dominant species
+                for sym, occ in sorted(site_occ.items(), key=lambda x: x[1], reverse=True):
+                    if np.round(occ, decimals=4) == 1.0:
+                        patch = Circle(xy, r, facecolor=writer.colors[a],
+                                       edgecolor='black')
+                        patch_list.append(patch)
+                    else:
+                        # jmol colors for the moment
+                        extent = 360. * occ
+                        patch = Wedge(xy, r, start, start+extent,
+                                      facecolor=jmol_colors[atomic_numbers[sym]],
+                                      edgecolor='black')
+                        patch_list.append(patch)
+                        start += extent
+
+            else:
+                if ((xy[1] + r > 0) and (xy[1] - r < writer.h) and
+                    (xy[0] + r > 0) and (xy[0] - r < writer.w)):
+                    patch = Circle(xy, r, facecolor=writer.colors[a],
+                                   edgecolor='black')
+                    patch_list.append(patch)
         else:
             a -= writer.natoms
             c = writer.T[a]

@@ -115,6 +115,14 @@ def open_and_save(gui):
     gui.open(filename='h2o.json')
     save_dialog(gui, 'h2o.cif@-1')
 
+@test
+def test_fracocc(gui):
+    from ase.test.fio.cif import content
+    with open('./fracocc.cif', 'w') as f:
+        f.write(content)
+    gui.open(filename='fracocc.cif')
+
+
 
 p = argparse.ArgumentParser()
 p.add_argument('tests', nargs='*')
