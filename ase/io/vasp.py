@@ -9,6 +9,7 @@ import re
 import ase.units
 
 from ase.utils import basestring
+from ase.io.path import ASEbuffer
 
 
 def get_atomtypes(fname):
@@ -109,122 +110,116 @@ def read_vasp(filename='CONTCAR'):
     from ase.data import chemical_symbols
     import numpy as np
 
-    if isinstance(filename, basestring):
-        f = open(filename)
-    else:  # Assume it's a file-like object
-        f = filename
+    with ASEbuffer(filename) as f:
 
-    # The first line is in principle a comment line, however in VASP
-    # 4.x a common convention is to have it contain the atom symbols,
-    # eg. "Ag Ge" in the same order as later in the file (and POTCAR
-    # for the full vasp run). In the VASP 5.x format this information
-    # is found on the fifth line. Thus we save the first line and use
-    # it in case we later detect that we're reading a VASP 4.x format
-    # file.
-    line1 = f.readline()
+        # The first line is in principle a comment line, however in VASP
+        # 4.x a common convention is to have it contain the atom symbols,
+        # eg. "Ag Ge" in the same order as later in the file (and POTCAR
+        # for the full vasp run). In the VASP 5.x format this information
+        # is found on the fifth line. Thus we save the first line and use
+        # it in case we later detect that we're reading a VASP 4.x format
+        # file.
+        line1 = f.readline()
 
-    lattice_constant = float(f.readline().split()[0])
+        lattice_constant = float(f.readline().split()[0])
 
-    # Now the lattice vectors
-    a = []
-    for ii in range(3):
-        s = f.readline().split()
-        floatvect = float(s[0]), float(s[1]), float(s[2])
-        a.append(floatvect)
+        # Now the lattice vectors
+        a = []
+        for ii in range(3):
+            s = f.readline().split()
+            floatvect = float(s[0]), float(s[1]), float(s[2])
+            a.append(floatvect)
 
-    basis_vectors = np.array(a) * lattice_constant
+        basis_vectors = np.array(a) * lattice_constant
 
-    # Number of atoms. Again this must be in the same order as
-    # in the first line
-    # or in the POTCAR or OUTCAR file
-    atom_symbols = []
-    numofatoms = f.readline().split()
-    # Check whether we have a VASP 4.x or 5.x format file. If the
-    # format is 5.x, use the fifth line to provide information about
-    # the atomic symbols.
-    vasp5 = False
-    try:
-        int(numofatoms[0])
-    except ValueError:
-        vasp5 = True
-        atomtypes = numofatoms
+        # Number of atoms. Again this must be in the same order as
+        # in the first line
+        # or in the POTCAR or OUTCAR file
+        atom_symbols = []
         numofatoms = f.readline().split()
+        # Check whether we have a VASP 4.x or 5.x format file. If the
+        # format is 5.x, use the fifth line to provide information about
+        # the atomic symbols.
+        vasp5 = False
+        try:
+            int(numofatoms[0])
+        except ValueError:
+            vasp5 = True
+            atomtypes = numofatoms
+            numofatoms = f.readline().split()
 
-    # check for comments in numofatoms line and get rid of them if necessary
-    commentcheck = np.array(['!' in s for s in numofatoms])
-    if commentcheck.any():
-        # only keep the elements up to the first including a '!':
-        numofatoms = numofatoms[:np.arange(len(numofatoms))[commentcheck][0]]
+        # check for comments in numofatoms line and get rid of them if necessary
+        commentcheck = np.array(['!' in s for s in numofatoms])
+        if commentcheck.any():
+            # only keep the elements up to the first including a '!':
+            numofatoms = numofatoms[:np.arange(len(numofatoms))[commentcheck][0]]
 
-    if not vasp5:
-        atomtypes = line1.split()
+        if not vasp5:
+            atomtypes = line1.split()
 
-        numsyms = len(numofatoms)
-        if len(atomtypes) < numsyms:
-            # First line in POSCAR/CONTCAR didn't contain enough symbols.
+            numsyms = len(numofatoms)
+            if len(atomtypes) < numsyms:
+                # First line in POSCAR/CONTCAR didn't contain enough symbols.
 
-            # Sometimes the first line in POSCAR/CONTCAR is of the form
-            # "CoP3_In-3.pos". Check for this case and extract atom types
-            if len(atomtypes) == 1 and '_' in atomtypes[0]:
-                atomtypes = get_atomtypes_from_formula(atomtypes[0])
+                # Sometimes the first line in POSCAR/CONTCAR is of the form
+                # "CoP3_In-3.pos". Check for this case and extract atom types
+                if len(atomtypes) == 1 and '_' in atomtypes[0]:
+                    atomtypes = get_atomtypes_from_formula(atomtypes[0])
+                else:
+                    atomtypes = atomtypes_outpot(f.name, numsyms)
             else:
-                atomtypes = atomtypes_outpot(f.name, numsyms)
-        else:
-            try:
-                for atype in atomtypes[:numsyms]:
-                    if atype not in chemical_symbols:
-                        raise KeyError
-            except KeyError:
-                atomtypes = atomtypes_outpot(f.name, numsyms)
+                try:
+                    for atype in atomtypes[:numsyms]:
+                        if atype not in chemical_symbols:
+                            raise KeyError
+                except KeyError:
+                    atomtypes = atomtypes_outpot(f.name, numsyms)
 
-    for i, num in enumerate(numofatoms):
-        numofatoms[i] = int(num)
-        [atom_symbols.append(atomtypes[i]) for na in range(numofatoms[i])]
+        for i, num in enumerate(numofatoms):
+            numofatoms[i] = int(num)
+            [atom_symbols.append(atomtypes[i]) for na in range(numofatoms[i])]
 
-    # Check if Selective dynamics is switched on
-    sdyn = f.readline()
-    selective_dynamics = sdyn[0].lower() == 's'
+        # Check if Selective dynamics is switched on
+        sdyn = f.readline()
+        selective_dynamics = sdyn[0].lower() == 's'
 
-    # Check if atom coordinates are cartesian or direct
-    if selective_dynamics:
-        ac_type = f.readline()
-    else:
-        ac_type = sdyn
-    cartesian = ac_type[0].lower() == 'c' or ac_type[0].lower() == 'k'
-    tot_natoms = sum(numofatoms)
-    atoms_pos = np.empty((tot_natoms, 3))
-    if selective_dynamics:
-        selective_flags = np.empty((tot_natoms, 3), dtype=bool)
-    for atom in range(tot_natoms):
-        ac = f.readline().split()
-        atoms_pos[atom] = (float(ac[0]), float(ac[1]), float(ac[2]))
+        # Check if atom coordinates are cartesian or direct
         if selective_dynamics:
-            curflag = []
-            for flag in ac[3:6]:
-                curflag.append(flag == 'F')
-            selective_flags[atom] = curflag
-    # Done with all reading
-    if isinstance(filename, basestring):
-        f.close()
-    if cartesian:
-        atoms_pos *= lattice_constant
-    atoms = Atoms(symbols=atom_symbols, cell=basis_vectors, pbc=True)
-    if cartesian:
-        atoms.set_positions(atoms_pos)
-    else:
-        atoms.set_scaled_positions(atoms_pos)
-    if selective_dynamics:
-        constraints = []
-        indices = []
-        for ind, sflags in enumerate(selective_flags):
-            if sflags.any() and not sflags.all():
-                constraints.append(FixScaled(atoms.get_cell(), ind, sflags))
-            elif sflags.all():
-                indices.append(ind)
-        if indices:
-            constraints.append(FixAtoms(indices))
-        if constraints:
-            atoms.set_constraint(constraints)
+            ac_type = f.readline()
+        else:
+            ac_type = sdyn
+        cartesian = ac_type[0].lower() == 'c' or ac_type[0].lower() == 'k'
+        tot_natoms = sum(numofatoms)
+        atoms_pos = np.empty((tot_natoms, 3))
+        if selective_dynamics:
+            selective_flags = np.empty((tot_natoms, 3), dtype=bool)
+        for atom in range(tot_natoms):
+            ac = f.readline().split()
+            atoms_pos[atom] = (float(ac[0]), float(ac[1]), float(ac[2]))
+            if selective_dynamics:
+                curflag = []
+                for flag in ac[3:6]:
+                    curflag.append(flag == 'F')
+                selective_flags[atom] = curflag
+        if cartesian:
+            atoms_pos *= lattice_constant
+        atoms = Atoms(symbols=atom_symbols, cell=basis_vectors, pbc=True)
+        if cartesian:
+            atoms.set_positions(atoms_pos)
+        else:
+            atoms.set_scaled_positions(atoms_pos)
+        if selective_dynamics:
+            constraints = []
+            indices = []
+            for ind, sflags in enumerate(selective_flags):
+                if sflags.any() and not sflags.all():
+                    constraints.append(FixScaled(atoms.get_cell(), ind, sflags))
+                elif sflags.all():
+                    indices.append(ind)
+            if indices:
+                constraints.append(FixAtoms(indices))
+            if constraints:
+                atoms.set_constraint(constraints)
     return atoms
 
 
@@ -246,11 +241,8 @@ def read_vasp_out(filename='OUTCAR', index=-1, force_consistent=False):
         except Exception:
             constr = None
 
-    if isinstance(filename, basestring):
-        f = open(filename)
-    else:  # Assume it's a file-like object
-        f = filename
-    data = f.readlines()
+    with ASEbuffer(filename) as f:
+        data = f.readlines()
     natoms = 0
     images = []
     atoms = Atoms(pbc=True, constraint=constr)
@@ -384,14 +376,14 @@ def read_vasp_xdatcar(filename, index=-1):
     cell = np.eye(3)
     atomic_formula = str()
 
-    with open(filename, 'r') as xdatcar:
+    with ASEbuffer(filename, 'r') as xdatcar:
 
         while True:
             comment_line = xdatcar.readline()
             if "Direct configuration=" not in comment_line:
                 try:
                     lattice_constant = float(xdatcar.readline())
-                except:
+                except Exception:
                     break
 
                 xx = [float(x) for x in xdatcar.readline().split()]
@@ -684,137 +676,131 @@ def write_vasp(filename, atoms, label='', direct=False, sort=None,
     import numpy as np
     from ase.constraints import FixAtoms, FixScaled, FixedPlane, FixedLine
 
-    if isinstance(filename, basestring):
-        f = open(filename, 'w')
-    else:  # Assume it's a 'file-like object'
-        f = filename
+    with ASEbuffer(filename) as f:
 
-    if isinstance(atoms, (list, tuple)):
-        if len(atoms) > 1:
-            raise RuntimeError('Don\'t know how to save more than ' +
-                               'one image to VASP input')
-        else:
-            atoms = atoms[0]
-
-    # Check lattice vectors are finite
-    if np.any(atoms.get_cell_lengths_and_angles() == 0.):
-        raise RuntimeError(
-            'Lattice vectors must be finite and not coincident. '
-            'At least one lattice length or angle is zero.')
-
-    # Write atom positions in scaled or cartesian coordinates
-    if direct:
-        coord = atoms.get_scaled_positions()
-    else:
-        coord = atoms.get_positions()
-
-    constraints = atoms.constraints and not ignore_constraints
-
-    if constraints:
-        sflags = np.zeros((len(atoms), 3), dtype=bool)
-        for constr in atoms.constraints:
-            if isinstance(constr, FixScaled):
-                sflags[constr.a] = constr.mask
-            elif isinstance(constr, FixAtoms):
-                sflags[constr.index] = [True, True, True]
-            elif isinstance(constr, FixedPlane):
-                mask = np.all(np.abs(np.cross(constr.dir, atoms.cell)) < 1e-5,
-                              axis=1)
-                if sum(mask) != 1:
-                    raise RuntimeError(
-                        'VASP requires that the direction of FixedPlane '
-                        'constraints is parallel with one of the cell axis')
-                sflags[constr.a] = mask
-            elif isinstance(constr, FixedLine):
-                mask = np.all(np.abs(np.cross(constr.dir, atoms.cell)) < 1e-5,
-                              axis=1)
-                if sum(mask) != 1:
-                    raise RuntimeError(
-                        'VASP requires that the direction of FixedLine '
-                        'constraints is parallel with one of the cell axis')
-                sflags[constr.a] = ~mask
-
-    if sort:
-        ind = np.argsort(atoms.get_chemical_symbols())
-        symbols = np.array(atoms.get_chemical_symbols())[ind]
-        coord = coord[ind]
-        if constraints:
-            sflags = sflags[ind]
-    else:
-        symbols = atoms.get_chemical_symbols()
-
-    # Create a list sc of (symbol, count) pairs
-    if symbol_count:
-        sc = symbol_count
-    else:
-        sc = []
-        psym = symbols[0]
-        count = 0
-        for sym in symbols:
-            if sym != psym:
-                sc.append((psym, count))
-                psym = sym
-                count = 1
+        if isinstance(atoms, (list, tuple)):
+            if len(atoms) > 1:
+                raise RuntimeError(('Don\'t know how to save more than '
+                                    'one image to VASP input'))
             else:
-                count += 1
-        sc.append((psym, count))
+                atoms = atoms[0]
 
-    # Create the label
-    if label == '':
-        for sym, c in sc:
-            label += '%2s ' % sym
-    f.write(label + '\n')
+        # Check lattice vectors are finite
+        if np.any(atoms.get_cell_lengths_and_angles() == 0.):
+            raise RuntimeError(
+                'Lattice vectors must be finite and not coincident. '
+                'At least one lattice length or angle is zero.')
 
-    # Write unitcell in real coordinates and adapt to VASP convention
-    # for unit cell
-    # ase Atoms doesn't store the lattice constant separately, so always
-    # write 1.0.
-    f.write('%19.16f\n' % 1.0)
-    if long_format:
-        latt_form = ' %21.16f'
-    else:
-        latt_form = ' %11.6f'
-    for vec in atoms.get_cell():
-        f.write(' ')
-        for el in vec:
-            f.write(latt_form % el)
-        f.write('\n')
+        # Write atom positions in scaled or cartesian coordinates
+        if direct:
+            coord = atoms.get_scaled_positions()
+        else:
+            coord = atoms.get_positions()
 
-    # If we're writing a VASP 5.x format POSCAR file, write out the
-    # atomic symbols
-    if vasp5:
-        for sym, c in sc:
-            f.write(' %3s' % sym)
-        f.write('\n')
+        constraints = atoms.constraints and not ignore_constraints
 
-    # Numbers of each atom
-    for sym, count in sc:
-        f.write(' %3i' % count)
-    f.write('\n')
-
-    if constraints:
-        f.write('Selective dynamics\n')
-
-    if direct:
-        f.write('Direct\n')
-    else:
-        f.write('Cartesian\n')
-
-    if long_format:
-        cform = ' %19.16f'
-    else:
-        cform = ' %9.6f'
-    for iatom, atom in enumerate(coord):
-        for dcoord in atom:
-            f.write(cform % dcoord)
         if constraints:
-            for flag in sflags[iatom]:
-                if flag:
-                    s = 'F'
+            sflags = np.zeros((len(atoms), 3), dtype=bool)
+            for constr in atoms.constraints:
+                if isinstance(constr, FixScaled):
+                    sflags[constr.a] = constr.mask
+                elif isinstance(constr, FixAtoms):
+                    sflags[constr.index] = [True, True, True]
+                elif isinstance(constr, FixedPlane):
+                    mask = np.all(np.abs(np.cross(constr.dir, atoms.cell)) < 1e-5,
+                                  axis=1)
+                    if sum(mask) != 1:
+                        raise RuntimeError(
+                            'VASP requires that the direction of FixedPlane '
+                            'constraints is parallel with one of the cell axis')
+                    sflags[constr.a] = mask
+                elif isinstance(constr, FixedLine):
+                    mask = np.all(np.abs(np.cross(constr.dir, atoms.cell)) < 1e-5,
+                                  axis=1)
+                    if sum(mask) != 1:
+                        raise RuntimeError(
+                            'VASP requires that the direction of FixedLine '
+                            'constraints is parallel with one of the cell axis')
+                    sflags[constr.a] = ~mask
+
+        if sort:
+            ind = np.argsort(atoms.get_chemical_symbols())
+            symbols = np.array(atoms.get_chemical_symbols())[ind]
+            coord = coord[ind]
+            if constraints:
+                sflags = sflags[ind]
+        else:
+            symbols = atoms.get_chemical_symbols()
+
+        # Create a list sc of (symbol, count) pairs
+        if symbol_count:
+            sc = symbol_count
+        else:
+            sc = []
+            psym = symbols[0]
+            count = 0
+            for sym in symbols:
+                if sym != psym:
+                    sc.append((psym, count))
+                    psym = sym
+                    count = 1
                 else:
-                    s = 'T'
-                f.write('%4s' % s)
+                    count += 1
+            sc.append((psym, count))
+
+        # Create the label
+        if label == '':
+            for sym, c in sc:
+                label += '%2s ' % sym
+        f.write(label + '\n')
+
+        # Write unitcell in real coordinates and adapt to VASP convention
+        # for unit cell
+        # ase Atoms doesn't store the lattice constant separately, so always
+        # write 1.0.
+        f.write('%19.16f\n' % 1.0)
+        if long_format:
+            latt_form = ' %21.16f'
+        else:
+            latt_form = ' %11.6f'
+        for vec in atoms.get_cell():
+            f.write(' ')
+            for el in vec:
+                f.write(latt_form % el)
+            f.write('\n')
+
+        # If we're writing a VASP 5.x format POSCAR file, write out the
+        # atomic symbols
+        if vasp5:
+            for sym, c in sc:
+                f.write(' %3s' % sym)
+            f.write('\n')
+
+        # Numbers of each atom
+        for sym, count in sc:
+            f.write(' %3i' % count)
         f.write('\n')
 
-    if isinstance(filename, basestring):
-        f.close()
+        if constraints:
+            f.write('Selective dynamics\n')
+
+        if direct:
+            f.write('Direct\n')
+        else:
+            f.write('Cartesian\n')
+
+        if long_format:
+            cform = ' %19.16f'
+        else:
+            cform = ' %9.6f'
+        for iatom, atom in enumerate(coord):
+            for dcoord in atom:
+                f.write(cform % dcoord)
+            if constraints:
+                for flag in sflags[iatom]:
+                    if flag:
+                        s = 'F'
+                    else:
+                        s = 'T'
+                    f.write('%4s' % s)
+            f.write('\n')
