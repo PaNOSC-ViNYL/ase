@@ -377,8 +377,7 @@ class Reader:
 
         fd = pathify(fd)
         if not is_file_like(fd):
-            fd.open('rb')
-
+            fd = fd.open('rb')
         self._fd = fd
         self._index = index
 
