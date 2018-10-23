@@ -8,7 +8,6 @@ import os
 import re
 import ase.units
 
-from ase.utils import basestring
 from ase.io.path import ASEbuffer
 
 

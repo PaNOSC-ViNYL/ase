@@ -1,6 +1,5 @@
 import pathlib as pl
 import sys
-from ase.utils import devnull
 from ase.parallel import paropen
 
 
@@ -32,6 +31,8 @@ def pathify(fd):
 
 
 def open_fd(name, mode='w'):
+    if is_file_like(name):
+        return name
     if name == '-':
         name = sys.stdout
     else:
