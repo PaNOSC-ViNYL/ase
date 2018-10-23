@@ -8,7 +8,6 @@ import os
 import re
 import ase.units
 
-from ase.io import read, write
 from ase.io.formats import reader, writer
 
 
