@@ -13,13 +13,12 @@ from ase.io.formats import reader, writer
 
 # Shorthand functions for accessing readers through ase.io.read
 
-read_vasp = reader(None)            # Default VASP reader
-read_vasp_pos = reader('vasp')      # Read POSCAR/CONTCAR
+read_vasp = reader('vasp')          # Read POSCAR/CONTCAR
 read_vasp_xml = reader('vasp-xml')  # read vasprun.xml
 read_vasp_out = reader('vasp-out')  # read OUTCAR
 
 # Shorthand functions for accessing writer through ase.io.read write
-write_vasp = writer('vasp')          # Default VASP writer
+write_vasp = writer('vasp')         # Default VASP writer
 
 
 def get_atomtypes(fname):
