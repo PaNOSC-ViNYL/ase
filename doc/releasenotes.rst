@@ -20,7 +20,7 @@ General changes:
 * Test suite now runs in parallel.
 
 * New :class:`~ase.dft.pdos.DOS` object for representing and plotting
-  densities and states.
+  densities of states.
 
 * Neighbor lists can now :meth:`get connectivity matrices
   <ase.neighborlist.NeighborList.get_connectivity_matrix>`.
@@ -46,7 +46,7 @@ Algorithms:
   :class:`~ase.constraints.ExpCellFilter`, based on an exponential
   reformulation of the degrees of freedom pertaining to the cell.
   This is probably significantly faster than
-  :class:`ase.constraints.UnitCellFilter`.
+  :class:`~ase.constraints.UnitCellFilter`.
 
 * :class:`~ase.constraints.UnitCellFilter` now supports scalar pressure and
   hydrostatic strain.
@@ -63,7 +63,7 @@ Algorithms:
   calculation is now much simpler.  Works the same way as for the serial
   case.
 
-* New :class:`~ase.constraints.Fixcom` constraint for fixing
+* New :class:`~ase.constraints.FixCom` constraint for fixing
   center of mass.
 
 Calculators:
@@ -87,7 +87,7 @@ Calculators:
   manipulate them.
 
 * :class:`~ase.calculators.espresso.Espresso`
-  and :class:`~ase.calculators.dft.Dftb` now support the
+  and :mod:`~ase.calculators.dftb` now support the
   :class:`~ase.dft.band_structure.BandStructure` machinery
   including improved handling of kpoints, ``get_eigenvalues()``,
   and friends.
@@ -99,7 +99,7 @@ I/O:
 
 * Support for downloading calculations from the Nomad archive.
   Use ``ase nomad-get nmd://<uri> ...`` to download one or more URIs
-  as JSON files.  Use the machinery in :mod:`~ase.nomad` to download
+  as JSON files.  Use the :mod:`ase.nomad` module to download
   and work with Nomad entries programmatically.  ``nomad-json``
   is now a recognized IO format.
 
