@@ -11,16 +11,6 @@ import ase.units
 from ase.io.formats import reader, writer
 
 
-# Shorthand functions for accessing readers through ase.io.read
-
-read_vasp = reader('vasp')          # Read POSCAR/CONTCAR
-read_vasp_xml = reader('vasp-xml')  # read vasprun.xml
-read_vasp_out = reader('vasp-out')  # read OUTCAR
-
-# Shorthand functions for accessing writer through ase.io.read write
-write_vasp = writer('vasp')         # Default VASP writer
-
-
 def get_atomtypes(fname):
     """Given a file name, get the atomic symbols.
 
@@ -815,3 +805,12 @@ def _write_vasp(filestream, atoms, label='', direct=False, sort=None,
                     s = 'T'
                 f.write('%4s' % s)
         f.write('\n')
+
+
+# Shorthand functions for accessing readers through ase.io.read
+read_vasp = reader('vasp', _read_vasp)          # Read POSCAR/CONTCAR
+read_vasp_xml = reader('vasp-xml', _read_vasp_xml)  # read vasprun.xml
+read_vasp_out = reader('vasp-out', _read_vasp_out)  # read OUTCAR
+
+# Shorthand functions for accessing writer through ase.io.read write
+write_vasp = writer('vasp')         # Default VASP writer

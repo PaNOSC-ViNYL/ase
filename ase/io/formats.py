@@ -730,17 +730,23 @@ def stringify(filename):
     return filename
 
 
-def reader(format):
-    """Auxilary function to access a specific read function"""
+def reader(format, target=None):
+    """Auxilary function to access a specific read function.
+    Use target to set the docstring"""
     def _read(*args, **kwargs):
         return read(*args, format=format, **kwargs)
     _read.__name__ = 'read_{}'.format(format.replace('-', '_'))
+    if target is not None:
+        _read.__doc__ = target.__doc__
     return _read
 
 
-def writer(format):
-    """Auxilary function to access a particular write function"""
+def writer(format, target=None):
+    """Auxilary function to access a particular write function.
+    Use target to set the docstring"""
     def _write(*args, **kwargs):
         return write(*args, format=format, **kwargs)
-    _write.__name__ = '_write_{}'.format(format.replace('-', '_'))
+    _write.__name__ = 'write_{}'.format(format.replace('-', '_'))
+    if target is not None:
+        _write.__doc__ = target.__doc__
     return _write
