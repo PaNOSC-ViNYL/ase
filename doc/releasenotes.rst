@@ -39,6 +39,12 @@ General changes:
 * CIF reader now parses fractional occupancies if present.
   The GUI visualizes fractional occupancies in the style of Pacman.
 
+* Support for downloading calculations from the Nomad archive.
+  Use ``ase nomad-get nmd://<uri> ...`` to download one or more URIs
+  as JSON files.  Use the machinery in :mod:`~ase.nomad` to download
+  and work with Nomad entries programmatically.  ``nomad-json``
+  is now a recognized IO format.
+
 Algorithms:
 
 * New Gaussian Process (GP) regression optimizer
