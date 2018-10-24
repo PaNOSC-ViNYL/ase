@@ -36,15 +36,6 @@ General changes:
   force constant matrix; see
   :func:`~ase.md.velocitydistribution.PhononHarmonics`.
 
-* CIF reader now parses fractional occupancies if present.
-  The GUI visualizes fractional occupancies in the style of Pacman.
-
-* Support for downloading calculations from the Nomad archive.
-  Use ``ase nomad-get nmd://<uri> ...`` to download one or more URIs
-  as JSON files.  Use the machinery in :mod:`~ase.nomad` to download
-  and work with Nomad entries programmatically.  ``nomad-json``
-  is now a recognized IO format.
-
 Algorithms:
 
 * New Gaussian Process (GP) regression optimizer
@@ -100,6 +91,21 @@ Calculators:
   :class:`~ase.dft.band_structure.BandStructure` machinery
   including improved handling of kpoints, ``get_eigenvalues()``,
   and friends.
+
+I/O:
+
+* CIF reader now parses fractional occupancies if present.
+  The GUI visualizes fractional occupancies in the style of Pacman.
+
+* Support for downloading calculations from the Nomad archive.
+  Use ``ase nomad-get nmd://<uri> ...`` to download one or more URIs
+  as JSON files.  Use the machinery in :mod:`~ase.nomad` to download
+  and work with Nomad entries programmatically.  ``nomad-json``
+  is now a recognized IO format.
+
+* Sequences of atoms objects can now be saved as animations using
+  the mechanisms offered by matplotlib.  ``gif`` and ``mp4`` are now
+  recognized output formats.
 
 Database:
 

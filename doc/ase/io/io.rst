@@ -69,7 +69,7 @@ Examples
 ========
 
 >>> from ase import Atoms
->>> from ase.build import fcc111, add_adsorbate
+>>> from ase.build import fcc111, add_adsorbate, bulk
 >>> from ase.io import read, write
 >>> adsorbate = Atoms('CO')
 >>> adsorbate[1].z = 1.1
@@ -82,6 +82,11 @@ Write PNG image
 >>> write('slab.png', slab * (3, 3, 1), rotation='10z,-80x')
 
 .. image:: io1.png
+
+Write animation with 500 ms duration per frame
+
+>>> write('movie.gif', [bulk(s) for s in ['Cu', 'Ag', 'Au']], interval=500)
+
 
 Write POVRAY file
 

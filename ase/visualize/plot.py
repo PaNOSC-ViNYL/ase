@@ -4,12 +4,12 @@ from ase.io.utils import generate_writer_variables, make_patch_list
 class Matplotlib:
     def __init__(self, atoms, ax,
                  rotation='', show_unit_cell=False, radii=None,
-                 colors=None, scale=1, offset=(0, 0)):
+                 colors=None, scale=1, offset=(0, 0), **parameters):
         generate_writer_variables(
             self, atoms, rotation=rotation,
             show_unit_cell=show_unit_cell,
-            radii=radii, bbox=None, colors=colors, scale=scale,
-            extra_offset=offset)
+            radii=radii, colors=colors, scale=scale,
+            extra_offset=offset, **parameters)
 
         self.ax = ax
         self.figure = ax.figure
@@ -24,6 +24,42 @@ class Matplotlib:
         patch_list = make_patch_list(self)
         for patch in patch_list:
             self.ax.add_patch(patch)
+
+
+def animate(images, fig=None, ax=None,
+            interval=200,  # in ms; same default value as in FuncAnimation
+            save_count=100,
+            **parameters):
+    """Convert sequence of atoms objects into Matplotlib animation.
+
+    Each image is generated using plot_atoms().  Additional parameters
+    are passed to this function."""
+    import matplotlib.pyplot as plt
+    from matplotlib.animation import FuncAnimation
+
+    if fig is None:
+        fig = plt.gcf()
+    if ax is None:
+        ax = plt.gca()
+
+    nframes = [0]
+    def drawimage(atoms):
+        ax.clear()
+        plot_atoms(atoms, ax=ax, **parameters)
+        nframes[0] += 1
+        # Animation will stop without warning if we don't have len().
+        # Write a warning if we may be missing frames:
+        if not hasattr(images, '__len__') and nframes[0] == save_count:
+            import warnings
+            warnings.warn('Number of frames reached animation savecount {}; '
+                          'some frames may not be saved.'
+                          .format(save_count))
+
+    animation = FuncAnimation(fig, drawimage, frames=images,
+                              init_func=lambda: None,
+                              save_count=save_count,
+                              interval=interval)
+    return animation
 
 
 def plot_atoms(atoms, ax=None, **parameters):
