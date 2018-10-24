@@ -11,11 +11,13 @@ nomad_api_template = ('https://labdev-nomad.esc.rzg.mpg.de/'
 
 
 def nmd2https(uri):
+    """Get https URI corresponding to given nmd:// URI."""
     assert uri.startswith('nmd://')
     return nomad_api_template.format(hash=uri[6:])
 
 
 def download(uri):
+    """Download data at nmd:// URI as a NomadEntry object."""
     try:
         from urllib2 import urlopen
     except ImportError:
@@ -28,6 +30,7 @@ def download(uri):
 
 
 def read(fd, _includekeys=lambda key: True):
+    """Read NomadEntry object from file."""
     # _includekeys can be used to strip unnecessary keys out of a
     # downloaded nomad file so its size is suitable for inclusion
     # in the test suite.
@@ -40,40 +43,8 @@ def read(fd, _includekeys=lambda key: True):
     return dct
 
 
-def dict2images(d):
-    assert 'section_run' in d, 'Missing section_run'
-    runs = d['section_run']
-    for run in runs:
-        systems = run['section_system']
-        for system in systems:
-            atoms = section_system2atoms(system)
-            atoms.info['nomad_run_gIndex'] = run['gIndex']
-            atoms.info['nomad_system_gIndex'] = system['gIndex']
-            atoms.info['nomad_calculation_uri'] = d['uri']
-            yield atoms
-
-
-class NomadEntry(dict):
-    def __init__(self, dct):
-        #assert dct['type'] == 'nomad_calculation_2_0'
-        #assert dct['name'] == 'calculation_context'
-        # We could implement NomadEntries that represent sections.
-        dict.__init__(self, dct)
-
-    @property
-    def hash(self):
-        # The hash is a string, so not __hash__
-        assert self['uri'].startswith('nmd://')
-        return self['uri'][6:]
-
-    def toatoms(self):
-        return section_system2atoms(self)
-
-    def iterimages(self):
-        return dict2images(self)
-
-
-def section_system2atoms(section):
+def section_system_to_atoms(section):
+    """Covnert section_system into an Atoms object."""
     assert section['name'] == 'section_system'
     numbers = section['atom_species']
     numbers = np.array(numbers, int)
@@ -100,6 +71,62 @@ def section_system2atoms(section):
         atoms.cell = cell
 
     return atoms
+
+
+def nomad_entry_to_images(section):
+    """Yield the images from a Nomad entry.
+
+    The entry must contain a section_run.
+    One atoms object will be yielded for each section_system."""
+
+
+class NomadEntry(dict):
+    """An entry from the Nomad database.
+
+    The Nomad entry is represented as nested dictionaries and lists.
+
+    ASE converts each dictionary into a NomadEntry object which supports
+    different actions.  Some actions are only available when the NomadEntry
+    represents a particular section."""
+    def __init__(self, dct):
+        #assert dct['type'] == 'nomad_calculation_2_0'
+        #assert dct['name'] == 'calculation_context'
+        # We could implement NomadEntries that represent sections.
+        dict.__init__(self, dct)
+
+    @property
+    def hash(self):
+        # The hash is a string, so not __hash__
+        assert self['uri'].startswith('nmd://')
+        return self['uri'][6:]
+
+    def toatoms(self):
+        """Convert this NomadEntry into an Atoms object.
+
+        This NomadEntry must represent a section_system."""
+        return section_system_to_atoms(self)
+
+    def iterimages(self):
+        """Yield Atoms object contained within this NomadEntry.
+
+        This NomadEntry must represent or contain a section_run."""
+
+        if 'section_run' in self:
+            run_sections = self['section_run']
+        else:
+            assert self['name'] == 'section_run'
+            run_sections = [self]  # We assume that we are the section_run
+
+        for run in run_sections:
+            systems = run['section_system']
+            for system in systems:
+                atoms = section_system_to_atoms(system)
+                atoms.info['nomad_run_gIndex'] = run['gIndex']
+                atoms.info['nomad_system_gIndex'] = system['gIndex']
+
+                if self.get('name') == 'calculation_context':
+                    atoms.info['nomad_calculation_uri'] = self['uri']
+                yield atoms
 
 
 def main():
