@@ -49,7 +49,6 @@ def download(uri):
 def dict2images(d):
     assert 'section_run' in d, 'Missing section_run'
     runs = d['section_run']
-    images = []
     for run in runs:
         systems = run['section_system']
         for system in systems:

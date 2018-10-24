@@ -9,7 +9,6 @@ with open(fname, 'w') as fd:
     fd.write(nomad_data)
 
 from ase.io import iread
-from ase.nomad import read as read_nomad
 
 images = list(iread(fname))
 assert len(images) == 3
