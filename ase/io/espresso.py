@@ -44,8 +44,7 @@ _PW_TOTEN = '!    total energy'
 _PW_STRESS = 'total   stress'
 _PW_FERMI = 'the Fermi energy is'
 _PW_KPTS = 'number of k points='
-_PW_BANDS = 'End of band structure calculation'
-
+_PW_BANDS = 'End of '
 
 class Namelist(OrderedDict):
     """Case insensitive dict that emulates Fortran Namelists."""
