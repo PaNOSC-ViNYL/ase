@@ -136,6 +136,9 @@ GUI:
 * Added callback method :meth:`ase.gui.gui.GUI.repeat_poll` to the GUI.
   Useful for programmatically updating the GUI.
 
+* Improved error handling and communication with subprocesses (for plots)
+  in GUI.
+
 Version 3.16.2
 ==============
 
