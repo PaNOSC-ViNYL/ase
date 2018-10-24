@@ -7,6 +7,8 @@ from ase import __version__
 from ase.utils import import_module
 
 
+# Important: Following any change to command-line parameters, use
+# python -m ase.cli.completion to update autocompletion.
 commands = [
     ('info', 'ase.cli.info'),
     ('test', 'ase.test'),
@@ -19,6 +21,7 @@ commands = [
     ('ulm', 'ase.io.ulm'),
     ('find', 'ase.cli.find'),
     ('nomad-upload', 'ase.cli.nomad'),
+    ('nomad-get', 'ase.cli.nomadget'),
     ('convert', 'ase.cli.convert'),
     ('reciprocal', 'ase.cli.reciprocal'),
     ('completion', 'ase.cli.completion')]

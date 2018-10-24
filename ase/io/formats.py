@@ -94,6 +94,7 @@ all_formats = {
     'mol': ('MDL Molfile', '1F'),
     'mustem': ('muSTEM xtl file', '1F'),
     'netcdftrajectory': ('AMBER NetCDF trajectory file', '+S'),
+    'nomad-json': ('JSON from Nomad archive', '+F'),
     'nwchem': ('NWChem input file', '1F'),
     'octopus': ('Octopus input file', '1F'),
     'proteindatabank': ('Protein Data Bank', '+F'),
@@ -604,6 +605,9 @@ def filetype(filename, read=True, guess=True):
 
         if basename == 'inp':
             return 'octopus'
+
+        if basename.endswith('.nomad.json'):
+            return 'nomad-json'
 
         if '.' in basename:
             ext = os.path.splitext(basename)[1].strip('.').lower()
