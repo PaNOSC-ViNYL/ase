@@ -7,7 +7,11 @@ Run pw.x jobs.
 
 
 from ase import io
-from ase.calculators.calculator import FileIOCalculator
+from ase.calculators.calculator import FileIOCalculator, PropertyNotPresent
+
+
+error_template = 'Property "%s" not available. Please try running Quantum\n' \
+                 'Espresso first by calling Atoms.get_potential_energy().'
 
 
 class Espresso(FileIOCalculator):
@@ -57,6 +61,7 @@ class Espresso(FileIOCalculator):
         """
         FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
                                   label, atoms, **kwargs)
+        self.calc = None
 
     def write_input(self, atoms, properties=None, system_changes=None):
         FileIOCalculator.write_input(self, atoms, properties, system_changes)
@@ -68,15 +73,23 @@ class Espresso(FileIOCalculator):
         self.results = output.calc.results
 
     def get_fermi_level(self):
+        if self.calc is None:
+            raise PropertyNotPresent(error_template % 'Fermi level')
         return self.calc.get_fermi_level()
 
     def get_ibz_k_points(self):
+        if self.calc is None:
+            raise PropertyNotPresent(error_template % 'IBZ k-points')
         return self.calc.get_ibz_k_points()
 
     def get_eigenvalues(self, **kwargs):
+        if self.calc is None:
+            raise PropertyNotPresent(error_template % 'Eigenvalues')
         return self.calc.get_eigenvalues(**kwargs)
 
     def get_number_of_spins(self):
+        if self.calc is None:
+            raise PropertyNotPresent(error_template % 'Number of spins')
         return self.calc.get_number_of_spins()
 
     def socket_driver(self, **kwargs):
