@@ -80,6 +80,7 @@ all_formats = {
     'gaussian': ('Gaussian com (input) file', '1S'),
     'gaussian-out': ('Gaussian output file', '1F'),
     'gen': ('DFTBPlus GEN format', '1F'),
+    'gif': ('Graphics interchange format', '+S'),
     'gpaw-out': ('GPAW text output', '+F'),
     'gpw': ('GPAW restart-file', '1S'),
     'gromacs': ('Gromacs coordinates', '1S'),
@@ -92,8 +93,10 @@ all_formats = {
     'lammps-data': ('LAMMPS data file', '1F'),
     'magres': ('MAGRES ab initio NMR data file', '1F'),
     'mol': ('MDL Molfile', '1F'),
+    'mp4': ('MP4 animation', '+S'),
     'mustem': ('muSTEM xtl file', '1F'),
     'netcdftrajectory': ('AMBER NetCDF trajectory file', '+S'),
+    'nomad-json': ('JSON from Nomad archive', '+F'),
     'nwchem': ('NWChem input file', '1F'),
     'octopus': ('Octopus input file', '1F'),
     'proteindatabank': ('Protein Data Bank', '+F'),
@@ -138,10 +141,12 @@ format2modulename = {
     'espresso-in': 'espresso',
     'espresso-out': 'espresso',
     'gaussian-out': 'gaussian',
+    'gif': 'animation',
     'html': 'x3d',
     'json': 'db',
     'lammps-dump': 'lammpsrun',
     'lammps-data': 'lammpsdata',
+    'mp4': 'animation',
     'postgresql': 'db',
     'struct': 'wien2k',
     'struct_out': 'siesta',
@@ -604,6 +609,9 @@ def filetype(filename, read=True, guess=True):
 
         if basename == 'inp':
             return 'octopus'
+
+        if basename.endswith('.nomad.json'):
+            return 'nomad-json'
 
         if '.' in basename:
             ext = os.path.splitext(basename)[1].strip('.').lower()

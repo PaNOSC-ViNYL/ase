@@ -62,6 +62,8 @@ commands = {
          '--interpolate', '-b', '--bonds', '-s', '--scale'],
     'info':
         ['-v', '--verbose', '--formats'],
+    'nomad-get':
+        [''],
     'nomad-upload':
         ['-t', '--token', '-n', '--do-not-save-token', '-0', '--dry-run'],
     'reciprocal':

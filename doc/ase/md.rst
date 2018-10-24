@@ -413,6 +413,24 @@ the gromacs manual at www.gromacs.org. or amber at ambermd.org
 ::
 
   # Room temperature simulation (300K, 0.1 fs time step, atmospheric pressure)
-  dyn = NPTBerendsen(atoms, timestep=0.1*units.fs, temperature=300,
-                   taut=0.1*1000*units.fs, pressure = 1.01325,
-                   taup=1.0*1000*units.fs, compressibility=4.57e-5)
+  dyn = NPTBerendsen(atoms, timestep=0.1 * units.fs, temperature=300,
+                     taut=0.1 * 1000 * units.fs, pressure=1.01325,
+                     taup=1.0 * 1000 * units.fs, compressibility=4.57e-5)
+
+Velocity distributions
+======================
+
+A selection of functions are provided to initialize atomic velocities
+to the correct temperature.
+
+.. module:: ase.md.velocitydistribution
+
+.. autofunction:: MaxwellBoltzmannDistribution
+
+.. autofunction:: Stationary
+
+.. autofunction:: ZeroRotation
+
+.. autofunction:: PhononHarmonics
+
+.. autofunction:: phonon_harmonics

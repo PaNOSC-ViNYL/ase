@@ -3,9 +3,10 @@ from numpy.linalg import norm, solve
 
 from ase.utils import gcd, basestring
 from ase.build import bulk
+from copy import deepcopy
 
 
-def surface(lattice, indices, layers, vacuum=None, tol=1e-10):
+def surface(lattice, indices, layers, vacuum=None, tol=1e-10, termination=0):
     """Create surface from a given lattice and Miller indices.
 
     lattice: Atoms object or str
@@ -19,6 +20,12 @@ def surface(lattice, indices, layers, vacuum=None, tol=1e-10):
         Number of equivalent layers of the slab.
     vacuum: float
         Amount of vacuum added on both sides of the slab.
+    termination: int
+        The termination "number" for your crystal. The same value will not
+        produce the same termination for different symetrically identical
+        bulk structures, but changing this value allows your to explore all
+        the possible terminations for the bulk structure you provide it.
+        note: this code is not well tested
     """
 
     indices = np.asarray(indices)
@@ -31,6 +38,28 @@ def surface(lattice, indices, layers, vacuum=None, tol=1e-10):
 
     h, k, l = indices
     h0, k0, l0 = (indices == 0)
+    
+    if termination != 0:  #changing termination
+        lattice1 = deepcopy(lattice)
+        cell = lattice1.get_cell()
+        pt = [0,0,0]
+        millers = list(indices)
+        for index,item in enumerate(millers):
+            if item == 0:
+                millers[index] = 10**9 #make zeros large numbers
+            elif pt == [0,0,0]:        #for numerical stability
+                pt = list(cell[index]/float(item)/np.linalg.norm(cell[index]))
+        h1,k1,l1 = millers
+        N = np.array(cell[0]/h1+cell[1]/k1+cell[2]/l1)
+        n = N/np.linalg.norm(N)# making a unit vector normal to cut plane
+        d = [np.round(np.dot(n,(a-pt)),4) for a in lattice.get_scaled_positions()]
+        d = set(d)
+        d = sorted(list(d))
+        d = [0]+d #distances of atoms from cut plane
+        displacement = (h*cell[0]+k*cell[1]+l*cell[2])*d[termination]
+        lattice1.positions += displacement
+        lattice = lattice1
+       
     if h0 and k0 or h0 and l0 or k0 and l0:  # if two indices are zero
         if not h0:
             c1, c2, c3 = [(0, 1, 0), (0, 0, 1), (1, 0, 0)]

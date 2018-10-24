@@ -1652,14 +1652,16 @@ class ExpCellFilter(UnitCellFilter):
           \phi = potential energy
           S = stress tensor [3x3 matrix]
           L(U, V) = directional derivative of exp at U in direction V, i.e
-             d/dt exp(U + t V)|_{t=0} = L(U, V)
+          d/dt exp(U + t V)|_{t=0} = L(U, V)
 
-         This means we can write
-            d/dt E(U + t V)|_{t=0} = L(U, S exp (-U)) : V
+        This means we can write
 
-         and therefore the contribution to the gradient of the energy is
+          d/dt E(U + t V)|_{t=0} = L(U, S exp (-U)) : V
 
-            \nabla E(U) / \nabla U_ij =  [L(U, S exp(-U))]_ij
+        and therefore the contribution to the gradient of the energy is
+
+          \nabla E(U) / \nabla U_ij =  [L(U, S exp(-U))]_ij
+
         """
 
         Filter.__init__(self, atoms, indices=range(len(atoms)))

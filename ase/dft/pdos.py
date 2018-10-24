@@ -67,7 +67,7 @@ class DOS:
         return weights_grid
 
     def sample(self, grid, width=0.1, smearing='Gauss', gridtype='general'):
-        """Sample weights onto new specified grid"""
+        """Sample this DOS on a grid, returning result as a new DOS."""
 
         npts = len(grid)
         sampling = {'width': width,
@@ -83,7 +83,7 @@ class DOS:
 
     def sample_grid(self, spacing=None, npts=None, width=0.1,
                     window=None, smearing='Gauss'):
-        """Sample onto uniform grid"""
+        """Sample this DOS on a uniform grid, returning result as a new DOS."""
 
         if window is None:
             emin, emax = None, None
@@ -106,7 +106,7 @@ class DOS:
     @staticmethod
     def sample_many(doslist, grid, width=0.1, smearing='Gauss',
                     gridtype='general'):
-        """Take list of DOS objects, and combine into 1, with same grid"""
+        """Take list of DOS objects, and combine into 1, with same grid."""
 
         # Count the total number of weights
         n_weights = sum(len(dos.weights) for dos in doslist)
@@ -135,8 +135,9 @@ class DOS:
     def sample_many_grid(doslist, window=None, spacing=None,
                          npts=None, width=0.1, smearing='Gauss'):
         """Combine list of DOS objects onto uniform grid.
+
         Takes the lowest and highest energies as grid range, if
-        no window is specified"""
+        no window is specified."""
         dosen = [dos.energy for dos in doslist]
         # Parse window
         if window is None:
@@ -160,6 +161,7 @@ class DOS:
     @staticmethod
     def join(doslist, atol=1e-08):
         """Join a list of DOS objects into one, without applying sampling.
+
         Requires all energies to be identical"""
 
         # Test if energies are the same
@@ -208,6 +210,7 @@ class DOS:
         return pdp.plot(*plotargs, **plotkwargs)
 
     def sum(self):
+        """Return the sum of all weights in this DOS as a new DOS."""
         weights_sum = self.weights.sum(0)[np.newaxis]
 
         # Find shared (key, value) pairs

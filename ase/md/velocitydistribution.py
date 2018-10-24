@@ -27,11 +27,11 @@ def _maxwellboltzmanndistribution(masses, temp, communicator=world,
 
 def MaxwellBoltzmannDistribution(atoms, temp, communicator=world,
                                  force_temp=False, rng=np.random):
-    """Sets the momenta to a Maxwell-Boltzmann distribution. temp should be
-    fed in energy units; i.e., for 300 K use temp=300.*units.kB. If
-    force_temp is set to True, it scales the random momenta such that the
-    temperature request is precise.
-    """
+    """Sets the momenta to a Maxwell-Boltzmann distribution.
+
+    temp should be fed in energy units; i.e., for 300 K use
+    temp=300.*units.kB. If force_temp is set to True, it scales the
+    random momenta such that the temperature request is precise."""
     momenta = _maxwellboltzmanndistribution(atoms.get_masses(), temp,
                                             communicator, rng)
     atoms.set_momenta(momenta)
@@ -71,8 +71,8 @@ def ZeroRotation(atoms):
 
 
 def n_BE(temp, omega):
-    """
-    Bose-Einstein distribution function
+    """Bose-Einstein distribution function.
+
     Args:
         temp: temperature converted to eV (*units.kB)
         omega: sequence of frequencies converted to eV
@@ -97,20 +97,32 @@ def phonon_harmonics(force_constants,
                      rng=np.random.rand,
                      quantum=True,
                      failfast=True):
-    r"""
-    Args:
-        force_constants: force constants (== Hessian) of the system in eV/AA^2
-        masses: masses of the structure in amu
-        temp: Temperature converted to eV (*units.kB)
-        rng: Random number generator function, e.g., np.random.rand
-        quantum: True for Bose-Einstein distribution, False for Maxwell-Boltzmann (classical limit)
-        failfast: True for sanity checking the phonon spectrum for negative frequencies at Gamma
+    r"""Return displacements and velocities that produce a given temperature.
+
+    Parameters:
+
+    force_constants: array of size 3N x 3N
+        force constants (Hessian) of the system in eV/Å²
+    masses: array of length N
+        masses of the structure in amu
+    temp: float
+        Temperature converted to eV (T \* units.kB)
+    rng: function
+        Random number generator function, e.g., np.random.rand
+    quantum: bool
+        True for Bose-Einstein distribution, False for Maxwell-Boltzmann
+        (classical limit)
+    failfast: bool
+        True for sanity checking the phonon spectrum for negative
+        frequencies at Gamma
 
     Returns:
+
         displacements, velocities generated from the eigenmodes
 
     Purpose:
-    Excite phonon modes to specified temperature.
+
+        Excite phonon modes to specified temperature.
 
     This excites all phonon modes randomly so that each contributes,
     on average, equally to the given temperature.  Both potential
@@ -127,21 +139,23 @@ def phonon_harmonics(force_constants,
     phonon frequencies, and let 0 < Q_i <= 1 and 0 <= R_i < 1 be
     uniformly random numbers.  Then
 
-                   1/2
-      _     / k T \     ---  1  _             1/2
-      R  += | --- |      >  --- X   (-2 ln Q )    cos (2 pi R )
-       a    \  m  /     ---  w   ai         i                i
-                a        i    i
+    .. code-block:: none
 
 
-                   1/2
-      _     / k T \     --- _            1/2
-      v   = | --- |      >  X  (-2 ln Q )    sin (2 pi R )
-       a    \  m  /     ---  ai        i                i
-                a        i
+                    1/2
+       _     / k T \     ---  1  _             1/2
+       R  += | --- |      >  --- X   (-2 ln Q )    cos (2 pi R )
+        a    \  m  /     ---  w   ai         i                i
+                 a        i    i
 
-    Reference:
-        [West, Estreicher; PRL 96, 22 (2006)]
+
+                    1/2
+       _     / k T \     --- _            1/2
+       v   = | --- |      >  X  (-2 ln Q )    sin (2 pi R )
+        a    \  m  /     ---  ai        i                i
+                 a        i
+
+    Reference: [West, Estreicher; PRL 96, 22 (2006)]
     """
 
     # Build dynamical matrix
@@ -204,19 +218,29 @@ def PhononHarmonics(atoms,
                     rng=np.random,
                     quantum=True,
                     failfast=True):
+    """Excite phonon modes to specified temperature.
+
+    This will displace atomic positions and set the velocities so as
+    to produce a random, phononically correct state with the requested
+    temperature.
+
+    Parameters:
+
+    atoms: ase.atoms.Atoms() object
+        Grumble
+    force_constants: ndarray of size 3N x 3N
+        Force constants for the the structure represented by atoms in eV/Å²
+    temp: float
+        Temperature in eV (T \* units.kB)
+    rng: Random number generator
+        RandomState or other random number generator, e.g., np.random.rand
+    quantum: bool
+        True for Bose-Einstein distribution, False for Maxwell-Boltzmann
+        (classical limit)
+    failfast: bool
+        True for sanity checking the phonon spectrum for negative frequencies
+        at Gamma.
     """
-    Args:
-        atoms: ase.atoms.Atoms() object with positions
-        force_constants: Force constants for the the structure represented by atoms in eV/AA^2
-        temp: Temperature in eV (T * units.kB)
-        rng: Random number generator function, e.g., np.random.rand
-        quantum: True for Bose-Einstein distribution, False for Maxwell-Boltzmann (classical limit)
-        failfast: True for sanity checking the phonon spectrum for negative frequencies at Gamma
-
-    Returns:
-        The atoms object with positions and velocities set according to phonon_harmonics()
-
-   """
 
     # Receive displacements and velocities from phonon_harmonics()
     d_ac, v_ac = phonon_harmonics(force_constants=force_constants,

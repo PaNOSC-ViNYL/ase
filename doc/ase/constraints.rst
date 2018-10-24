@@ -393,9 +393,24 @@ hydrogen atoms are returned.
 The UnitCellFilter class
 ========================
 
+The unit cell filter is for optimizing positions and unit cell
+simultaneously.  Note that :class:`ExpCellFilter` will probably
+perform better.
+
 .. autoclass:: UnitCellFilter
 
 The StrainFilter class
 ======================
 
+The strain filter is for optimizing the unit cell while keeping
+scaled positions fixed.
+
 .. autoclass:: StrainFilter
+
+The ExpCellFilter class
+=======================
+
+The exponential cell filter is an improved :class:`UnitCellFilter`
+which is parameter free.
+
+.. autoclass:: ExpCellFilter
