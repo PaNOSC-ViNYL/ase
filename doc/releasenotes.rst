@@ -36,6 +36,9 @@ General changes:
   force constant matrix; see
   :func:`~ase.md.velocitydistribution.PhononHarmonics`.
 
+* CIF reader now parses fractional occupancies if present.
+  The GUI visualizes fractional occupancies in the style of Pacman.
+
 Algorithms:
 
 * New Gaussian Process (GP) regression optimizer
@@ -63,6 +66,9 @@ Algorithms:
   calculation is now much simpler.  Works the same way as for the serial
   case.
 
+* New :class:`~ase.constraints.Fixcom` constraint for fixing
+  center of mass.
+
 Calculators:
 
 * Socked-based interface to certain calculators through the
@@ -71,6 +77,8 @@ Calculators:
   communicating coordinates, forces and other quantities over
   sockets using the i-PI protocol.  This removes the overhead for
   starting and stopping calculators for each geometry step.
+  The calculators which best support this feature are Espresso,
+  Siesta, and Aims.
 
 * Added calculator for :mod:`OpenMX <ase.calculators.openmx>`.
 
