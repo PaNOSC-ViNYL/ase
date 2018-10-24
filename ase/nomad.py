@@ -15,7 +15,7 @@ def nmd2https(uri):
     return nomad_api_template.format(hash=uri[6:])
 
 
-def nmd2dict(uri):
+def download(uri):
     try:
         from urllib2 import urlopen
     except ImportError:
@@ -38,12 +38,6 @@ def read(fd, _includekeys=lambda key: True):
 
     dct = json.load(fd, object_hook=hook)
     return dct
-
-
-def download(uri):
-    # Might want to look/return sections also
-    dct = nmd2dict(uri)
-    return NomadEntry(dct)
 
 
 def dict2images(d):
@@ -83,14 +77,14 @@ def section_system2atoms(section):
     assert section['name'] == 'section_system'
     numbers = section['atom_species']
     numbers = np.array(numbers, int)
-    numbers[numbers < 0] = 0
-    numbers[numbers > len(chemical_symbols)] = 0
+    numbers[numbers < 0] = 0  # We don't support Z < 0
+    numbers[numbers >= len(chemical_symbols)] = 0
     positions = section['atom_positions']['flatData']
     positions = np.array(positions).reshape(-1, 3) * units.m
-    pbc = section.get('configuration_periodic_dimensions')
-    cell = section.get('lattice_vectors')
     atoms = Atoms(numbers, positions=positions)
     atoms.info['nomad_uri'] = section['uri']
+
+    pbc = section.get('configuration_periodic_dimensions')
     if pbc is not None:
         assert len(pbc) == 1
         pbc = pbc[0]  # it's a list??
@@ -99,6 +93,7 @@ def section_system2atoms(section):
         atoms.pbc = pbc
 
     # celldisp?
+    cell = section.get('lattice_vectors')
     if cell is not None:
         cell = cell['flatData']
         cell = np.array(cell).reshape(3, 3) * units.m
@@ -107,23 +102,10 @@ def section_system2atoms(section):
     return atoms
 
 
-def section_singleconfig2calc(section):
-    from ase.calculators.singlepoint import SinglePointCalculator
-    kwargs = {}
-    # Forces, total energy, ........
-    # We should be able to extract e.g. a band structure as well.
-    if 'energy_free' in section:
-        kwargs['free_energy'] = section['energy_free'] * units.J
-    calc = SinglePointCalculator(**kwargs)
-    return calc
-
-
 def main():
-    #print('hello')
     uri = "nmd://N9Jqc1y-Bzf7sI1R9qhyyyoIosJDs/C74RJltyQeM9_WFuJYO49AR4gKuJ2"
     print(nmd2https(uri))
     entry = download(uri)
-    #entry = read(open('out.json'))
     from ase.visualize import view
     view(list(entry.iterimages()))
 
