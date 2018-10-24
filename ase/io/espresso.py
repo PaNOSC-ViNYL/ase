@@ -268,17 +268,24 @@ def read_espresso_out(fileobj, index=-1, results_required=True):
         # K-points
         ibzkpts = None
         weights = None
+        kpoints_warning = "Number of k-points >= 100: " + \
+                          "set verbosity='high' to print them."
+
         for kpts_index in indexes[_PW_KPTS]:
             if image_index < kpts_index < next_index:
-                ibzkpts = []
-                weights = []
                 nkpts = int(pwo_lines[kpts_index].split()[4])
                 kpts_index += 2
+
+                if pwo_lines[kpts_index].strip() == kpoints_warning:
+                    continue
+
                 # QE prints the k-points in units of 2*pi/alat
                 # with alat defined as the length of the first
                 # cell vector
                 cell = structure.get_cell()
                 alat = np.linalg.norm(cell[0])
+                ibzkpts = []
+                weights = []
                 for i in range(nkpts):
                     l =  pwo_lines[kpts_index + i].split()
                     weights.append(float(l[-1]))
@@ -291,11 +298,19 @@ def read_espresso_out(fileobj, index=-1, results_required=True):
 
         # Bands
         kpts = None
+        kpoints_warning = "Number of k-points >= 100: " + \
+                          "set verbosity='high' to print the bands."
+
         for bands_index in indexes[_PW_BANDS]:
             if image_index < bands_index < next_index:
+                bands_index += 2
+
+                if pwo_lines[bands_index].strip() == kpoints_warning:
+                    continue
+
                 assert ibzkpts is not None
                 spin, bands, eigenvalues = 0, [], [[], []]
-                bands_index += 2
+
                 while True:
                     l = pwo_lines[bands_index].split()
                     if len(l) == 0:
