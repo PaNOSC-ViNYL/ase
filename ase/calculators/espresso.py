@@ -6,6 +6,7 @@ Run pw.x jobs.
 """
 
 
+import warnings
 from ase import io
 from ase.calculators.calculator import FileIOCalculator, PropertyNotPresent
 
@@ -13,6 +14,10 @@ from ase.calculators.calculator import FileIOCalculator, PropertyNotPresent
 error_template = 'Property "%s" not available. Please try running Quantum\n' \
                  'Espresso first by calling Atoms.get_potential_energy().'
 
+warn_template = 'Property "%s" is None. Typically, this is because the ' \
+                'required information has not been printed by Quantum ' \
+                'Espresso at a "low" verbosity level (the default). ' \
+                'Please try running Quantum Espresso with "high" verbosity.'
 
 class Espresso(FileIOCalculator):
     """
@@ -75,22 +80,34 @@ class Espresso(FileIOCalculator):
     def get_fermi_level(self):
         if self.calc is None:
             raise PropertyNotPresent(error_template % 'Fermi level')
-        return self.calc.get_fermi_level()
+        efermi = self.calc.get_fermi_level()
+        if efermi is None:
+            warnings.warn(warn_template % 'Fermi level')
+        return efermi
 
     def get_ibz_k_points(self):
         if self.calc is None:
             raise PropertyNotPresent(error_template % 'IBZ k-points')
-        return self.calc.get_ibz_k_points()
+        ibzkpts = self.calc.get_ibz_k_points()
+        if ibzkpts is None:
+            warnings.warn(warn_template % 'IBZ k-points')
+        return ibzkpts
 
     def get_eigenvalues(self, **kwargs):
         if self.calc is None:
             raise PropertyNotPresent(error_template % 'Eigenvalues')
-        return self.calc.get_eigenvalues(**kwargs)
+        eigenvalues = self.calc.get_eigenvalues(**kwargs)
+        if eigenvalues is None:
+            warnings.warn(warn_template % 'Eigenvalues')
+        return eigenvalues
 
     def get_number_of_spins(self):
         if self.calc is None:
             raise PropertyNotPresent(error_template % 'Number of spins')
-        return self.calc.get_number_of_spins()
+        nspins = self.calc.get_number_of_spins()
+        if nspins is None:
+            warnings.warn(warn_template % 'Number of spins')
+        return nspins
 
     def socket_driver(self, **kwargs):
         from ase.calculators.socketio import SocketIOCalculator
