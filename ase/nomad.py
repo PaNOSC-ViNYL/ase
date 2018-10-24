@@ -27,8 +27,16 @@ def nmd2dict(uri):
     return json.loads(txt, object_hook=lambda dct: NomadEntry(dct))
 
 
-def read(fd):
-    dct = json.load(fd, object_hook=lambda dct: NomadEntry(dct))
+def read(fd, _includekeys=lambda key: True):
+    # _includekeys can be used to strip unnecessary keys out of a
+    # downloaded nomad file so its size is suitable for inclusion
+    # in the test suite.
+
+    def hook(dct):
+        d = {k: dct[k] for k in dct if _includekeys(k)}
+        return NomadEntry(d)
+
+    dct = json.load(fd, object_hook=hook)
     return dct
 
 
