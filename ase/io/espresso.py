@@ -317,6 +317,8 @@ def read_espresso_out(fileobj, index=-1, results_required=True):
                         if len(bands) > 0:
                             eigenvalues[spin].append(bands)
                             bands = []
+                    elif l == ['occupation', 'numbers']:
+                        bands_index += 3
                     elif l[0] == 'k' and l[1].startswith('='):
                         pass
                     elif len(l) > 2 and l[1] == 'SPIN':
