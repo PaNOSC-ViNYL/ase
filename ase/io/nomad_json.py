@@ -1,4 +1,3 @@
-import json
 from ase.nomad import read as _read_nomad_json
 from ase.utils import basestring
 
