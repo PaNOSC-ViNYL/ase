@@ -62,6 +62,31 @@ class Espresso(FileIOCalculator):
            Set ``tprnfor=True`` and ``tstress=True`` to calculate forces and
            stresses.
 
+        .. note::
+           Band structure plots can be made as follows:
+           
+           
+           1. Perform a regular self-consistent calculation,
+              saving the wave functions at the end.
+              
+           2. Perform a non-self-consistent 'band structure' run
+              by updating your input_data and kpts keywords:
+              
+                
+              >>> input_data['control'].update({'calculation':'bands',
+              >>>                               'restart_mode':'restart',
+              >>>                               'verbosity':'high'})
+              >>> calc.set(kpts={<your Brillouin zone path>},
+              >>>          input_data=input_data)
+              >>> calc.calculate()
+               
+              
+           3. Make the plot, for example:
+              
+              >>> bs = calc.band_structure()
+              >>> bs.plot()
+                  
+           
 
         """
         FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
