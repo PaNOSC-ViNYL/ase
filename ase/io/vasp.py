@@ -8,7 +8,7 @@ import os
 import re
 import ase.units
 
-from ase.io.formats import reader, writer
+from ase.io.formats import reader, writer, initio
 
 
 def get_atomtypes(fname):
@@ -96,7 +96,8 @@ def get_atomtypes_from_formula(formula):
     return atomtypes
 
 
-def _read_vasp(filestream):
+@initio('vasp')
+def read_vasp(filestream):
     """Import POSCAR/CONTCAR type file.
 
     Reads unitcell, atom positions and constraints from the POSCAR/CONTCAR
@@ -223,7 +224,8 @@ def _read_vasp(filestream):
     return atoms
 
 
-def _read_vasp_out(filestream, index=-1, force_consistent=False):
+@initio('vasp-out')
+def read_vasp_out(filestream, index=-1, force_consistent=False):
     """Import OUTCAR type file.
 
     Reads unitcell, atom positions, energies, and forces from the OUTCAR file
@@ -358,7 +360,8 @@ def _read_vasp_out(filestream, index=-1, force_consistent=False):
         return [images[i] for i in range(start, stop, step)]
 
 
-def _read_vasp_xdatcar(filename, index=-1):
+@initio('vasp-xdatcar')
+def read_vasp_xdatcar(filename, index=-1):
     """Import XDATCAR file
 
        Reads all positions from the XDATCAR and returns a list of
@@ -446,7 +449,8 @@ def __get_xml_parameter(par):
         return var_type(text.strip())
 
 
-def _read_vasp_xml(filestream, index=-1):
+@initio('vasp-xml')
+def read_vasp_xml(filestream, index=-1):
     """Parse vasprun.xml file.
 
     Reads unit cell, atom positions, energies, forces, and constraints
@@ -663,9 +667,10 @@ def _read_vasp_xml(filestream, index=-1):
         yield atoms
 
 
-def _write_vasp(filestream, atoms, label='', direct=False, sort=None,
-                symbol_count=None, long_format=True, vasp5=False,
-                ignore_constraints=False):
+@initio('vasp', 'w')
+def write_vasp(filestream, atoms, label='', direct=False, sort=None,
+               symbol_count=None, long_format=True, vasp5=False,
+               ignore_constraints=False):
     """Method to write VASP position (POSCAR/CONTCAR) files.
 
     Writes label, scalefactor, unitcell, # of various kinds of atoms,
@@ -808,9 +813,10 @@ def _write_vasp(filestream, atoms, label='', direct=False, sort=None,
 
 
 # Shorthand functions for accessing readers through ase.io.read
-read_vasp = reader('vasp', _read_vasp)          # Read POSCAR/CONTCAR
-read_vasp_xml = reader('vasp-xml', _read_vasp_xml)  # read vasprun.xml
-read_vasp_out = reader('vasp-out', _read_vasp_out)  # read OUTCAR
+# read_vasp = reader('vasp', _read_vasp)          # Read POSCAR/CONTCAR
+# read_vasp_xml = reader('vasp-xml', _read_vasp_xml)  # read vasprun.xml
+# read_vasp_out = reader('vasp-out', _read_vasp_out)  # read OUTCAR
+# read_vasp_xdatcar = reader('vasp-xdatcar', _read_vasp_xdatcar)
 
-# Shorthand functions for accessing writer through ase.io.read write
-write_vasp = writer('vasp')         # Default VASP writer
+# # Shorthand functions for accessing writer through ase.io.read write
+# write_vasp = writer('vasp')         # Default VASP writer

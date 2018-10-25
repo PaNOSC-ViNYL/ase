@@ -223,6 +223,24 @@ def initialize(format):
     ioformats[format] = IOFormat(read, write, single, acceptsfd, isbinary)
 
 
+def initio(format, mode='r'):
+    """Wrapper to initialize filestream for reader.
+    set mode='r' for reader and mode='w' for writer"""
+    def decorator(f):
+        @functools.wraps(f)
+        def wrapper(filename, *args, **kwargs):
+            filename = stringify(filename)
+            io = get_ioformat(format)
+            fd, must_close_fd = open_fd(filename, io, mode=mode)
+            result = f(fd, *args, **kwargs)  # Call the read/write function
+            # Close the filestream if we need to
+            if must_close_fd:
+                fd.close()
+            return result
+        return wrapper
+    return decorator
+
+
 def get_ioformat(format):
     """Initialize and return IOFormat tuple."""
     initialize(format)
@@ -506,6 +524,21 @@ def iread(filename, index=None, format=None, parallel=True, **kwargs):
         yield atoms
 
 
+def open_fd(filename, io, mode='r'):
+    must_close_fd = False
+    if isinstance(filename, basestring):
+        if io.acceptsfd:
+            mode = mode+'b' if io.isbinary else mode
+            fd = open_with_compression(filename, mode)
+            must_close_fd = True
+        else:
+            fd = filename
+    else:
+        assert io.acceptsfd
+        fd = filename
+    return fd, must_close_fd
+
+
 @parallel_generator
 def _iread(filename, index, format, io, parallel=None, full_output=False,
            **kwargs):
@@ -522,17 +555,7 @@ def _iread(filename, index, format, io, parallel=None, full_output=False,
     else:
         args = (index,)
 
-    must_close_fd = False
-    if isinstance(filename, basestring):
-        if io.acceptsfd:
-            mode = 'rb' if io.isbinary else 'r'
-            fd = open_with_compression(filename, mode)
-            must_close_fd = True
-        else:
-            fd = filename
-    else:
-        assert io.acceptsfd
-        fd = filename
+    fd, must_close_fd = open_fd(filename, io)
 
     # Make sure fd is closed in case loop doesn't finish:
     try:
