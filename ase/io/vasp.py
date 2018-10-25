@@ -447,10 +447,14 @@ def __get_xml_parameter(par):
     # Float parameters do not have a 'type' attrib
     var_type = to_type[par.attrib.get('type', 'float')]
 
-    if par.tag == 'v':
-        return list(map(var_type, text.split()))
-    else:
-        return var_type(text.strip())
+    try:
+        if par.tag == 'v':
+            return list(map(var_type, text.split()))
+        else:
+            return var_type(text.strip())
+    except ValueError:
+        # Vasp can sometimes write "*****" due to overflow
+        return None
 
 
 def read_vasp_xml(filename='vasprun.xml', index=-1):
