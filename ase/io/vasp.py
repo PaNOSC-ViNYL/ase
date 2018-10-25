@@ -8,7 +8,7 @@ import os
 import re
 import ase.units
 
-from ase.io.formats import reader, writer, initio
+from ase.io.formats import initio
 
 
 def get_atomtypes(fname):
@@ -97,7 +97,7 @@ def get_atomtypes_from_formula(formula):
 
 
 @initio('vasp')
-def read_vasp(filestream):
+def read_vasp(filename):
     """Import POSCAR/CONTCAR type file.
 
     Reads unitcell, atom positions and constraints from the POSCAR/CONTCAR
@@ -110,7 +110,7 @@ def read_vasp(filestream):
     from ase.data import chemical_symbols
     import numpy as np
 
-    f = filestream              # Shorthand
+    f = filename              # Shorthand
 
     # The first line is in principle a comment line, however in VASP
     # 4.x a common convention is to have it contain the atom symbols,
@@ -225,7 +225,7 @@ def read_vasp(filestream):
 
 
 @initio('vasp-out')
-def read_vasp_out(filestream, index=-1, force_consistent=False):
+def read_vasp_out(filename, index=-1, force_consistent=False):
     """Import OUTCAR type file.
 
     Reads unitcell, atom positions, energies, and forces from the OUTCAR file
@@ -243,7 +243,7 @@ def read_vasp_out(filestream, index=-1, force_consistent=False):
         except Exception:
             constr = None
 
-    f = filestream
+    f = filename
 
     data = f.readlines()
     natoms = 0
@@ -387,7 +387,7 @@ def read_vasp_xdatcar(filename, index=-1):
             if "Direct configuration=" not in comment_line:
                 try:
                     lattice_constant = float(xdatcar.readline())
-                except:
+                except Exception:  # XXX: What exceptions?
                     break
 
                 xx = [float(x) for x in xdatcar.readline().split()]
@@ -450,7 +450,7 @@ def __get_xml_parameter(par):
 
 
 @initio('vasp-xml')
-def read_vasp_xml(filestream, index=-1):
+def read_vasp_xml(filename, index=-1):
     """Parse vasprun.xml file.
 
     Reads unit cell, atom positions, energies, forces, and constraints
@@ -466,7 +466,7 @@ def read_vasp_xml(filestream, index=-1):
     from ase.units import GPa
     from collections import OrderedDict
 
-    tree = ET.iterparse(filestream, events=['start', 'end'])
+    tree = ET.iterparse(filename, events=['start', 'end'])
 
     atoms_init = None
     calculation = []
@@ -580,7 +580,7 @@ def read_vasp_xml(filestream, index=-1):
         lastscf = step.findall('scstep/energy')[-1]
         try:
             lastdipole = step.findall('scstep/dipole')[-1]
-        except:
+        except Exception:       # XXX: what exceptions?
             lastdipole = None
 
         de = (float(lastscf.find('i[@name="e_0_energy"]').text) -
@@ -668,7 +668,7 @@ def read_vasp_xml(filestream, index=-1):
 
 
 @initio('vasp', 'w')
-def write_vasp(filestream, atoms, label='', direct=False, sort=None,
+def write_vasp(filename, atoms, label='', direct=False, sort=None,
                symbol_count=None, long_format=True, vasp5=False,
                ignore_constraints=False):
     """Method to write VASP position (POSCAR/CONTCAR) files.
@@ -682,12 +682,12 @@ def write_vasp(filestream, atoms, label='', direct=False, sort=None,
     import numpy as np
     from ase.constraints import FixAtoms, FixScaled, FixedPlane, FixedLine
 
-    f = filestream
+    f = filename
 
     if isinstance(atoms, (list, tuple)):
         if len(atoms) > 1:
-            raise RuntimeError('Don\'t know how to save more than ' +
-                               'one image to VASP input')
+            raise RuntimeError(('Don\'t know how to save more than '
+                                'one image to VASP input'))
         else:
             atoms = atoms[0]
 
@@ -810,13 +810,3 @@ def write_vasp(filestream, atoms, label='', direct=False, sort=None,
                     s = 'T'
                 f.write('%4s' % s)
         f.write('\n')
-
-
-# Shorthand functions for accessing readers through ase.io.read
-# read_vasp = reader('vasp', _read_vasp)          # Read POSCAR/CONTCAR
-# read_vasp_xml = reader('vasp-xml', _read_vasp_xml)  # read vasprun.xml
-# read_vasp_out = reader('vasp-out', _read_vasp_out)  # read OUTCAR
-# read_vasp_xdatcar = reader('vasp-xdatcar', _read_vasp_xdatcar)
-
-# # Shorthand functions for accessing writer through ase.io.read write
-# write_vasp = writer('vasp')         # Default VASP writer

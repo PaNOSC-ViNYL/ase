@@ -201,15 +201,8 @@ def initialize(format):
         raise ValueError('File format not recognized: %s.  Error: %s'
                          % (format, err))
 
-    read = getattr(module, '_read_' + _format, None)
-    # Try old way instead
-    if read is None:
-        read = getattr(module, 'read_' + _format, None)
-
-    write = getattr(module, '_write_' + _format, None)
-    # Try old way instead
-    if write is None:
-        write = getattr(module, 'write_' + _format, None)
+    read = getattr(module, 'read_' + _format, None)
+    write = getattr(module, 'write_' + _format, None)
 
     if read and not inspect.isgeneratorfunction(read):
         read = functools.partial(wrap_read_function, read)
@@ -389,6 +382,7 @@ def write(filename, images, format=None, parallel=True, append=False,
 
     The use of additional keywords is format specific."""
 
+    filename = stringify(filename)
     if isinstance(filename, basestring):
         filename = os.path.expanduser(filename)
         fd = None
@@ -525,12 +519,13 @@ def iread(filename, index=None, format=None, parallel=True, **kwargs):
 
 
 def open_fd(filename, io, mode='r'):
+    assert mode in 'rwa'
     must_close_fd = False
     if isinstance(filename, basestring):
         if io.acceptsfd:
-            mode = mode+'b' if io.isbinary else mode
+            mode = mode + 'b' if io.isbinary else mode
             fd = open_with_compression(filename, mode)
-            must_close_fd = True
+            must_close_fd = True  # We opened the file
         else:
             fd = filename
     else:
@@ -751,25 +746,3 @@ def stringify(filename):
     if isinstance(filename, PurePath):
         return basestring(filename)
     return filename
-
-
-def reader(format, target=None):
-    """Auxilary function to access a specific read function.
-    Use target to set the docstring"""
-    def _read(*args, **kwargs):
-        return read(*args, format=format, **kwargs)
-    _read.__name__ = 'read_{}'.format(format.replace('-', '_'))
-    if target is not None:
-        _read.__doc__ = target.__doc__
-    return _read
-
-
-def writer(format, target=None):
-    """Auxilary function to access a particular write function.
-    Use target to set the docstring"""
-    def _write(*args, **kwargs):
-        return write(*args, format=format, **kwargs)
-    _write.__name__ = 'write_{}'.format(format.replace('-', '_'))
-    if target is not None:
-        _write.__doc__ = target.__doc__
-    return _write
