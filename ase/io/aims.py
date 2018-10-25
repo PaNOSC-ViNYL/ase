@@ -126,6 +126,10 @@ def write_aims(filename, atoms, scaled=False, ghosts=None):
             fd.write('\n')
     fix_cart = np.zeros([len(atoms), 3])
 
+    # else aims crashes anyways
+    # better be more explicit
+    write_magmoms = np.any([a.magmom for a in atoms])
+
     if atoms.constraints:
         for constr in atoms.constraints:
             if isinstance(constr, FixAtoms):
@@ -165,7 +169,7 @@ def write_aims(filename, atoms, scaled=False, ghosts=None):
                     fd.write('constrain_relaxation %s\n' % 'xyz'[n])
         if atom.charge:
             fd.write('initial_charge %16.6f\n' % atom.charge)
-        if atom.magmom:
+        if write_magmoms:
             fd.write('initial_moment %16.6f\n' % atom.magmom)
 # except KeyError:
 #     continue
