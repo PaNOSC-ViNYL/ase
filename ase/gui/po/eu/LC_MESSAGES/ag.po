@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: ase\n"
 "Report-Msgid-Bugs-To: ase-users@listserv.fysik.dtu.dk\n"
 "POT-Creation-Date: 2018-09-25 19:04+0200\n"
-"PO-Revision-Date: 2018-10-25 14:27+0200\n"
+"PO-Revision-Date: 2018-10-25 14:58+0200\n"
 "Last-Translator: Joseba <joseba.alberdi@ehu.eus>\n"
 "Language-Team: Basque\n"
 "Language: eu\n"
@@ -946,7 +946,7 @@ msgstr "Wulff eraikuntza"
 
 #: ../nanoparticle.py:166
 msgid "Method: "
-msgstr "Metodoa"
+msgstr "Metodoa: "
 
 #: ../nanoparticle.py:174
 msgid "Add new direction:"
@@ -1055,7 +1055,7 @@ msgstr "Indize hexagonal baliogabeak"
 
 #: ../nanoparticle.py:416
 msgid "Unsupported or unknown structure"
-msgstr "Egitura ezezaguna edo onartu gabekoa "
+msgstr "Egitura ezezaguna edo onartu gabekoa"
 
 #: ../nanoparticle.py:417
 #, python-brace-format
@@ -1088,7 +1088,7 @@ msgstr "Nanotuboa"
 
 #: ../nanotube.py:43
 msgid "Bond length: "
-msgstr "Lotura luzera"
+msgstr "Lotura luzera:"
 
 #: ../nanotube.py:46
 msgid "Select roll-up vector (n,m) and tube length:"
@@ -1100,7 +1100,7 @@ msgstr "Luzera:"
 
 #: ../quickinfo.py:28
 msgid "This frame has no atoms."
-msgstr "Fotograma honek ez du atomorik"
+msgstr "Fotograma honek ez du atomorik."
 
 #: ../quickinfo.py:33
 msgid "Single image loaded."
@@ -1133,11 +1133,11 @@ msgstr "Periodikoa: {}, {}, {}"
 
 #: ../quickinfo.py:55
 msgid "Unit cell is fixed."
-msgstr "Unitate-gelaxka finkoa"
+msgstr "Unitate-gelaxka finkoa."
 
 #: ../quickinfo.py:57
 msgid "Unit cell varies."
-msgstr "Unitate-gelaxka aldakorra"
+msgstr "Unitate-gelaxka aldakorra."
 
 #: ../quickinfo.py:60
 msgid "Volume: {:.3f} Å³"
@@ -1170,7 +1170,7 @@ msgstr "Uneko ikuspegia povray-rekin errendatu ... "
 #: ../render.py:21 ../render.py:194
 #, python-format
 msgid "Rendering %d atoms."
-msgstr "%d atomo errendatzen"
+msgstr "%d atomo errendatzen."
 
 #: ../render.py:26
 msgid "Size"
@@ -1198,11 +1198,11 @@ msgstr "Irteerako oinarri-izena: "
 
 #: ../render.py:43
 msgid "Output filename: "
-msgstr "Irteerako fitxategi-izena"
+msgstr "Irteerako fitxategi-izena: "
 
 #: ../render.py:48
 msgid "Atomic texture set:"
-msgstr "Testura atomikoen sorta: "
+msgstr "Testura atomikoen sorta:"
 
 #: ../render.py:55 ../render.py:283
 msgid "Camera type: "
@@ -1588,12 +1588,12 @@ msgstr "\tz: "
 #. TRANSLATORS: This is a title of a window.
 #: ../surfaceslab.py:82
 msgid "Creating a surface."
-msgstr "Gainazala sortuz"
+msgstr "Gainazala sortuz."
 
 #. TRANSLATORS: E.g. "... assume fcc crystal structure for Au"
 #: ../surfaceslab.py:110
 msgid "Error: Reference values assume {} crystal structure for {}!"
-msgstr "Errorea: Erreferentziazko balioek {} kristal egitura espero dute {} egiturarako! "
+msgstr "Errorea: Erreferentziazko balioek {} kristal egitura espero dute {} egiturarako!"
 
 #: ../surfaceslab.py:164
 msgid "Please enter an even value for orthogonal cell"
@@ -1663,7 +1663,7 @@ msgid ""
 "Enter a chemical symbol or the name of a molecule from the G2 testset:\n"
 "{}"
 msgstr ""
-"G2 test-multzoko sinbolo kimikoa eta molekula baten izen sartu::\n"
+"G2 test-multzoko sinbolo kimikoa eta molekula baten izen sartu:\n"
 "{}"
 
 #: ../widgets.py:68
