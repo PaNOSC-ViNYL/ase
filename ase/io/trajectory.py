@@ -10,6 +10,7 @@ from ase.calculators.calculator import PropertyNotImplementedError
 from ase.atoms import Atoms
 from ase.io.jsonio import encode, decode
 from ase.io.pickletrajectory import PickleTrajectory
+from ase.io.formats import stringify
 from ase.parallel import world
 
 __all__ = ['Trajectory', 'PickleTrajectory']
@@ -44,6 +45,7 @@ def Trajectory(filename, mode='r', atoms=None, properties=None, master=None):
 
     The atoms, properties and master arguments are ignores in read mode.
     """
+    filename = stringify(filename)
     if mode == 'r':
         return TrajectoryReader(filename)
     return TrajectoryWriter(filename, mode, atoms, properties, master=master)

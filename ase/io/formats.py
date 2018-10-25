@@ -217,8 +217,11 @@ def initialize(format):
 
 
 def initio(format, mode='r'):
-    """Wrapper to initialize filestream for reader.
-    set mode='r' for reader and mode='w' for writer"""
+    """
+    Wrapper to initialize filestream for reader.
+    set mode='r' for reader and mode='w' for writer.
+    """
+    # XXX: fix doing stuff in parallel?
     def decorator(f):
         @functools.wraps(f)
         def wrapper(filename, *args, **kwargs):
