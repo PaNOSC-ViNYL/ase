@@ -68,6 +68,11 @@ class Espresso(FileIOCalculator):
                                   label, atoms, **kwargs)
         self.calc = None
 
+    def set(self, **kwargs):
+        changed_parameters = FileIOCalculator.set(self, **kwargs)
+        if changed_parameters:
+            self.reset()
+
     def write_input(self, atoms, properties=None, system_changes=None):
         FileIOCalculator.write_input(self, atoms, properties, system_changes)
         io.write(self.label + '.pwi', atoms, **self.parameters)
