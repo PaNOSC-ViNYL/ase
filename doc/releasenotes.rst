@@ -145,6 +145,8 @@ GUI:
 * Improved error handling and communication with subprocesses (for plots)
   in GUI.
 
+* Added Basque translation.
+
 Version 3.16.2
 ==============
 
