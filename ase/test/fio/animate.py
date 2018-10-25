@@ -8,5 +8,10 @@ images = [molecule('H2O'), bulk('Cu'), fcc111('Au', size=(1, 1, 1))]
 # test this using the html writer because it always exists whenever
 # matplotlib exists:
 with warnings.catch_warnings():
-    warnings.simplefilter('ignore', DeprecationWarning)
+    try:
+        from matplotlib import MatplotlibDeprecationWarning
+    except ImportError:
+        pass
+    else:
+        warnings.simplefilter('ignore', MatplotlibDeprecationWarning)
     write_animation('things.html', images, writer='html')
