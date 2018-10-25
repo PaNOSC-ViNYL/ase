@@ -118,10 +118,7 @@ class Espresso(FileIOCalculator):
     def get_fermi_level(self):
         if self.calc is None:
             raise PropertyNotPresent(error_template % 'Fermi level')
-        efermi = self.calc.get_fermi_level()
-        if efermi is None:
-            warnings.warn(warn_template % 'Fermi level')
-        return efermi
+        return self.calc.get_fermi_level()
 
     def get_ibz_k_points(self):
         if self.calc is None:
