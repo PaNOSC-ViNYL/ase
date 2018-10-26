@@ -91,8 +91,17 @@ def cutcoupling(h, s, index_n):
 
         
 def fermidistribution(energy, kt):
-    # fermi level is fixed to zero
-    return 1.0 / (1.0 + np.exp(energy / kt))
+   # fermi level is fixed to zero
+   # energy can be a single number or a list
+   assert kt >= 0., 'Negative temperature encountered!'
+
+   if kt==0:
+       if isinstance(energy, float):
+           return int(energy / 2. <= 0)
+       else:
+           return (energy / 2. <= 0).astype(int)
+   else:
+       return 1. / (1. + np.exp(energy / kt))
 
     
 def fliplr(a):
