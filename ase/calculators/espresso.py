@@ -6,9 +6,18 @@ Run pw.x jobs.
 """
 
 
+import warnings
 from ase import io
-from ase.calculators.calculator import FileIOCalculator
+from ase.calculators.calculator import FileIOCalculator, PropertyNotPresent
 
+
+error_template = 'Property "%s" not available. Please try running Quantum\n' \
+                 'Espresso first by calling Atoms.get_potential_energy().'
+
+warn_template = 'Property "%s" is None. Typically, this is because the ' \
+                'required information has not been printed by Quantum ' \
+                'Espresso at a "low" verbosity level (the default). ' \
+                'Please try running Quantum Espresso with "high" verbosity.'
 
 class Espresso(FileIOCalculator):
     """
@@ -53,10 +62,49 @@ class Espresso(FileIOCalculator):
            Set ``tprnfor=True`` and ``tstress=True`` to calculate forces and
            stresses.
 
+        .. note::
+           Band structure plots can be made as follows:
+           
+           
+           1. Perform a regular self-consistent calculation,
+              saving the wave functions at the end, as well as
+              getting the Fermi energy:
+
+              >>> input_data = {<your input data>}
+              >>> calc = Espresso(input_data=input_data, ...)
+              >>> atoms.set_calculator(calc)
+              >>> atoms.get_potential_energy()
+              >>> fermi_level = calc.get_fermi_level()
+              
+           2. Perform a non-self-consistent 'band structure' run
+              after updating your input_data and kpts keywords:
+              
+              >>> input_data['control'].update({'calculation':'bands',
+              >>>                               'restart_mode':'restart',
+              >>>                               'verbosity':'high'})
+              >>> calc.set(kpts={<your Brillouin zone path>},
+              >>>          input_data=input_data)
+              >>> calc.calculate(atoms)
+              
+           3. Make the plot using the BandStructure functionality,
+              after setting the Fermi level to that of the prior
+              self-consistent calculation:
+              
+              >>> bs = calc.band_structure()
+              >>> bs.reference = fermi_energy
+              >>> bs.plot()
+                  
+           
 
         """
         FileIOCalculator.__init__(self, restart, ignore_bad_restart_file,
                                   label, atoms, **kwargs)
+        self.calc = None
+
+    def set(self, **kwargs):
+        changed_parameters = FileIOCalculator.set(self, **kwargs)
+        if changed_parameters:
+            self.reset()
 
     def write_input(self, atoms, properties=None, system_changes=None):
         FileIOCalculator.write_input(self, atoms, properties, system_changes)
@@ -68,16 +116,33 @@ class Espresso(FileIOCalculator):
         self.results = output.calc.results
 
     def get_fermi_level(self):
+        if self.calc is None:
+            raise PropertyNotPresent(error_template % 'Fermi level')
         return self.calc.get_fermi_level()
 
     def get_ibz_k_points(self):
-        return self.calc.get_ibz_k_points()
+        if self.calc is None:
+            raise PropertyNotPresent(error_template % 'IBZ k-points')
+        ibzkpts = self.calc.get_ibz_k_points()
+        if ibzkpts is None:
+            warnings.warn(warn_template % 'IBZ k-points')
+        return ibzkpts
 
     def get_eigenvalues(self, **kwargs):
-        return self.calc.get_eigenvalues(**kwargs)
+        if self.calc is None:
+            raise PropertyNotPresent(error_template % 'Eigenvalues')
+        eigenvalues = self.calc.get_eigenvalues(**kwargs)
+        if eigenvalues is None:
+            warnings.warn(warn_template % 'Eigenvalues')
+        return eigenvalues
 
     def get_number_of_spins(self):
-        return self.calc.get_number_of_spins()
+        if self.calc is None:
+            raise PropertyNotPresent(error_template % 'Number of spins')
+        nspins = self.calc.get_number_of_spins()
+        if nspins is None:
+            warnings.warn(warn_template % 'Number of spins')
+        return nspins
 
     def socket_driver(self, **kwargs):
         from ase.calculators.socketio import SocketIOCalculator
