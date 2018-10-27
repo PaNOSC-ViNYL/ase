@@ -414,7 +414,7 @@ def read_castep_cell(fd, index=None, calculator_args={}, find_spg=False,
 
     calc = Castep(**calculator_args)
 
-    if calc.cell.castep_version == 0:
+    if calc.cell.castep_version == 0 and calc._kw_tol < 3:
         # No valid castep_keywords.json was found
         print('read_cell: Warning - Was not able to validate CASTEP input.')
         print('           This may be due to a non-existing '

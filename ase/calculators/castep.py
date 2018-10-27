@@ -184,6 +184,10 @@ Keyword                    Description
                            a warning (default)
 
                            2 = keywords not found will be accepted silently
+
+                           3 = no attempt is made to look for
+                           castep_keywords.json at all
+
 =========================  ====================================================
 
 
@@ -425,19 +429,22 @@ End CASTEP Interface Documentation
         from ase.io.castep import write_cell
         self._write_cell = write_cell
 
-        try:
-            castep_keywords = import_castep_keywords(castep_command)
-        except CastepVersionError as e:
-            if keyword_tolerance == 0:
-                raise e
-            else:
-                warnings.warn(str(e))
-                castep_keywords = CastepKeywords(make_param_dict(),
-                                                 make_cell_dict(),
-                                                 [],
-                                                 [],
-                                                 0)
+        castep_keywords = CastepKeywords(make_param_dict(),
+                                         make_cell_dict(),
+                                         [],
+                                         [],
+                                         0)
+        if keyword_tolerance < 3:
+            try:
+                castep_keywords = import_castep_keywords(castep_command)
+            except CastepVersionError as e:
+                if keyword_tolerance == 0:
+                    raise e
+                else:
+                    warnings.warn(str(e))
+
         self._kw_tol = keyword_tolerance
+        keyword_tolerance = max(keyword_tolerance, 2)  # 3 not accepted below
         self.param = CastepParam(castep_keywords,
                                  keyword_tolerance=keyword_tolerance)
         self.cell = CastepCell(castep_keywords,
