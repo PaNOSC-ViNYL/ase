@@ -15,6 +15,8 @@ from __future__ import print_function
 
 from itertools import islice
 import re
+import warnings
+
 import numpy as np
 
 from ase.atoms import Atoms
@@ -809,7 +811,13 @@ def write_xyz(fileobj, images, comment='', columns=None, write_info=True,
                 raise ValueError('Missing array "%s"' % column)
 
         if write_results:
-            fr_cols += per_atom_results.keys()
+            for key in per_atom_results:
+                if key not in fr_cols:
+                    fr_cols += [key]
+                else:
+                    warnings.warn('write_xyz() overwriting array "{0}" present '
+                                  'in atoms.arrays with stored results '
+                                  'from calculator'.format(key))
             arrays.update(per_atom_results)
 
         comm, ncols, dtype, fmt = output_column_format(atoms,
