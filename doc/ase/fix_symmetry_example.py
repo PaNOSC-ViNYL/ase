@@ -4,7 +4,7 @@ import numpy as np
 
 from ase.atoms import Atoms
 from ase.calculators.lj import LennardJones
-from ase.calculators.symmetrize import SymmetrizedCalculator, check
+from ase.spacegroup.symmetrize import FixSymmetry, check
 from ase.optimize import BFGS
 from ase.constraints import UnitCellFilter
 
@@ -32,8 +32,8 @@ print("Energy", at_unsym.get_potential_energy())
 at_sym = at_prim * [2,2,2]
 at_sym.positions[0,0] += 1.0e-7 # break symmetry by 1e-7
 
-calc = SymmetrizedCalculator(LennardJones(), at_sym)
-at_sym.set_calculator(calc)
+at_sym.set_calculator(LennardJones())
+at_sym.set_constraint(FixSymmetry(at_sym))
 
 at_cell = UnitCellFilter(at_sym)
 

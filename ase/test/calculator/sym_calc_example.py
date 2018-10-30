@@ -1,1 +1,0 @@
-../../../doc/ase/calculators/sym_calc_example.py
