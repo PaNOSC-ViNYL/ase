@@ -32,7 +32,7 @@ def refine(at, symprec=0.01):
     """
     # test orig config with desired tol
     dataset = spglib.get_symmetry_dataset(at, symprec=symprec)
-    print("ase.calculators.symmetrize.refine_symmetry: loose ({}) "
+    print("ase.spacegroup.symmetrize.refine_symmetry: loose ({}) "
           "initial symmetry group number {}, "
           "international (Hermann-Mauguin) {} Hall {}".
           format(symprec, dataset["number"],
@@ -63,20 +63,34 @@ def refine(at, symprec=0.01):
 
     # align prim cell atom 0 with atom in orig cell that maps to it
     p = at.get_positions()
-    dp0 = p[list(orig_mapping).index(0),:] - prim_pos[0,:]
+    # dp0 = p[list(orig_mapping).index(0),:] - prim_pos[0,:]
+    real_atom_that_maps_to_prim_0 = list(dataset['mapping_to_primitive']).index(0)
+    std_atom_that_maps_to_prim_0  = list(dataset['std_mapping_to_primitive']).index(0)
+    dp0 = p[real_atom_that_maps_to_prim_0,:] - dataset['std_positions'][std_atom_that_maps_to_prim_0,]
     prim_pos += dp0
 
     # create symmetrized orig pos from prim cell pos + integer * prim cell lattice vectors
     prim_inv_cell = np.linalg.inv(prim_cell)
     for i in range(len(at)):
-        dp_rounded = np.round( np.dot(p[i,:]-prim_pos[orig_mapping[i],:], prim_inv_cell) )
-        p[i,:] = prim_pos[orig_mapping[i],:] + np.dot(dp_rounded, prim_cell)
+        # find closest primitive atom
+        # there should really be a better mapping, but apparently mapping to primitive cell returned
+        # by get_symmetry_dataset() doesn't always have atom indices that actually agree with those
+        # returned by find_primitive()
+        #
+        # p = prim_pos + L . prim_cell
+        # L = (p-prim_pos) . prim_inv_cell
+        # find integer L
+        L = np.dot((p[i,:]-prim_pos) , prim_inv_cell)
+        i_prim = np.argmin(np.linalg.norm(L - np.round(L), axis=1))
+        p[i,:] = prim_pos[i_prim,:] + np.dot(L[i_prim,:], prim_cell)
+        # dp_rounded = np.round( np.dot(p[i,:]-prim_pos[orig_mapping[i],:], prim_inv_cell) )
+        # p[i,:] = prim_pos[orig_mapping[i],:] + np.dot(dp_rounded, prim_cell)
 
     at.set_positions(p)
 
     # test final config with tight tol
     dataset = spglib.get_symmetry_dataset(at, symprec=1.0e-6)
-    print("ase.calculators.symmetrize.refine_symmetry: precise ({}) "
+    print("ase.spacegroup.symmetrize.refine_symmetry: precise ({}) "
           "symmetrized symmetry group number {}, "
           "international (Hermann-Mauguin) {} Hall {}"
           .format(1.0e-6, dataset["number"],
@@ -91,7 +105,7 @@ def check(at, symprec=1.0e-6):
     Prints a summary and returns result of `spglib.get_symmetry_dataset()`
     """
     dataset = spglib.get_symmetry_dataset(at, symprec=symprec)
-    print("ase.calculators.symmetrize.check: prec", symprec,
+    print("ase.spacegroup.symmetrize.check: prec", symprec,
           "got symmetry group number", dataset["number"],
           ", international (Hermann-Mauguin)", dataset["international"],
           ", Hall ",dataset["hall"])
