@@ -1,0 +1,1 @@
+../../doc/ase/fix_symmetry_example.py
