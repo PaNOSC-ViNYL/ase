@@ -8,6 +8,7 @@ import numpy as np
 from ase.calculators.calculator import (Calculator, all_changes,
                                         PropertyNotImplementedError)
 import ase.units as units
+from ase.utils import basestring
 
 
 def actualunixsocketname(name):
@@ -575,7 +576,11 @@ class SocketIOCalculator(Calculator):
         self.calc = calc
         self.timeout = timeout
         self.server = None
-        self.log = log
+
+        if isinstance(log, basestring):
+            self.log = open(log, 'w')
+        else:
+            self.log = log
 
         # We only hold these so we can pass them on to the server.
         # They may both be None as stored here.
@@ -641,6 +646,7 @@ class SocketIOCalculator(Calculator):
             self.server.close()
             self.server = None
             self.calculator_initialized = False
+            self.log.close()
 
     def __enter__(self):
         return self
