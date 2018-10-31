@@ -579,8 +579,10 @@ class SocketIOCalculator(Calculator):
 
         if isinstance(log, basestring):
             self.log = open(log, 'w')
+            self.log_was_opened = True
         else:
             self.log = log
+            self.log_was_opened = False
 
         # We only hold these so we can pass them on to the server.
         # They may both be None as stored here.
@@ -646,7 +648,8 @@ class SocketIOCalculator(Calculator):
             self.server.close()
             self.server = None
             self.calculator_initialized = False
-            self.log.close()
+            if self.log_was_opened:
+                self.log.close()
 
     def __enter__(self):
         return self
