@@ -40,6 +40,9 @@ def surface(lattice, indices, layers, vacuum=None, tol=1e-10, termination=0):
     h0, k0, l0 = (indices == 0)
     
     if termination != 0:  #changing termination
+        import warnings
+        warnings.warn('Work on changing terminations is currently in '
+                      'progress.  Code may not behave as expected.')
         lattice1 = deepcopy(lattice)
         cell = lattice1.get_cell()
         pt = [0,0,0]
