@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ase-3.5.2\n"
 "Report-Msgid-Bugs-To: ase-users@listserv.fysik.dtu.dk\n"
-"POT-Creation-Date: 2018-09-01 18:48+0200\n"
-"PO-Revision-Date: 2018-09-01 19:06+0200\n"
+"POT-Creation-Date: 2018-11-02 16:09+0100\n"
+"PO-Revision-Date: 2018-11-02 16:32+0100\n"
 "Last-Translator: Max Ramirez <m.ramirez@mx.uni-saarland.de>\n"
 "Language-Team: Spanish\n"
 "Language: es\n"
@@ -230,48 +230,6 @@ msgstr "Liberar restricciones"
 msgid "Clear constraints"
 msgstr "Quitar las restricciones"
 
-#: ../energyforces.py:15
-msgid "Output:"
-msgstr "Salida:"
-
-#: ../energyforces.py:44
-msgid "Save output"
-msgstr "Guardar salida"
-
-#: ../energyforces.py:61
-msgid "Potential energy and forces"
-msgstr "Energía potencial y fuerzas"
-
-#: ../energyforces.py:65
-msgid "Calculate potential energy and the force on all atoms"
-msgstr "Calcular la energía potencial y la fuerza en todos los átomos"
-
-#: ../energyforces.py:69
-msgid "Write forces on the atoms"
-msgstr "Escribir las fuerzas en los átomos"
-
-#: ../energyforces.py:86
-msgid "Potential Energy:\n"
-msgstr "Energía potencial:\n"
-
-#: ../energyforces.py:87
-#, python-format
-msgid "  %8.2f eV\n"
-msgstr "  %8.2f eV\n"
-
-#: ../energyforces.py:88
-#, python-format
-msgid ""
-"  %8.4f eV/atom\n"
-"\n"
-msgstr ""
-"  %8.4f eV/átomo\n"
-"\n"
-
-#: ../energyforces.py:90
-msgid "Forces:\n"
-msgstr "Fuerzas:\n"
-
 #: ../graphene.py:17
 msgid ""
 "Set up a graphene sheet or a graphene nanoribbon.  A nanoribbon may\n"
@@ -285,7 +243,7 @@ msgstr ""
 msgid " %(natoms)i atoms: %(symbols)s, Volume: %(volume).3f A<sup>3</sup>"
 msgstr " %(natoms)i átomos: %(symbols)s, Volumen: %(volume).3f A<sup>3</sup>"
 
-#: ../graphene.py:38 ../gui.py:527
+#: ../graphene.py:38 ../gui.py:505
 msgid "Graphene"
 msgstr "Grafeno"
 
@@ -368,7 +326,7 @@ msgstr "Los átomos no son válidos."
 msgid "You have not (yet) specified a consistent set of parameters."
 msgstr "No ha especificado aún un conjunto consistente de parámetros."
 
-#: ../graphs.py:11
+#: ../graphs.py:10
 msgid ""
 "Symbols:\n"
 "<c>e</c>: total energy\n"
@@ -416,359 +374,365 @@ msgstr ""
 "<c>n<sub>2</sub></c>, <c>n<sub>3</sub></c> y <c>n<sub>4</sub></c>\n"
 "<c>T</c>: temperatura (K)"
 
-#: ../graphs.py:42 ../graphs.py:44
+#: ../graphs.py:41 ../graphs.py:43
 msgid "Plot"
 msgstr "Graficar"
 
-#: ../graphs.py:46
+#: ../graphs.py:45
 msgid "Save"
 msgstr "Guardar"
 
-#: ../graphs.py:47
-msgid "Clear"
-msgstr "Limpiar"
-
-#: ../graphs.py:72
+#: ../graphs.py:68
 msgid "Save data to file ... "
 msgstr "Salve los datos a un archivo …"
 
-#: ../gui.py:337
+#. Subprocess probably crashed
+#: ../gui.py:267
+msgid "Failure in subprocess"
+msgstr "Error en subproceso"
+
+#: ../gui.py:273
+msgid "Plotting failed"
+msgstr "Error al dibujar gráfico"
+
+#: ../gui.py:281
+msgid "Images must have energies and forces, and atoms must not be stationary."
+msgstr "Imágenes deben tener energías y fuerzas, y los átomos deben moverse."
+
+#: ../gui.py:294
+msgid "Images must have energies and varying cell."
+msgstr "Imágenes deben tener energías y la celda unitaria debe ser variable."
+
+#: ../gui.py:301
+msgid "Requires 3D cell."
+msgstr "Se necesita celda unitaria 3D."
+
+#: ../gui.py:334
 msgid "Quick Info"
 msgstr "Información rápida"
 
-#: ../gui.py:429
+#: ../gui.py:407
 msgid "_File"
 msgstr "_Archivo"
 
-#: ../gui.py:430
+#: ../gui.py:408
 msgid "_Open"
 msgstr "_Abrir"
 
-#: ../gui.py:431
+#: ../gui.py:409
 msgid "_New"
 msgstr "_Nuevo"
 
-#: ../gui.py:432
+#: ../gui.py:410
 msgid "_Save"
 msgstr "_Guardar"
 
-#: ../gui.py:434
+#: ../gui.py:412
 msgid "_Quit"
 msgstr "_Salir"
 
-#: ../gui.py:436
+#: ../gui.py:414
 msgid "_Edit"
 msgstr "_Editar"
 
-#: ../gui.py:437
+#: ../gui.py:415
 msgid "Select _all"
 msgstr "Seleccionar _todo"
 
-#: ../gui.py:438
+#: ../gui.py:416
 msgid "_Invert selection"
 msgstr "_Invertir selección"
 
-#: ../gui.py:439
+#: ../gui.py:417
 msgid "Select _constrained atoms"
 msgstr "Seleccionar los átomos _restringidos"
 
-#: ../gui.py:440
+#: ../gui.py:418
 msgid "Select _immobile atoms"
 msgstr "Seleccionar los átomos _inmóbiles"
 
-#: ../gui.py:445
+#: ../gui.py:423
 msgid "Hide selected atoms"
 msgstr "Ocultar átomos seleccionados"
 
-#: ../gui.py:446
+#: ../gui.py:424
 msgid "Show selected atoms"
 msgstr "Mostrar átomos seleccionados"
 
-#: ../gui.py:448
+#: ../gui.py:426
 msgid "_Modify"
 msgstr "_Modificar"
 
-#: ../gui.py:449
+#: ../gui.py:427
 msgid "_Add atoms"
 msgstr "_Añadir átomos"
 
-#: ../gui.py:450
+#: ../gui.py:428
 msgid "_Delete selected atoms"
 msgstr "_Borrar átomos seleccionados"
 
-#: ../gui.py:452
+#: ../gui.py:430
 msgid "Edit _cell"
 msgstr "Editar _celda"
 
-#: ../gui.py:454
+#: ../gui.py:432
 msgid "_First image"
 msgstr "_Primera imagen"
 
-#: ../gui.py:455
+#: ../gui.py:433
 msgid "_Previous image"
 msgstr "_Imagen previa"
 
-#: ../gui.py:456
+#: ../gui.py:434
 msgid "_Next image"
 msgstr "_Próxima imagen"
 
-#: ../gui.py:457
+#: ../gui.py:435
 msgid "_Last image"
 msgstr "Ú_ltima imagen"
 
-#: ../gui.py:459
+#: ../gui.py:437
 msgid "_View"
 msgstr "_Ver"
 
-#: ../gui.py:460
+#: ../gui.py:438
 msgid "Show _unit cell"
 msgstr "Mostrar la celda _unitaria"
 
-#: ../gui.py:462
+#: ../gui.py:440
 msgid "Show _axes"
 msgstr "Mostrar los _ejes"
 
-#: ../gui.py:464
+#: ../gui.py:442
 msgid "Show _bonds"
 msgstr "Mostrar los _enlaces"
 
-#: ../gui.py:466
+#: ../gui.py:444
 msgid "Show _velocities"
 msgstr "Mostrar las _velocidades"
 
-#: ../gui.py:468
+#: ../gui.py:446
 msgid "Show _forces"
 msgstr "Mostrar las _fuerzas"
 
-#: ../gui.py:470
+#: ../gui.py:448
 msgid "Show _Labels"
 msgstr "Mostrar los _etiquetas"
 
-#: ../gui.py:471
+#: ../gui.py:449
 msgid "_None"
 msgstr "_Ninguno"
 
-#: ../gui.py:472
+#: ../gui.py:450
 msgid "Atom _Index"
 msgstr "_Índice de Atom"
 
-#: ../gui.py:473
+#: ../gui.py:451
 msgid "_Magnetic Moments"
 msgstr "Momentos _Magnético"
 
 #. XXX check if exist
-#: ../gui.py:474
+#: ../gui.py:452
 msgid "_Element Symbol"
 msgstr "Símbolo _Químico"
 
-#: ../gui.py:475
+#: ../gui.py:453
 msgid "_Initial Charges"
 msgstr "Cargas _iniciales"
 
-#: ../gui.py:478
+#: ../gui.py:456
 msgid "Quick Info ..."
 msgstr "Información rápida …"
 
-#: ../gui.py:479
+#: ../gui.py:457
 msgid "Repeat ..."
 msgstr "Repetir …"
 
-#: ../gui.py:480
+#: ../gui.py:458
 msgid "Rotate ..."
 msgstr "Rotar …"
 
-#: ../gui.py:481
+#: ../gui.py:459
 msgid "Colors ..."
 msgstr "Colores …"
 
 #. TRANSLATORS: verb
-#: ../gui.py:483
+#: ../gui.py:461
 msgid "Focus"
 msgstr "Enfocar"
 
-#: ../gui.py:484
+#: ../gui.py:462
 msgid "Zoom in"
 msgstr "Ampliar"
 
-#: ../gui.py:485
+#: ../gui.py:463
 msgid "Zoom out"
 msgstr "Alejar"
 
-#: ../gui.py:486
+#: ../gui.py:464
 msgid "Change View"
 msgstr "Cambiar de vista"
 
-#: ../gui.py:488
+#: ../gui.py:466
 msgid "Reset View"
 msgstr "Reiniciar la vista"
 
-#: ../gui.py:489
+#: ../gui.py:467
 msgid "xy-plane"
 msgstr "plano xy"
 
-#: ../gui.py:490
+#: ../gui.py:468
 msgid "yz-plane"
 msgstr "plano yz"
 
-#: ../gui.py:491
+#: ../gui.py:469
 msgid "zx-plane"
 msgstr "plano xz"
 
-#: ../gui.py:492
+#: ../gui.py:470
 msgid "yx-plane"
 msgstr "plano yx"
 
-#: ../gui.py:493
+#: ../gui.py:471
 msgid "zy-plane"
 msgstr "plano zy"
 
-#: ../gui.py:494
+#: ../gui.py:472
 msgid "xz-plane"
 msgstr "plano xz"
 
-#: ../gui.py:495
+#: ../gui.py:473
 msgid "a2,a3-plane"
 msgstr "plano a2,a3"
 
-#: ../gui.py:496
+#: ../gui.py:474
 msgid "a3,a1-plane"
 msgstr "plano a3,a1"
 
-#: ../gui.py:497
+#: ../gui.py:475
 msgid "a1,a2-plane"
 msgstr "plano a1,a2"
 
-#: ../gui.py:498
+#: ../gui.py:476
 msgid "a3,a2-plane"
 msgstr "plano a3,a2"
 
-#: ../gui.py:499
+#: ../gui.py:477
 msgid "a1,a3-plane"
 msgstr "plano a1,a3"
 
-#: ../gui.py:500
+#: ../gui.py:478
 msgid "a2,a1-plane"
 msgstr "plano a2,a1"
 
-#: ../gui.py:501
+#: ../gui.py:479
 msgid "Settings ..."
 msgstr "Ajustes …"
 
-#: ../gui.py:503
+#: ../gui.py:481
 msgid "VMD"
 msgstr "VMD"
 
-#: ../gui.py:504
+#: ../gui.py:482
 msgid "RasMol"
 msgstr "RasMol"
 
-#: ../gui.py:505
+#: ../gui.py:483
 msgid "xmakemol"
 msgstr "xmakemol"
 
-#: ../gui.py:506
+#: ../gui.py:484
 msgid "avogadro"
 msgstr "avogadro"
 
-#: ../gui.py:508
+#: ../gui.py:486
 msgid "_Tools"
 msgstr "_Herramientas"
 
-#: ../gui.py:509
+#: ../gui.py:487
 msgid "Graphs ..."
 msgstr "Gráficos …"
 
-#: ../gui.py:510
+#: ../gui.py:488
 msgid "Movie ..."
 msgstr "Película …"
 
-#: ../gui.py:511
+#: ../gui.py:489
 msgid "Expert mode ..."
 msgstr "Modo experto …"
 
-#: ../gui.py:512
+#: ../gui.py:490
 msgid "Constraints ..."
 msgstr "Restricciones …"
 
-#: ../gui.py:513
+#: ../gui.py:491
 msgid "Render scene ..."
 msgstr "Dibujar escena …"
 
-#: ../gui.py:514
+#: ../gui.py:492
 msgid "_Move atoms"
 msgstr "_Mover los átomos"
 
-#: ../gui.py:515
+#: ../gui.py:493
 msgid "_Rotate atoms"
 msgstr "_Rotar los átomos"
 
-#: ../gui.py:516
+#: ../gui.py:494
 msgid "NE_B"
 msgstr "NE_B"
 
-#: ../gui.py:517
+#: ../gui.py:495
 msgid "B_ulk Modulus"
 msgstr "Módulo de b_ulto"
 
-#: ../gui.py:518
+#: ../gui.py:496
 msgid "Reciprocal space ..."
 msgstr "Espacio recíproco …"
 
 #. TRANSLATORS: Set up (i.e. build) surfaces, nanoparticles, ...
-#: ../gui.py:521
+#: ../gui.py:499
 msgid "_Setup"
 msgstr "_Configurar"
 
-#: ../gui.py:522
+#: ../gui.py:500
 msgid "_Bulk Crystal"
 msgstr "Cristal en _bulto"
 
-#: ../gui.py:523
+#: ../gui.py:501
 msgid "_Surface slab"
 msgstr "Trozo de _superficie"
 
-#: ../gui.py:524
+#: ../gui.py:502
 msgid "_Nanoparticle"
 msgstr "_Nanopartícula"
 
-#: ../gui.py:526
+#: ../gui.py:504
 msgid "Nano_tube"
 msgstr "Nano_tubo"
 
-#: ../gui.py:529
-msgid "_Calculate"
-msgstr "_Calcular"
-
-#: ../gui.py:530
-msgid "Set _Calculator"
-msgstr "Fijar el _calculador"
-
-#: ../gui.py:531
-msgid "_Energy and Forces"
-msgstr "_Energía y Fuerzas"
-
-#: ../gui.py:532
-msgid "Energy Minimization"
-msgstr "Minimización de energía"
-
-#: ../gui.py:535
+#. (_('_Calculate'),
+#. [M(_('Set _Calculator'), self.calculator_window, disabled=True),
+#. M(_('_Energy and Forces'), self.energy_window, disabled=True),
+#. M(_('Energy Minimization'), self.energy_minimize_window,
+#. disabled=True)]),
+#: ../gui.py:513
 msgid "_Help"
 msgstr "_Ayuda"
 
-#: ../gui.py:536
+#: ../gui.py:514
 msgid "_About"
 msgstr "_Acerca de ag"
 
-#: ../gui.py:540
+#: ../gui.py:518
 msgid "Webpage ..."
 msgstr "Página web …"
 
 #. Host window will never be shown
-#: ../images.py:288
+#: ../images.py:277
 msgid "Constraints discarded"
 msgstr "Restricciones descartadas"
 
-#: ../images.py:289
+#: ../images.py:278
 msgid "Constraints other than FixAtoms have been discarded."
 msgstr "Se han descartado las restricciones salvo FixAtoms."
 
@@ -1491,23 +1455,23 @@ msgstr "Escala de fuerzas:"
 msgid "Scale velocity vectors:"
 msgstr "Escala de velocidades:"
 
-#: ../status.py:58
+#: ../status.py:53
 #, python-format
 msgid " tag=%(tag)s"
 msgstr " etiqueta=%(tag)s"
 
 #. TRANSLATORS: mom refers to magnetic moment
-#: ../status.py:62
+#: ../status.py:57
 #, python-brace-format
 msgid " mom={0:1.2f}"
 msgstr " mom={0:1.2f}"
 
-#: ../status.py:66
+#: ../status.py:61
 #, python-brace-format
 msgid " q={0:1.2f}"
 msgstr " q={0:1.2f}"
 
-#: ../status.py:111
+#: ../status.py:89
 msgid "dihedral"
 msgstr "diedral"
 
@@ -1733,6 +1697,52 @@ msgstr "ERROR: ¡elemento inválido!"
 #: ../widgets.py:107
 msgid "No Python code"
 msgstr "No es código de Python"
+
+#~ msgid "Output:"
+#~ msgstr "Salida:"
+
+#~ msgid "Save output"
+#~ msgstr "Guardar salida"
+
+#~ msgid "Potential energy and forces"
+#~ msgstr "Energía potencial y fuerzas"
+
+#~ msgid "Calculate potential energy and the force on all atoms"
+#~ msgstr "Calcular la energía potencial y la fuerza en todos los átomos"
+
+#~ msgid "Write forces on the atoms"
+#~ msgstr "Escribir las fuerzas en los átomos"
+
+#~ msgid "Potential Energy:\n"
+#~ msgstr "Energía potencial:\n"
+
+#~ msgid "  %8.2f eV\n"
+#~ msgstr "  %8.2f eV\n"
+
+#~ msgid ""
+#~ "  %8.4f eV/atom\n"
+#~ "\n"
+#~ msgstr ""
+#~ "  %8.4f eV/átomo\n"
+#~ "\n"
+
+#~ msgid "Forces:\n"
+#~ msgstr "Fuerzas:\n"
+
+#~ msgid "Clear"
+#~ msgstr "Limpiar"
+
+#~ msgid "_Calculate"
+#~ msgstr "_Calcular"
+
+#~ msgid "Set _Calculator"
+#~ msgstr "Fijar el _calculador"
+
+#~ msgid "_Energy and Forces"
+#~ msgstr "_Energía y Fuerzas"
+
+#~ msgid "Energy Minimization"
+#~ msgstr "Minimización de energía"
 
 #~ msgid " (rerun simulation)"
 #~ msgstr " (recalcular la simulación)"
