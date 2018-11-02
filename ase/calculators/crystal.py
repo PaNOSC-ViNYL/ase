@@ -1,4 +1,4 @@
-"""This module defines an ASE interface to CRYSTAL14
+"""This module defines an ASE interface to CRYSTAL14/CRYSTAL17
 
 http://www.crystal.unito.it/
 
@@ -20,15 +20,24 @@ The keywords are given, for instance, as follows:
                  ['fmixing','90']],
     ...
 
+
+    When used for QM/MM, Crystal calculates coulomb terms
+    within all point charges. This is wrong and should be corrected by either:
+
+        1. Re-calculating the terms and subtracting them
+        2. Reading in the values from FORCES_CHG.DAT and subtracting
+
+
+    BOTH Options should be available, with 1 as standard, since 2 is
+    only available in a development version of CRYSTAL
+
 """
 
 from ase.units import Hartree, Bohr
 from ase.io import write
 import numpy as np
 import os
-
 from ase.calculators.calculator import FileIOCalculator
-
 
 class CRYSTAL(FileIOCalculator):
     """ A crystal calculator with ase-FileIOCalculator nomenclature
@@ -38,7 +47,7 @@ class CRYSTAL(FileIOCalculator):
                               'dipole']
 
     def __init__(self, restart=None, ignore_bad_restart_file=False,
-                 label='cry', atoms=None, **kwargs):
+                 label='cry', atoms=None, crys_pcc=False, **kwargs):
         """Construct a crystal calculator.
 
         """
@@ -46,6 +55,9 @@ class CRYSTAL(FileIOCalculator):
         self.default_parameters = dict(
             xc='HF',
             spinpol=False,
+            oldgrid=False,
+            neigh=False,
+            coarsegrid=False,
             guess=True,
             kpts=None,
             isp=1,
@@ -56,6 +68,7 @@ class CRYSTAL(FileIOCalculator):
         self.pcpot = None
         self.lines = None
         self.atoms = None
+        self.crys_pcc = crys_pcc  # True: Reads Coulomb Correction from file.
         self.atoms_input = None
         self.outfilename = 'cry.out'
 
@@ -72,6 +85,9 @@ class CRYSTAL(FileIOCalculator):
         outfile = open(filename, 'w')
         outfile.write('Single point + Gradient crystal calculation \n')
         outfile.write('EXTERNAL \n')
+        outfile.write('NEIGHPRT \n')
+        outfile.write('0 \n')
+
         if self.pcpot:
             outfile.write('POINTCHG \n')
             self.pcpot.write_mmcharges('POINTCHG.INP')
@@ -110,7 +126,7 @@ class CRYSTAL(FileIOCalculator):
             if isinstance(p.xc, str):
                 xc = {'LDA': 'EXCHANGE\nLDA\nCORRELAT\nVWN',
                       'PBE': 'PBEXC'}.get(p.xc, p.xc)
-                outfile.write(xc.upper() + '\n')
+                outfile.write(xc.upper()+'\n')
         # Custom xc functional are given by a tuple of string
             else:
                 x, c = p.xc
@@ -120,12 +136,26 @@ class CRYSTAL(FileIOCalculator):
                 outfile.write(c + ' \n')
             if p.spinpol:
                 outfile.write('SPIN \n')
+            if p.oldgrid:
+                outfile.write('OLDGRID \n')
+            if p.coarsegrid:
+                outfile.write('RADIAL\n')
+                outfile.write('1\n')
+                outfile.write('4.0\n')
+                outfile.write('20\n')
+                outfile.write('ANGULAR\n')
+                outfile.write('5\n')
+                outfile.write('0.1667 0.5 0.9 3.05 9999.0\n')
+                outfile.write('2 6 8 13 8\n')
             outfile.write('END \n')
         # When guess=True, wf is read.
         if p.guess:
             # wf will be always there after 2nd step.
             if os.path.isfile('fort.20'):
                 outfile.write('GUESSP \n')
+            elif os.path.isfile('fort.9'):
+                outfile.write('GUESSP \n')
+                os.system('cp fort.9 fort.20')
 
         # smearing
         if p.smearing is not None:
@@ -167,7 +197,7 @@ class CRYSTAL(FileIOCalculator):
                 raise ValueError('Shifted Monkhorst-Pack not allowed.')
             outfile.write('SHRINK  \n')
             # isp is by default 1, 2 is suggested for metals.
-            outfile.write('0 ' + str(p.isp * max(self.kpts)) + ' \n')
+            outfile.write('0 ' + str(p.isp*max(self.kpts)) + ' \n')
             if ispbc[2]:
                 outfile.write(str(self.kpts[0])
                               + ' ' + str(self.kpts[1])
@@ -223,9 +253,22 @@ class CRYSTAL(FileIOCalculator):
             if line.find(estring2) >= 0:
                 index_energy = iline
                 pos_en = 5
-        energy = float(self.lines[index_energy].split()[pos_en]) * Hartree
-        self.results['energy'] = energy
 
+        # If there's a point charge potential (QM/MM), read corrections
+        e_coul = 0
+        if self.pcpot:
+            if self.crys_pcc:
+                self.pcpot.read_pc_corrections()
+                # also pass on to pcpot that it should read in from file
+                self.pcpot.crys_pcc = True
+            else:
+                self.pcpot.manual_pc_correct()
+            e_coul, f_coul = self.pcpot.coulomb_corrections
+
+        energy = float(self.lines[index_energy].split()[pos_en]) * Hartree
+        energy -= e_coul # e_coul already in eV.
+
+        self.results['energy'] = energy
         # Force line indexes
         fstring = 'CARTESIAN FORCES'
         gradients = []
@@ -235,9 +278,16 @@ class CRYSTAL(FileIOCalculator):
                 break
         else:
             raise RuntimeError('Problem in reading forces')
-        for j in range(index_force_begin, index_force_begin + len(self.atoms)):
+        for j in range(index_force_begin, index_force_begin+len(self.atoms)):
             word = self.lines[j].split()
-            gradients.append([float(word[k + 2]) for k in range(0, 3)])
+            # If GHOST atoms give problems, have a close look at this
+            if len(word) == 5:
+                gradients.append([float(word[k+2]) for k in range(0, 3)])
+            elif len(word) == 4:
+                gradients.append([float(word[k+1]) for k in range(0, 3)])
+            else:
+                raise RuntimeError('Problem in reading forces')
+
         forces = np.array(gradients) * Hartree / Bohr
 
         self.results['forces'] = forces
@@ -272,7 +322,7 @@ class CRYSTAL(FileIOCalculator):
             if 'TOTAL ATOMIC CHARGE' in line:
                 chargestart = n + 1
         lines1 = self.lines[chargestart:(chargestart
-                                         + (len(self.atoms) - 1) // 6 + 1)]
+                            + (len(self.atoms) - 1) // 6 + 1)]
         atomnum = self.atoms.get_atomic_numbers()
         words = []
         for line in lines1:
@@ -285,8 +335,7 @@ class CRYSTAL(FileIOCalculator):
         charges = np.array(qm_charges)
         self.results['charges'] = charges
 
-        # Read dipole moment.
-
+        ### Read dipole moment.
         dipole = np.zeros([1, 3])
         for n, line in enumerate(self.lines):
             if 'DIPOLE MOMENT ALONG' in line:
@@ -296,6 +345,7 @@ class CRYSTAL(FileIOCalculator):
                 break
         # debye to e*Ang
         self.results['dipole'] = dipole * 0.2081943482534
+
 
     def embed(self, mmcharges=None, directory='./'):
         """Embed atoms in point-charges (mmcharges)
@@ -312,6 +362,8 @@ class PointChargePotential:
         self.directory = directory
         self.mmpositions = None
         self.mmforces = None
+        self.coulomb_corrections = None
+        self.crys_pcc = False
 
     def set_positions(self, mmpositions):
         self.mmpositions = mmpositions
@@ -328,7 +380,7 @@ class PointChargePotential:
             print("CRYSTAL: Warning: not writing external charges ")
             return
         charge_file = open(os.path.join(self.directory, filename), 'w')
-        charge_file.write(str(len(self.mmcharges)) + ' \n')
+        charge_file.write(str(len(self.mmcharges))+' \n')
         for [pos, charge] in zip(self.mmpositions, self.mmcharges):
             [x, y, z] = pos
             charge_file.write('%12.6f %12.6f %12.6f %12.6f \n'
@@ -344,10 +396,17 @@ class PointChargePotential:
 
     def read_forces_on_pointcharges(self):
         """Read Forces from CRYSTAL output file (OUTPUT)."""
-        from ase.units import Hartree, Bohr
         infile = open(os.path.join(self.directory, 'OUTPUT'), 'r')
         lines = infile.readlines()
         infile.close()
+
+        print('PCPOT crys_pcc: '+str(self.crys_pcc))
+        # read in force and energy Coulomb corrections
+        if self.crys_pcc:
+            self.read_pc_corrections()
+        else:
+            self.manual_pc_correct()
+        e_coul, f_coul = self.coulomb_corrections
 
         external_forces = []
         for n, line in enumerate(lines):
@@ -361,4 +420,63 @@ class PointChargePotential:
         for line in lines1:
             external_forces.append(
                 [float(i) for i in line.split()[2:]])
-        return np.array(external_forces) * Hartree / Bohr
+
+        f = np.array(external_forces)  - f_coul
+        f *= (Hartree / Bohr)
+
+        return f
+
+    def read_pc_corrections(self):
+        ''' Crystal calculates Coulomb forces and energies between all
+            point charges, and adds that to the QM subsystem. That needs
+            to be subtracted again.
+            This will be standard in future CRYSTAL versions .'''
+
+        infile = open(os.path.join(self.directory, 'FORCES_CHG.DAT'), 'r')
+        lines = infile.readlines()
+        infile.close()
+
+        e = [float(x.split()[-1])
+             for x in lines if 'SELF-INTERACTION ENERGY(AU)' in x][0]
+
+        e *= Hartree
+
+        f_lines = [s for s in lines if '199' in s]
+        assert(len(f_lines) == len(self.mmcharges)), \
+            'Mismatch in number of point charges from FORCES_CHG.dat'
+
+        pc_forces = np.zeros((len(self.mmcharges), 3))
+        for i, l in enumerate(f_lines):
+            first = l.split(str(i + 1) + ' 199  ')
+            assert(len(first) == 2), 'Problem reading FORCES_CHG.dat'
+            f = first[-1].split()
+            pc_forces[i] = [float(x) for x in f]
+
+        self.coulomb_corrections = (e, pc_forces)
+
+    def manual_pc_correct(self):
+        ''' For current versions of CRYSTAL14/17, manual Coulomb correction '''
+
+        R = self.mmpositions / Bohr
+        charges = self.mmcharges
+
+        forces = np.zeros_like(R)
+        energy = 0.0
+
+        for m in range(len(charges)):
+            D = R[m + 1:] - R[m]
+            d2 = (D**2).sum(1)
+            d = d2**0.5
+
+            e_c = charges[m + 1:] * charges[m] / d
+
+            energy += np.sum(e_c)
+
+            F = (e_c / d2)[:, None] * D
+
+            forces[m] -= F.sum(0)
+            forces[m + 1:] += F
+
+        energy *= Hartree
+
+        self.coulomb_corrections = (energy, forces)
