@@ -231,7 +231,7 @@ def PhononHarmonics(atoms,
     force_constants: ndarray of size 3N x 3N
         Force constants for the the structure represented by atoms in eV/Å²
     temp: float
-        Temperature in eV (T \* units.kB)
+        Temperature in eV (T * units.kB)
     rng: Random number generator
         RandomState or other random number generator, e.g., np.random.rand
     quantum: bool
