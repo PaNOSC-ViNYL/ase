@@ -2,8 +2,15 @@ from __future__ import print_function
 
 import warnings
 from unittest.case import SkipTest
+import sys
 
 from ase import Atoms
+
+if sys.platform == 'darwin':
+    # The test crashes when part of the test suite, because fork()
+    # is then called in a multithreaded environment.  That is a big
+    # no-no on all platforms, but cause a quick crash on macOS.
+    raise SkipTest('Test not compatible with macOS.')
 
 try:
     with warnings.catch_warnings():
