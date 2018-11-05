@@ -24,7 +24,23 @@ python_2_7_tests:
     - ase test
 
 python_3_tests:
-  image: python:3
+  image: python:3.6-slim
+  script:
+    # manually install extra deps
+    #- pip install netCDF4
+    - pip install pyflakes psycopg2-binary
+    # 'pip install' pulls in all required packages
+    - pip install .
+    # Run tests
+    - python --version
+    - ase info
+    - ase test
+    # pyflakes code check (Python 3 version)
+    - cd $CI_PROJECT_DIR
+    - pyflakes ase doc
+    
+python_3_7_tests:
+  image: python:3.7-slim
   script:
     # manually install extra deps
     #- pip install netCDF4
