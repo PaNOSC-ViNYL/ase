@@ -25,78 +25,78 @@ except ImportError:
 __all__ = ['refine', 'check', 'FixSymmetry']
 
 def refine(at, symprec=0.01):
-    """
-    Refine symmetry on `at` (ase.Atoms) to precision `symprec` (float)
-
-    Returns resulting symmetry dataset, from `spglib.get_symmetry_dataset()`.
-    """
     # test orig config with desired tol
     dataset = spglib.get_symmetry_dataset(at, symprec=symprec)
-    print("ase.spacegroup.symmetrize.refine_symmetry: loose ({}) "
-          "initial symmetry group number {}, "
-          "international (Hermann-Mauguin) {} Hall {}".
-          format(symprec, dataset["number"],
-                 dataset["international"], dataset["hall"]))
+    if dataset is None:
+        raise ValueError("refine failed to get initial symmetry dataset " +
+                         spglib.get_error_message())
+    print("symmetry.refine_symmetry: loose ({}) initial symmetry group number"
+          "{}, international (Hermann-Mauguin) {} Hall {}".format(symprec,
+          dataset["number"],dataset["international"],dataset["hall"])
+
+    # make sure to use a consistent set of primitive cell,
+    # mapping to primitive, and (in the next section)
+    # rotation matrix derived from standard cell and transformation matrix
+    (prim_cell, prim_scaled_pos, prim_types) = spglib.find_primitive(at,
+                                                               symprec=symprec)
+    mapping = dataset["mapping_to_primitive"]
 
     # symmetrize cell
-    # create symmetrized rotated cell from standard lattice and transformation matrix
-    symmetrized_rotated_cell = np.dot(dataset['std_lattice'].T, dataset['transformation_matrix']).T
-    # SVD decompose transformation from symmetrized cell to original cell to extract rotation
+    # create symmetrized rotated cell from standard lattice
+    # and transformation matrix
+    transformed_std_cell = np.dot(dataset['std_lattice'].T,
+                                  dataset['transformation_matrix']).T
+    # SVD decompose transformation from symmetrized cell to original
+    # cell to extract rotation
     # see https://igl.ethz.ch/projects/ARAP/svd_rot.pdf Eq. 17 and 21
     # S = X Y^T, X = symm_cell.T, Y = orig_cell.T
-    (u, s, v_T) = np.linalg.svd(np.dot(symmetrized_rotated_cell.T, at.get_cell()))
+    (u, s, v_T) = np.linalg.svd(np.dot(transformed_std_cell.T, at.get_cell()))
     rotation = np.dot(v_T.T, u.T)
-    # create symmetrized aligned cell by rotating symmetrized rotated cell
-    symmetrized_aligned_cell = np.dot(rotation, symmetrized_rotated_cell.T).T
-    # set new cell back to symmetrized aligned cell (approx. aligned with original directions, not axes)
-    at.set_cell(symmetrized_aligned_cell, True)
+    # align symmetrized cell by rotating transformed standard cell
+    aligned_transformed_std_cell = np.dot(transformed_std_cell, rotation.T)
+    # set new cell to aligned symmetrized cell (approx. aligned with
+    # original directions, not axes)
+    at.set_cell(aligned_transformed_std_cell, True)
 
-    dataset = spglib.get_symmetry_dataset(at, symprec=symprec)
-    orig_mapping = dataset['mapping_to_primitive']
+    #rotate primitive cell (the same rotation as for the standard cell)
+    # to align with orig cell
+    aligned_prim_cell = np.dot(prim_cell, rotation.T)
+    aligned_prim_pos = np.dot(prim_scaled_pos, aligned_prim_cell)
 
-    # create primitive cell
-    (prim_cell, prim_scaled_pos, prim_types) = spglib.find_primitive(at, symprec=symprec)
+    # calculate inverse prim cell matrix for transformations
+    aligned_prim_cell_inv = np.linalg.inv(aligned_prim_cell)
 
-    #rotate to align with orig cell
-    prim_cell = np.dot(rotation, prim_cell.T).T
-    prim_pos = np.dot(prim_scaled_pos, prim_cell)
+    # vector to align atom 0 with corresponding atom in primitive cell
+    pos = at.get_positions()
+    alignment_vec = pos[0] - aligned_prim_pos[mapping[0]]
 
-    # align prim cell atom 0 with atom in orig cell that maps to it
-    p = at.get_positions()
-    # dp0 = p[list(orig_mapping).index(0),:] - prim_pos[0,:]
-    real_atom_that_maps_to_prim_0 = list(dataset['mapping_to_primitive']).index(0)
-    std_atom_that_maps_to_prim_0  = list(dataset['std_mapping_to_primitive']).index(0)
-    dp0 = p[real_atom_that_maps_to_prim_0,:] - dataset['std_positions'][std_atom_that_maps_to_prim_0,]
-    prim_pos += dp0
+    symm_pos = pos.copy()
+    for i_at in range(len(at)):
+        # pos =~ L . prim_cell + prim_pos[mapping] + alignment_vec
+        # where L is a vector of integers
+        # L = round( (pos - alignment_vec - prim_pos[mapping]) . prim_cell^-1 )
+        L_raw = np.dot(pos[i_at] - alignment_vec -
+                       aligned_prim_pos[mapping[i_at]], aligned_prim_cell_inv)
+        L = np.round(L_raw)
+        if np.linalg.norm(np.dot(L-L_raw,aligned_prim_cell)) > symprec*2.0:
+            raise ValueError("non-integer distance (in lattice coords) between "
+                             "original pos and corresponding primitive"
+                             " cell {}   {} {} {}".
+                             format(i_at,L_raw[0],L_raw[1],L_raw[2]))
+        symm_pos[i_at] = (np.dot(L, aligned_prim_cell) +
+                                aligned_prim_pos[mapping[i_at]] +
+                                alignment_vec)
 
-    # create symmetrized orig pos from prim cell pos + integer * prim cell lattice vectors
-    prim_inv_cell = np.linalg.inv(prim_cell)
-    for i in range(len(at)):
-        # find closest primitive atom
-        # there should really be a better mapping, but apparently mapping to primitive cell returned
-        # by get_symmetry_dataset() doesn't always have atom indices that actually agree with those
-        # returned by find_primitive()
-        #
-        # p = prim_pos + L . prim_cell
-        # L = (p-prim_pos) . prim_inv_cell
-        # find integer L
-        L = np.dot((p[i,:]-prim_pos) , prim_inv_cell)
-        i_prim = np.argmin(np.linalg.norm(L - np.round(L), axis=1))
-        p[i,:] = prim_pos[i_prim,:] + np.dot(L[i_prim,:], prim_cell)
-        # dp_rounded = np.round( np.dot(p[i,:]-prim_pos[orig_mapping[i],:], prim_inv_cell) )
-        # p[i,:] = prim_pos[orig_mapping[i],:] + np.dot(dp_rounded, prim_cell)
-
-    at.set_positions(p)
+    at.set_positions(symm_pos)
 
     # test final config with tight tol
-    dataset = spglib.get_symmetry_dataset(at, symprec=1.0e-6)
-    print("ase.spacegroup.symmetrize.refine_symmetry: precise ({}) "
-          "symmetrized symmetry group number {}, "
-          "international (Hermann-Mauguin) {} Hall {}"
-          .format(1.0e-6, dataset["number"],
-                  dataset["international"],
-                  dataset["hall"]))
-    return dataset
+    dataset = spglib.get_symmetry_dataset(at, symprec=1.0e-4)
+    if dataset is None:
+        raise ValueError("refine failed to get final symmetry dataset " +
+                         spglib.get_error_message())
+    print("symmetry.refine_symmetry: precise ({}) symmetrized symmetry group "
+          "number {}, international (Hermann-Mauguin) {} Hall {}".format(1.0e-4,
+          dataset["number"],dataset["international"],dataset["hall"])
 
 def check(at, symprec=1.0e-6):
     """
@@ -148,7 +148,8 @@ def symmetrize_forces(lattice, inv_lattice, forces, rot, trans, symm_map):
     scaled_forces_T = np.dot(inv_lattice.T,forces.T)
     for (r, t, this_op_map) in zip(rot, trans, symm_map):
         transformed_forces_T = np.dot(r, scaled_forces_T)
-        scaled_symmetrized_forces_T[:,this_op_map[:]] += transformed_forces_T[:,:]
+        scaled_symmetrized_forces_T[:,this_op_map[:]] +=
+            transformed_forces_T[:,:]
     scaled_symmetrized_forces_T /= len(rot)
 
     symmetrized_forces = np.dot(lattice.T, scaled_symmetrized_forces_T).T
