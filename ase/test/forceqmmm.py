@@ -9,8 +9,8 @@ from ase.optimize import FIRE
 from ase.neighborlist import neighbor_list
 
 # parameters
-N_cell = 3
-R_QMs = np.array([3, 5, 7, 10])
+N_cell = 2
+R_QMs = np.array([3, 7])
 
 # setup bulk and MM region
 bulk_at = bulk("Cu", cubic=True)
