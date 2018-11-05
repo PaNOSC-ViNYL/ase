@@ -106,7 +106,7 @@ def phonon_harmonics(force_constants,
     masses: array of length N
         masses of the structure in amu
     temp: float
-        Temperature converted to eV (T \* units.kB)
+        Temperature converted to eV  (T * units.kB)
     rng: function
         Random number generator function, e.g., np.random.rand
     quantum: bool
