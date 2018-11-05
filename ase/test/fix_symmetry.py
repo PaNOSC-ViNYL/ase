@@ -1,6 +1,8 @@
+import os
 import sys
 
-sys.path.insert(0, '../../doc/ase/')
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__),
+                '../../doc/ase/')))
 import fix_symmetry_example
 
 assert fix_symmetry_example.d_init6["number"] == 229
