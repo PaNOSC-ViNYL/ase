@@ -19,14 +19,15 @@ In Explicit Interaction QMMM, the QM and MM regions
 are explicitly coupled with an electrostatic interaction term.
 This requires that the electrostatic potential from the classical charges of the
 MM subsystem is fed into the QM calculator. This is built into GPAW_. More info
-`In this paper <https://doi.org/10.1021/acs.jctc.7b00621>`__, which should be cited if
-the method is used.
+`In this paper <https://doi.org/10.1021/acs.jctc.7b00621>`__, which should be
+cited if the method is used.
 
 .. _GPAW: http://wiki.fysik.dtu.dk/gpaw
 
 .. seealso::
 
-    The :ref:`qmmm` tutorial, on how to use the Explicit Interaction QMMM calculator
+    The :ref:`qmmm` tutorial, on how to use the Explicit Interaction QMMM
+    calculator
 
 .. autoclass:: EIQMMM
 
@@ -93,4 +94,4 @@ Basic usage is as follows::
                            MMCalculator(...),
                            buffer_width=...)
 
-See `ase.test.forceqmmm` test-case for a complete example.
+See :git:`ase/test/forceqmmm.py` test-case for a complete example.
