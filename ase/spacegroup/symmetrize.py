@@ -32,7 +32,7 @@ def refine(at, symprec=0.01):
                          spglib.get_error_message())
     print("symmetry.refine_symmetry: loose ({}) initial symmetry group number"
           "{}, international (Hermann-Mauguin) {} Hall {}".format(symprec,
-          dataset["number"],dataset["international"],dataset["hall"])
+          dataset["number"], dataset["international"], dataset["hall"]))
 
     # make sure to use a consistent set of primitive cell,
     # mapping to primitive, and (in the next section)
