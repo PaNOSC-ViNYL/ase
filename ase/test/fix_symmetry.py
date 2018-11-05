@@ -1,3 +1,6 @@
+import sys
+
+sys.path.insert(0, '../../doc/ase/')
 import fix_symmetry_example
 
 assert fix_symmetry_example.d_init6["number"] == 229

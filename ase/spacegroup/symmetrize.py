@@ -96,7 +96,7 @@ def refine(at, symprec=0.01):
                          spglib.get_error_message())
     print("symmetry.refine_symmetry: precise ({}) symmetrized symmetry group "
           "number {}, international (Hermann-Mauguin) {} Hall {}".format(1.0e-4,
-          dataset["number"],dataset["international"],dataset["hall"])
+          dataset["number"],dataset["international"],dataset["hall"]))
 
 def check(at, symprec=1.0e-6):
     """
@@ -148,8 +148,7 @@ def symmetrize_forces(lattice, inv_lattice, forces, rot, trans, symm_map):
     scaled_forces_T = np.dot(inv_lattice.T,forces.T)
     for (r, t, this_op_map) in zip(rot, trans, symm_map):
         transformed_forces_T = np.dot(r, scaled_forces_T)
-        scaled_symmetrized_forces_T[:,this_op_map[:]] +=
-            transformed_forces_T[:,:]
+        scaled_symmetrized_forces_T[:,this_op_map[:]] += transformed_forces_T[:,:]
     scaled_symmetrized_forces_T /= len(rot)
 
     symmetrized_forces = np.dot(lattice.T, scaled_symmetrized_forces_T).T
