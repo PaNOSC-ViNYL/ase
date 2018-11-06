@@ -11,6 +11,6 @@ variables:
 python_3_4_tests:
   image: python:3.4-slim
   script:
-    - pip install numpy==1.15.4 scipy==1.0.0
+    - pip install numpy==1.15.4 scipy==0.18.1
     - pip install .
     - ase test
