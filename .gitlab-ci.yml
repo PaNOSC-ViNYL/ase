@@ -14,5 +14,5 @@ python_3_5_tests:
     - apt-get update
     - apt-get install -yq python3-numpy
     - apt-get install -yq python3-scipy
-    - pip install .
+    - pip install . --no-deps
     - ase test
