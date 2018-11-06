@@ -12,7 +12,9 @@ python_3_5_tests:
   image: python:3.5-stretch
   script:
     - apt-get update
-    - apt-get install -yq python3-numpy
-    - apt-get install -yq python3-scipy
+    - apt-get install -yq python3-numpy python-numpy
+    - apt-get install -yq python3-scipy python-scipy
     - pip install . --no-deps
-    - ase test
+    - python --version
+    - python3 --version
+    - python3 $(which ase) test
