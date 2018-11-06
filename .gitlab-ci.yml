@@ -11,6 +11,7 @@ variables:
 python_3_5_tests:
   image: python:3.5-stretch
   script:
+    - apt-get update
     - apt-get install -yq python3-numpy
     - apt-get install -yq python3-scipy
     - pip install .
