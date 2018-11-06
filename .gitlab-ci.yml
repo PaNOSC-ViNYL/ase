@@ -9,8 +9,8 @@ variables:
 # Test with oldest supported Python,
 # oldest supported libraries, and minimal set of other dependencies.
 python_3_4_tests:
-  image: python:3.4-slim
+  image: python:3.4-slim-stretch
   script:
-    - pip install numpy==1.15.4 scipy==0.18.1
+    - apt-get install -yq python3-numpy python3-scipy python3-matplotlib
     - pip install .
     - ase test
