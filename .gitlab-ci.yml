@@ -12,5 +12,6 @@ python_3_4_tests:
   image: python:3.4-slim
   script:
     - pip install numpy==1.9 scipy==0.13.3
+    - pip install matplotlib==1.5.3
     - pip install .
     - ase test
