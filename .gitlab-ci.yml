@@ -21,26 +21,10 @@ python_2_7_tests:
     - ase info
     - ase test
 
-# Test with oldest supported Python:
+# Test with oldest supported Python,
+# oldest supported libraries, and minimal set of other dependencies.
 python_3_4_tests:
   image: python:3.4-slim
-  script:
-    - pip install .
-    - python --version
-    - ase test
-
-# This test has two purposes:
-#
-#  * test with oldest supported numpy & scipy
-#  * test with none of the optional dependencies
-#
-# It is assumed that other libraries which we depend
-# on are not so version critical.  If they are, we
-# should split this into two tests, so we have
-# one test with minimal dependencies and another
-# testing oldest supported versions of those libraries.
-python_3_oldlibs_tests:
-  image: python:3-slim
   script:
     - pip install numpy==1.9 scipy==0.13.3
     - pip install --no-deps .
