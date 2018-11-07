@@ -19,5 +19,5 @@ python_3_5_tests:
     - python3 --version
     - which python3
     - python3 -c 'import os; print(os)'
-    - python3 -c 'import numpy; print(numpy)'
-    - python3 $(which ase) test
+    - /usr/bin/python3 -c 'import numpy; print(numpy)'
+    - /usr/bin/python3 $(which ase) test
