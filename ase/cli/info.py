@@ -12,26 +12,34 @@ from ase.io.formats import all_formats as fmts
 
 
 class CLICommand:
-    short_description = 'Print information about files or system'
+    """Print information about files or system.
+
+    Without any filename(s), informations about the ASE installation will be
+    shown (Python version, library versions, ...).
+
+    With filename(s), the file format will be determined for each file.
+    """
 
     @staticmethod
     def add_arguments(parser):
-        parser.add_argument('filenames', nargs='*')
-        parser.add_argument('-v', '--verbose', action='store_true')
+        parser.add_argument('filename', nargs='*',
+                            help='Name of file to determine format for.')
+        parser.add_argument('-v', '--verbose', action='store_true',
+                            help='Show more information about files.')
         parser.add_argument('--formats', action='store_true',
-                            help='list file formats known to ase')
+                            help='List file formats known to ASE.')
 
     @staticmethod
     def run(args):
-        if not args.filenames:
+        if not args.filename:
             print_info()
             if args.formats:
                 print()
                 print_formats()
             return
 
-        n = max(len(filename) for filename in args.filenames) + 2
-        for filename in args.filenames:
+        n = max(len(filename) for filename in args.filename) + 2
+        for filename in args.filename:
             try:
                 format = filetype(filename)
             except FileNotFoundError:
@@ -72,6 +80,7 @@ def print_info():
 
     for a, b in versions:
         print('{:25}{}'.format(a, b))
+
 
 def print_formats():
     print('Supported formats:')

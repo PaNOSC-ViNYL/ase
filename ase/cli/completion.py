@@ -8,9 +8,10 @@ filename = os.path.join(my_dir, 'complete.py')
 
 
 class CLICommand:
-    short_description = 'Add tab-completion for Bash'
-    description = ('Will show the command that needs to be added to your '
-                   '~/.bashrc file.')
+    """Add tab-completion for Bash.
+
+    Will show the command that needs to be added to your '~/.bashrc file.
+    """
     cmd = ('complete -o default -C "{py} {filename}" ase'
            .format(py=sys.executable, filename=filename))
 

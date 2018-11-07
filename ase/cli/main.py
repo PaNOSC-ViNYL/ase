@@ -47,10 +47,11 @@ def main(prog='ase', description='ASE command line tool',
     functions = {}
     parsers = {}
     for command, module_name in commands:
-        if command != 'db':
-            continue
         cmd = import_module(module_name).CLICommand
-        title, body = cmd.__doc__.split('\n', 1)
+        try:
+            title, body = cmd.__doc__.split('\n', 1)
+        except AttributeError:
+            title = 'a'; body = 'b'
         subparser = subparsers.add_parser(
             command,
             formatter_class=Formatter,
