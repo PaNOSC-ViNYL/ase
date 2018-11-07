@@ -11,6 +11,7 @@ import warnings
 
 import numpy as np
 
+from ase import Atoms
 from ase.parallel import paropen
 from ase.spacegroup import crystal
 from ase.spacegroup.spacegroup import spacegroup_from_data, Spacegroup
@@ -195,16 +196,37 @@ def tags2atoms(tags, store_tags=False, primitive_cell=False,
             'are included in the symmetry operations listed in the CIF file, '
             'i.e. when `subtrans_included` is True.')
 
-    a = tags['_cell_length_a']
-    b = tags['_cell_length_b']
-    c = tags['_cell_length_c']
-    alpha = tags['_cell_angle_alpha']
-    beta = tags['_cell_angle_beta']
-    gamma = tags['_cell_angle_gamma']
+    cell_tags = ['_cell_length_a', '_cell_length_b', '_cell_length_c',
+                 '_cell_angle_alpha', '_cell_angle_beta', '_cell_angle_gamma']
 
-    scaled_positions = np.array([tags['_atom_site_fract_x'],
-                                 tags['_atom_site_fract_y'],
-                                 tags['_atom_site_fract_z']]).T
+    # If any value is missing, ditch periodic boundary conditions
+    has_pbc = True
+    try:
+        cell_values = [tags[ct] for ct in cell_tags]
+        a, b, c, alpha, beta, gamma = cell_values
+    except KeyError:
+        has_pbc = False
+
+    # Now get positions
+    try:
+        scaled_positions = np.array([tags['_atom_site_fract_x'],
+                                     tags['_atom_site_fract_y'],
+                                     tags['_atom_site_fract_z']]).T
+    except KeyError:
+        scaled_positions = None
+
+    try:
+        positions = np.array([tags['_atom_site_cartn_x'],
+                              tags['_atom_site_cartn_y'],
+                              tags['_atom_site_cartn_z']]).T
+    except KeyError:
+        positions = None
+
+    if (positions is None) and (scaled_positions is None):
+        raise RuntimeError('No positions found in structure')
+    elif scaled_positions is not None and not has_pbc:
+        raise RuntimeError('Structure has fractional coordinates but not '
+                           'lattice parameters')
 
     symbols = []
     if '_atom_site_type_symbol' in tags:
@@ -308,18 +330,25 @@ def tags2atoms(tags, store_tags=False, primitive_cell=False,
         try:
             if not np.allclose(tags['_atom_site_occupancy'], 1.):
                 warnings.warn(
-                    'Cif file containes mixed/fractional occupancies. Consider using `fractional_occupancies=True`')
+                    'Cif file containes mixed/fractional occupancies. '
+                    'Consider using `fractional_occupancies=True`')
                 kwargs['onduplicates'] = 'keep'
         except KeyError:
             pass
 
-    atoms = crystal(symbols, basis=scaled_positions,
-                    cellpar=[a, b, c, alpha, beta, gamma],
-                    spacegroup=spacegroup,
-                    occupancies=occupancies,
-                    setting=setting,
-                    primitive_cell=primitive_cell,
-                    **kwargs)
+    if has_pbc:
+        atoms = crystal(symbols, basis=scaled_positions,
+                        cellpar=[a, b, c, alpha, beta, gamma],
+                        spacegroup=spacegroup,
+                        occupancies=occupancies,
+                        setting=setting,
+                        primitive_cell=primitive_cell,
+                        **kwargs)
+    else:
+        atoms = Atoms(symbols, positions=positions,
+                      info=kwargs.get('info', None))
+        if occupancies is not None:
+            warnings.warn('Occupancies ignored in non-periodic system')
 
     if deuterium:
         masses = atoms.get_masses()
