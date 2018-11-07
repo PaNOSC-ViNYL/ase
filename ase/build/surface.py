@@ -381,9 +381,12 @@ def _surface(symbol, structure, face, size, a, c, vacuum, orthogonal=True):
     slab.set_positions(positions.reshape((-1, 3)))
 
     slab.set_cell([a * v * n for v, n in zip(cell, size)], scale_atoms=True)
-    slab.cell[2] = 0.0
 
-    if vacuum is not None:
+    if vacuum is None:
+        slab.cell[2] = 0.0
+    elif vacuum == 'bulk':
+        slab.pbc[2] = True
+    else:
         slab.center(vacuum, axis=2)
 
     if 'adsorbate_info' not in slab.info:
