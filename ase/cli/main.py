@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import argparse
 import sys
+import textwrap
 
 from ase import __version__
 from ase.utils import import_module
@@ -29,7 +30,9 @@ commands = [
 
 def main(prog='ase', description='ASE command line tool',
          version=__version__, commands=commands, hook=None, args=None):
-    parser = argparse.ArgumentParser(prog=prog, description=description)
+    parser = argparse.ArgumentParser(prog=prog,
+                                     description=description,
+                                     formatter_class=Formatter)
     parser.add_argument('--version', action='version',
                         version='%(prog)s-{}'.format(version))
     parser.add_argument('-T', '--traceback', action='store_true')
@@ -44,11 +47,15 @@ def main(prog='ase', description='ASE command line tool',
     functions = {}
     parsers = {}
     for command, module_name in commands:
+        if command != 'db':
+            continue
         cmd = import_module(module_name).CLICommand
+        title, body = cmd.__doc__.split('\n', 1)
         subparser = subparsers.add_parser(
             command,
-            help=cmd.short_description,
-            description=getattr(cmd, 'description', cmd.short_description))
+            formatter_class=Formatter,
+            help=title,
+            description=title + '\n' + textwrap.dedent(body))
         cmd.add_arguments(subparser)
         functions[command] = cmd.run
         parsers[command] = subparser
@@ -82,6 +89,24 @@ def main(prog='ase', description='ASE command line tool',
                 l2 = ('To get a full traceback, use: {} -T {} ...'
                       .format(prog, args.command))
                 parser.error(l1 + l2)
+
+
+class Formatter(argparse.HelpFormatter):
+    def _fill_text(self, text, width, indent):
+        assert indent == ''
+        out = ''
+        blocks = text.split('\n\n')
+        for block in blocks:
+            if block[0] == '*':
+                for item in block[2:].split('\n* '):
+                    out += textwrap.fill(item,
+                                         width=width - 2,
+                                         initial_indent='* ',
+                                         subsequent_indent='  ') + '\n'
+            else:
+                out += textwrap.fill(block, width=width) + '\n'
+            out += '\n'
+        return out[:-1]
 
 
 def old():
