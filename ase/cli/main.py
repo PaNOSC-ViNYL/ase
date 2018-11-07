@@ -57,8 +57,13 @@ def main(prog='ase', description='ASE command line tool.',
             short = cmd.short_description
             long = getattr(cmd, 'description', short)
         else:
-            short, body = docstring.split('\n', 1)
-            long = short + '\n' + textwrap.dedent(body)
+            parts = docstring.split('\n', 1)
+            if len(parts) == 1:
+                short = docstring
+                long = docstring
+            else:
+                short, body = parts
+                long = short + '\n' + textwrap.dedent(body)
         subparser = subparsers.add_parser(
             command,
             formatter_class=Formatter,
