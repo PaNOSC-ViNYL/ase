@@ -348,7 +348,11 @@ def tags2atoms(tags, store_tags=False, primitive_cell=False,
         atoms = Atoms(symbols, positions=positions,
                       info=kwargs.get('info', None))
         if occupancies is not None:
-            warnings.warn('Occupancies ignored in non-periodic system')
+            # Compile an occupancies dictionary
+            occ_dict = {}
+            for i, sym in enumerate(symbols):
+                occ_dict[i] = {sym: occupancies[i]}
+            atoms.info['occupancy'] = occ_dict
 
     if deuterium:
         masses = atoms.get_masses()
