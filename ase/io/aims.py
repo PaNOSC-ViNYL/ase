@@ -1,5 +1,8 @@
 import time
 
+from ase.units import Ang, fs
+
+v_unit = Ang / (1000.0 * fs)
 
 def read_aims(filename):
     """Import FHI-aims geometry type files.
@@ -19,6 +22,7 @@ def read_aims(filename):
     positions = []
     cell = []
     symbols = []
+    velocities = []
     magmoms = []
     fix = []
     fix_cart = []
@@ -42,7 +46,7 @@ def read_aims(filename):
             symbols.append(inp[-1])
             i += 1
             xyz = np.array([0, 0, 0])
-        if inp[0] == "atom_frac":
+        elif inp[0] == "atom_frac":
             scaled_positions = True
             if xyz.all():
                 fix.append(i)
@@ -59,9 +63,11 @@ def read_aims(filename):
             cell.append(floatvect)
             n_periodic = n_periodic + 1
             periodic[n_periodic] = True
+
         elif inp[0] == "initial_moment":
             magmoms.append(float(inp[1]))
-        if inp[0] == "constrain_relaxation":
+
+        elif inp[0] == "constrain_relaxation":
             if inp[1] == ".true.":
                 fix.append(i)
             elif inp[1] == "x":
@@ -70,6 +76,11 @@ def read_aims(filename):
                 xyz[1] = 1
             elif inp[1] == "z":
                 xyz[2] = 1
+
+        elif inp[0] == "velocity":
+            floatvect = [v_unit * float(l) for l in inp[1:4]]
+            velocities.append(floatvect)
+
     if xyz.all():
         fix.append(i)
     elif xyz.any():
@@ -86,6 +97,14 @@ def read_aims(filename):
         )
     else:
         atoms = Atoms(symbols, positions)
+
+    if len(velocities) > 0:
+        if len(velocities) != len(positions):
+            raise Exception(
+                "Number of positions and velocities have to coincide"
+            )
+        atoms.set_velocities(velocities)
+
     if len(magmoms) > 0:
         atoms.set_initial_magnetic_moments(magmoms)
     if periodic.any():
@@ -195,7 +214,6 @@ def read_aims_output(filename, index=-1):
     relaxations, MD information, force information etc etc etc."""
     from ase import Atoms, Atom
     from ase.calculators.singlepoint import SinglePointCalculator
-    from ase.units import Ang, fs
     from ase.constraints import FixAtoms, FixCartesian
 
     molecular_dynamics = False
@@ -207,7 +225,6 @@ def read_aims_output(filename, index=-1):
     f = None
     pbc = False
     found_aims_calculator = False
-    v_unit = Ang / (1000.0 * fs)
     while True:
         line = fd.readline()
         if not line:
@@ -259,7 +276,6 @@ def read_aims_output(filename, index=-1):
         if "Updated atomic structure:" in line and not molecular_dynamics:
             fd.readline()
             atoms = Atoms()
-            velocities = []
             for i in range(n_atoms):
                 inp = fd.readline().split()
                 if "lattice_vector" in inp[0]:
@@ -280,13 +296,8 @@ def read_aims_output(filename, index=-1):
                 inp = fd.readline().split()
                 atoms.append(Atom(inp[4], (inp[1], inp[2], inp[3])))
                 inp = fd.readline().split()
-                velocities += [
-                    [
-                        float(inp[1]) * v_unit,
-                        float(inp[2]) * v_unit,
-                        float(inp[3]) * v_unit,
-                    ]
-                ]
+                floatvect = [v_unit * float(l) for l in inp[1:4]]
+                velocities.append(floatvect)
             atoms.set_velocities(velocities)
             if len(fix):
                 atoms.set_constraint([FixAtoms(indices=fix)] + fix_cart)
