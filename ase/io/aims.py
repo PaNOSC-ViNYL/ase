@@ -4,6 +4,7 @@ from ase.units import Ang, fs
 
 v_unit = Ang / (1000.0 * fs)
 
+
 def read_aims(filename):
     """Import FHI-aims geometry type files.
 
@@ -117,7 +118,7 @@ def read_aims(filename):
     return atoms
 
 
-def write_aims(filename, atoms, scaled=False, ghosts=None):
+def write_aims(filename, atoms, scaled=False, velocities=False, ghosts=None):
     """Method to write FHI-aims geometry files.
 
     Writes the atoms positions and constraints (only FixAtoms is
@@ -166,7 +167,9 @@ def write_aims(filename, atoms, scaled=False, ghosts=None):
         ghosts = np.zeros(len(atoms))
     else:
         assert len(ghosts) == len(atoms)
+
     scaled_positions = atoms.get_scaled_positions()
+
     for i, atom in enumerate(atoms):
         if ghosts[i] == 1:
             atomstring = "empty "
@@ -196,6 +199,14 @@ def write_aims(filename, atoms, scaled=False, ghosts=None):
             fd.write("initial_charge %16.6f\n" % atom.charge)
         if write_magmoms:
             fd.write("initial_moment %16.6f\n" % atom.magmom)
+
+        # Write velocities if this is wanted
+        if velocities and atoms.get_velocities() is not None:
+            fd.write(
+                "  velocity {:.16f} {:.16f} {:.16f}\n".format(
+                    *atoms.get_velocities()[i] / v_unit
+                )
+            )
 
 
 # except KeyError:
