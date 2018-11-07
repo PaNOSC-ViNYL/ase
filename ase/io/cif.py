@@ -98,10 +98,10 @@ def parse_loop(lines):
     tokens = []
     while True:
         lowerline = line.lower()
-        if (not line
-            or line.startswith('_')
-            or lowerline.startswith('data_')
-            or lowerline.startswith('loop_')):
+        if (not line or
+            line.startswith('_') or
+            lowerline.startswith('data_') or
+            lowerline.startswith('loop_')):
             break
         if line.startswith('#'):
             line = lines.pop().strip()
@@ -337,6 +337,10 @@ def tags2atoms(tags, store_tags=False, primitive_cell=False,
             pass
 
     if has_pbc:
+        if scaled_positions is None:
+            _ = Atoms(symbols, positions=positions,
+                      cell=[a, b, c, alpha, beta, gamma])
+            scaled_positions = _.get_scaled_positions()
         atoms = crystal(symbols, basis=scaled_positions,
                         cellpar=[a, b, c, alpha, beta, gamma],
                         spacegroup=spacegroup,
