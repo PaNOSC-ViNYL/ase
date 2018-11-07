@@ -17,4 +17,5 @@ python_3_5_tests:
     - pip install . --no-deps
     - python --version
     - python3 --version
+    - python3 -c 'import numpy; print(numpy)'
     - python3 $(which ase) test
