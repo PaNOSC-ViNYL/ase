@@ -102,7 +102,7 @@ def read_aims(filename):
     if len(velocities) > 0:
         if len(velocities) != len(positions):
             raise Exception(
-                "Number of positions and velocities have to coincide"
+                "Number of positions and velocities have to coincide."
             )
         atoms.set_velocities(velocities)
 
@@ -118,7 +118,9 @@ def read_aims(filename):
     return atoms
 
 
-def write_aims(filename, atoms, scaled=False, velocities=False, ghosts=None):
+def write_aims(
+    filename, atoms, scaled=False, velocities=False, ghosts=None, info_str=None
+):
     """Method to write FHI-aims geometry files.
 
     Writes the atoms positions and constraints (only FixAtoms is
@@ -142,7 +144,18 @@ def write_aims(filename, atoms, scaled=False, velocities=False, ghosts=None):
     fd.write("# FHI-aims file: " + filename + "\n")
     fd.write("# Created using the Atomic Simulation Environment (ASE)\n")
     fd.write("# " + time.asctime() + "\n")
+
+    # If writing additional information is requested via info_str:
+    if info_str is not None:
+        fd.write("\n# Additional information:\n")
+        if isinstance(info_str, list):
+            fd.write("\n".join(["#  {}".format(s) for s in info_str]))
+        else:
+            fd.write("# {}".format(info_str))
+        fd.write("\n")
+
     fd.write("#=======================================================\n")
+
     i = 0
     if atoms.get_pbc().any():
         for n, vector in enumerate(atoms.get_cell()):
