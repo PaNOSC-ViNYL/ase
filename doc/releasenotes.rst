@@ -68,6 +68,8 @@ Algorithms:
 
 Calculators:
 
+* Added :class:`ase.calculators.qmmm.ForceQMMM` force-based QM/MM calculator.
+
 * Socked-based interface to certain calculators through the
   :mod:`~ase.calculators.socketio` module:
   Added support for

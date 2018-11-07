@@ -385,3 +385,217 @@ class LJInteractions:
                 F1 -= f.sum(0)
                 mmforces[mask] += f
         return energy, qmforces, mmforces
+
+
+class RescaledCalculator(Calculator):
+    """Rescales length and energy of a calculators to match given
+    lattice constant and bulk modulus
+
+    Useful for MM calculator used within a :class:`ForceQMMM` model.
+    See T. D. Swinburne and J. R. Kermode, Phys. Rev. B 96, 144102 (2017)
+    for a derivation of the scaling constants.
+    """
+    implemented_properties = ['forces', 'energy', 'stress']
+
+    def __init__(self, mm_calc,
+                 qm_lattice_constant, qm_bulk_modulus,
+                 mm_lattice_constant, mm_bulk_modulus):
+        Calculator.__init__(self)
+        self.mm_calc = mm_calc
+        self.alpha = qm_lattice_constant / mm_lattice_constant
+        self.beta = mm_bulk_modulus / qm_bulk_modulus / (self.alpha**3)
+
+    def calculate(self, atoms, properties, system_changes):
+        Calculator.calculate(self, atoms, properties, system_changes)
+
+        # mm_pos = atoms.get_positions()
+        scaled_atoms = atoms.copy()
+
+        # scaled_atoms.positions = mm_pos/self.alpha
+        mm_cell = atoms.get_cell()
+        scaled_atoms.set_cell(mm_cell / self.alpha, scale_atoms=True)
+
+        forces = self.mm_calc.get_forces(scaled_atoms)
+        energy = self.mm_calc.get_potential_energy(scaled_atoms)
+        stress = self.mm_calc.get_stress(scaled_atoms)
+
+        self.results = {'energy': energy / self.beta,
+                        'forces': forces / (self.beta * self.alpha),
+                        'stress': stress / (self.beta * self.alpha**3)}
+
+
+class ForceConstantCalculator(Calculator):
+    """
+    Compute forces based on provided force-constant matrix
+
+    Useful with `ForceQMMM` to do harmonic QM/MM using force constants
+    of QM method.
+    """
+    implemented_properties = ['forces', 'energy']
+
+    def __init__(self, D, ref, f0):
+        """
+        Parameters:
+
+        D: matrix or sparse matrix, shape `(3*len(ref), 3*len(ref))`
+            Force constant matrix.
+            Sign convention is `D_ij = d^2E/(dx_i dx_j), so
+            `force = -D.dot(displacement)`
+        ref: ase.atoms.Atoms
+            Atoms object for reference configuration
+        f0: array, shape `(len(ref), 3)`
+            Value of forces at reference configuration
+        """
+        assert D.shape[0] == D.shape[1]
+        assert D.shape[0] // 3 == len(ref)
+        self.D = D
+        self.ref = ref
+        self.f0 = f0
+        self.size = len(ref)
+        Calculator.__init__(self)
+
+    def calculate(self, atoms, properties, system_changes):
+        Calculator.calculate(self, atoms, properties, system_changes)
+        u = atoms.positions - self.ref.positions
+        f = -self.D.dot(u.reshape(3 * self.size))
+        forces = np.zeros((len(atoms), 3))
+        forces[:, :] = f.reshape(self.size, 3)
+        self.results['forces'] = forces + self.f0
+        self.results['energy'] = 0.0
+
+
+class ForceQMMM(Calculator):
+    """
+    Force-based QM/MM calculator
+
+    QM forces are computed using a buffer region and then mixed abruptly
+    with MM forces:
+
+        F^i_QMMM = {   F^i_QM    if i in QM region
+                   {   F^i_MM    otherwise
+
+    cf. N. Bernstein, J. R. Kermode, and G. Csanyi,
+    Rep. Prog. Phys. 72, 026501 (2009)
+    and T. D. Swinburne and J. R. Kermode, Phys. Rev. B 96, 144102 (2017).
+    """
+    implemented_properties = ['forces', 'energy']
+
+    def __init__(self,
+                 atoms,
+                 qm_selection_mask,
+                 qm_calc,
+                 mm_calc,
+                 buffer_width,
+                 vacuum=5.,
+                 zero_mean=True):
+        """
+        ForceQMMM calculator
+
+        Parameters:
+
+        qm_selection_mask: list of ints, slice object or bool list/array
+            Selection out of atoms that belong to the QM region.
+        qm_calc: Calculator object
+            QM-calculator.
+        mm_calc: Calculator object
+            MM-calculator (should be scaled, see :class:`RescaledCalculator`)
+            Can use `ForceConstantCalculator` based on QM force constants, if
+            available.
+        vacuum: float or None
+            Amount of vacuum to add around QM atoms.
+        zero_mean: bool
+            If True, add a correction to zero the mean force in each direction
+        """
+
+        if len(atoms[qm_selection_mask]) == 0:
+            raise ValueError("no QM atoms selected!")
+
+        self.qm_selection_mask = qm_selection_mask
+        self.qm_calc = qm_calc
+        self.mm_calc = mm_calc
+        self.vacuum = vacuum
+        self.buffer_width = buffer_width
+        self.zero_mean = zero_mean
+
+        self.qm_buffer_mask = None
+        self.cell = None
+        self.qm_shift = None
+
+        Calculator.__init__(self)
+
+    def initialize_qm_buffer_mask(self, atoms):
+        """
+        Initialises system to perform qm calculation
+        """
+
+        # get the radius of the qm_selection in non periodic directions
+        qm_positions = atoms[self.qm_selection_mask].get_positions()
+        # identify qm radius as an larges distance from the center
+        # of the cluster (overestimation)
+        qm_center = qm_positions.mean(axis=0)
+
+        non_pbc_directions = np.logical_not(self.atoms.pbc)
+
+        centered_positions = atoms.get_positions()
+
+        for i, non_pbc in enumerate(non_pbc_directions):
+            if non_pbc:
+                qm_positions.T[i] -= qm_center[i]
+                centered_positions.T[i] -= qm_center[i]
+
+        qm_radius = np.linalg.norm(qm_positions.T, axis=1).max()
+        self.cell = self.atoms.cell.copy()
+
+        for i, non_pbc in enumerate(non_pbc_directions):
+            if non_pbc:
+                self.cell[i][i] = 2.0 * (qm_radius +
+                                         self.buffer_width +
+                                         self.vacuum)
+
+        # identify atoms in region < qm_radius + buffer
+        distances_from_center = np.linalg.norm(
+            centered_positions.T[non_pbc_directions].T, axis=1)
+
+        self.qm_buffer_mask = (distances_from_center <
+                               qm_radius + self.buffer_width)
+
+        # exclude atoms that are too far (in case of non spherical region)
+        for i, buffer_atom in enumerate(self.qm_buffer_mask &
+                                        np.logical_not(self.qm_selection_mask)):
+            if buffer_atom:
+                distance = np.linalg.norm(
+                    (qm_positions -
+                     centered_positions[i]).T[non_pbc_directions].T, axis=1)
+                if distance.min() > self.buffer_width:
+                    self.qm_buffer_mask[i] = False
+
+    def calculate(self, atoms, properties, system_changes):
+        Calculator.calculate(self, atoms, properties, system_changes)
+
+        if self.qm_buffer_mask is None:
+            self.initialize_qm_buffer_mask(atoms)
+
+        # initialize the object
+        # qm_buffer_atoms = atoms.copy()
+        qm_buffer_atoms = atoms[self.qm_buffer_mask]
+        del qm_buffer_atoms.constraints
+
+        qm_buffer_atoms.set_cell(self.cell)
+        qm_shift = (0.5 * qm_buffer_atoms.cell.diagonal() -
+                    qm_buffer_atoms.positions.mean(axis=0))
+
+        qm_buffer_atoms.set_cell(self.cell)
+        qm_buffer_atoms.positions += qm_shift
+
+        forces = self.mm_calc.get_forces(atoms)
+
+        qm_forces = self.qm_calc.get_forces(qm_buffer_atoms)
+        forces[self.qm_selection_mask] = \
+            qm_forces[self.qm_selection_mask[self.qm_buffer_mask]]
+
+        if self.zero_mean:
+            # Target is that: forces.sum(axis=1) == [0., 0., 0.]
+            forces[:] -= forces.mean(axis=0)
+
+        self.results['forces'] = forces
+        self.results['energy'] = 0.0
