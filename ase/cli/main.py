@@ -42,20 +42,21 @@ def main(prog='ase', description='ASE command line tool',
     subparser = subparsers.add_parser('help',
                                       description='Help',
                                       help='Help for sub-command')
-    subparser.add_argument('helpcommand', nargs='?')
+    subparser.add_argument('helpcommand',
+                           nargs='?',
+                           metavar='sub-command',
+                           help='Provide help for sub-command.')
 
     functions = {}
     parsers = {}
     for command, module_name in commands:
         cmd = import_module(module_name).CLICommand
-        try:
-            title, body = cmd.__doc__.split('\n', 1)
-        except AttributeError:
-            title = 'a'; body = 'b'
+        docstring = cmd.__doc__
+        title, body = docstring.split('\n', 1)
         subparser = subparsers.add_parser(
             command,
             formatter_class=Formatter,
-            help=title,
+            help=title.rstrip('.'),
             description=title + '\n' + textwrap.dedent(body))
         cmd.add_arguments(subparser)
         functions[command] = cmd.run
@@ -93,18 +94,24 @@ def main(prog='ase', description='ASE command line tool',
 
 
 class Formatter(argparse.HelpFormatter):
+    """Improved help formatter."""
     def _fill_text(self, text, width, indent):
         assert indent == ''
         out = ''
         blocks = text.split('\n\n')
         for block in blocks:
             if block[0] == '*':
+                # List items:
                 for item in block[2:].split('\n* '):
                     out += textwrap.fill(item,
                                          width=width - 2,
                                          initial_indent='* ',
                                          subsequent_indent='  ') + '\n'
+            elif block[0] == ' ':
+                # Indented literal block:
+                out += block + '\n'
             else:
+                # Block of text:
                 out += textwrap.fill(block, width=width) + '\n'
             out += '\n'
         return out[:-1]

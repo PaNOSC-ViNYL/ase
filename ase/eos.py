@@ -438,13 +438,21 @@ def calculate_eos(atoms, npoints=5, eps=0.04, trajectory=None, callback=None):
 
 
 class CLICommand:
-    short_description = 'Calculate equation of state'
+    """Calculate EOS from one or more trajectory files.
+
+    See https://wiki.fysik.dtu.dk/ase/tutorials/eos/eos.html for
+    more information.
+    """
 
     @staticmethod
     def add_arguments(parser):
         parser.add_argument('trajectories', nargs='+', metavar='trajectory')
-        parser.add_argument('-p', '--plot', action='store_true')
-        parser.add_argument('-t', '--type', default='sj')
+        parser.add_argument('-p', '--plot', action='store_true',
+                            help='Plot EOS fit.  Default behaviour is '
+                            'to write results of fit.')
+        parser.add_argument('-t', '--type', default='sj',
+                            help='Type of fit.  Must be one of {}.'
+                            .format(', '.join(eos_names)))
 
     @staticmethod
     def run(args):
@@ -479,7 +487,8 @@ class CLICommand:
                 try:
                     v0, e0, B = eos.fit()
                 except ValueError as ex:
-                    print('{0:30}{1:2}    {2}'.format(name, len(v), ex.message))
+                    print('{:30}{:2}    {}'
+                          .format(name, len(v), ex.message))
                 else:
-                    print('{0:30}{1:2} {2:10.3f}{3:10.3f}{4:14.3f}'
+                    print('{:30}{:2} {:10.3f}{:10.3f}{:14.3f}'
                           .format(name, len(v), v0, e0, B / kJ * 1.0e24))

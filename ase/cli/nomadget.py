@@ -3,7 +3,10 @@ import json
 
 
 class CLICommand:
-    short_description = 'Get calculations from NOMAD and write to JSON files.'
+    """Get calculations from NOMAD and write to JSON files.
+
+    ...
+    """
 
     @staticmethod
     def add_arguments(p):

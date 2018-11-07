@@ -22,30 +22,41 @@ import ase.db as db
 
 
 class CLICommand:
-    short_description = "Run calculation with one of ASE's calculators"
-    description = short_description + ': ' + ', '.join(calcnames) + '.'
+    """Run calculation with one of ASE's calculators.
+
+    Four types of calculations can be done:
+
+    * single point
+    * atomic relaxations
+    * unit cell + atomic relaxations
+    * equation-of-state
+
+    Examples of the four types of calculations:
+
+        ase run emt h2o.xyz
+        ase run emt h2o.xyz -f 0.01
+        ase run emt cu.traj -s 0.01
+        ase run emt cu.traj -E 5,2.0
+    """
 
     @staticmethod
     def add_arguments(parser):
-        parser.add_argument('calculator')
+        parser.add_argument('calculator',
+                            help='Name of calculator to use.  '
+                            'Must be one of: {}.'
+                            .format(', '.join(calcnames)))
         CLICommand.add_more_arguments(parser)
 
     @staticmethod
     def add_more_arguments(parser):
         add = parser.add_argument
-        add('names', nargs='*')
-        add('-t', '--tag',
-            help='String tag added to filenames.')
+        add('names', nargs='*', help='Read atomic structure from this file.')
         add('-p', '--parameters', default='',
             metavar='key=value,...',
             help='Comma-separated key=value pairs of ' +
             'calculator specific parameters.')
-        add('-d', '--database',
-            help='Use a filename with a ".db" extension for a sqlite3 ' +
-            'database or a ".json" extension for a simple json database.  ' +
-            'Default is no database')
-        add('-S', '--skip', action='store_true',
-            help='Skip calculations already done.')
+        add('-t', '--tag',
+            help='String tag added to filenames.')
         add('--properties', default='efsdMm',
             help='Default value is "efsdMm" meaning calculate energy, ' +
             'forces, stress, dipole moment, total magnetic moment and ' +
@@ -61,13 +72,19 @@ class CLICommand:
             help='Use "-E 5,2.0" for 5 lattice constants ranging from '
             '-2.0 %% to +2.0 %%.')
         add('--eos-type', default='sjeos', help='Selects the type of eos.')
-        add('-i', '--interactive', action='store_true')
-        add('-c', '--collection')
         add('--modify', metavar='...',
             help='Modify atoms with Python statement.  ' +
             'Example: --modify="atoms.positions[-1,2]+=0.1".')
         add('--after', help='Perform operation after calculation.  ' +
             'Example: --after="atoms.calc.write(...)"')
+        add('-i', '--interactive', action='store_true')
+        add('-c', '--collection')
+        add('-d', '--database',
+            help='Use a filename with a ".db" extension for a sqlite3 ' +
+            'database or a ".json" extension for a simple json database.  ' +
+            'Default is no database')
+        add('-S', '--skip', action='store_true',
+            help='Skip calculations already done.')
 
     @staticmethod
     def run(args):

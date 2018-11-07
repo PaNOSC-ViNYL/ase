@@ -33,11 +33,11 @@ class CLICommand:
 
     Examples:
 
-    * ase build Li  # lithium atom
-    * ase build Li -M 1  # ... with a magnetic moment of 1
-    * ase build Li -M 1 -V 3.5 # ... in a 7x7x7 Ang cell
-    * ase build H2O  # water molecule
-    * ase build -x fcc Cu -a 3.6  # FCC copper
+        ase build Li  # lithium atom
+        ase build Li -M 1  # ... with a magnetic moment of 1
+        ase build Li -M 1 -V 3.5 # ... in a 7x7x7 Ang cell
+        ase build H2O  # water molecule
+        ase build -x fcc Cu -a 3.6  # FCC copper
     """
 
     @staticmethod

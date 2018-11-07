@@ -39,14 +39,14 @@ class CLICommand:
     Chemical symbols can also be used to select number of
     specific atomic species (H, He, Li, ...).  Selection examples:
 
-    * calculator=nwchem
-    * age<1d
-    * natoms=1
-    * user=alice
-    * 2.2<bandgap<4.1
-    * Cu>=10
+        calculator=nwchem
+        age<1d
+        natoms=1
+        user=alice
+        2.2<bandgap<4.1
+        Cu>=10
 
-    See also: https://wiki.fysik.dtu.dk/ase/db/db.html
+    See also: https://wiki.fysik.dtu.dk/ase/ase/db/db.html.
     """
 
     @staticmethod
