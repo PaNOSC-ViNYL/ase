@@ -28,7 +28,7 @@ commands = [
     ('completion', 'ase.cli.completion')]
 
 
-def main(prog='ase', description='ASE command line tool',
+def main(prog='ase', description='ASE command line tool.',
          version=__version__, commands=commands, hook=None, args=None):
     parser = argparse.ArgumentParser(prog=prog,
                                      description=description,
@@ -41,7 +41,7 @@ def main(prog='ase', description='ASE command line tool',
 
     subparser = subparsers.add_parser('help',
                                       description='Help',
-                                      help='Help for sub-command')
+                                      help='Help for sub-command.')
     subparser.add_argument('helpcommand',
                            nargs='?',
                            metavar='sub-command',
@@ -52,12 +52,18 @@ def main(prog='ase', description='ASE command line tool',
     for command, module_name in commands:
         cmd = import_module(module_name).CLICommand
         docstring = cmd.__doc__
-        title, body = docstring.split('\n', 1)
+        if docstring is None:
+            # Backwards compatibility with GPAW
+            short = cmd.short_description
+            long = getattr(cmd, 'description', short)
+        else:
+            short, body = docstring.split('\n', 1)
+            long = short + '\n' + textwrap.dedent(body)
         subparser = subparsers.add_parser(
             command,
             formatter_class=Formatter,
-            help=title.rstrip('.'),
-            description=title + '\n' + textwrap.dedent(body))
+            help=short,
+            description=long)
         cmd.add_arguments(subparser)
         functions[command] = cmd.run
         parsers[command] = subparser

@@ -7,8 +7,8 @@ from ase.io import read, write
 class CLICommand:
     """Convert between file formats.
 
-    Convert between file formats.  Use "-" for stdin/stdout.
-    See ase info --formats for known formats.
+    Use "-" for stdin/stdout.
+    See "ase info --formats" for known formats.
     """
 
     @staticmethod

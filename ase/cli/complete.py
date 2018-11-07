@@ -33,6 +33,8 @@ commands = {
          '--crystal-structure', '-a', '--lattice-constant',
          '--orthorhombic', '--cubic', '-r', '--repeat', '-g',
          '--gui', '--periodic'],
+    'completion':
+        [],
     'convert':
         ['-v', '--verbose', '-i', '--input-format', '-o',
          '--output-format', '-f', '--force', '-n',
@@ -63,7 +65,7 @@ commands = {
     'info':
         ['-v', '--verbose', '--formats'],
     'nomad-get':
-        [''],
+        [],
     'nomad-upload':
         ['-t', '--token', '-n', '--do-not-save-token', '-0', '--dry-run'],
     'reciprocal':

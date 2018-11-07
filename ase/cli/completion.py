@@ -34,15 +34,15 @@ def update(filename, commands):
 
     """
 
-    import collections
     import textwrap
     from ase.utils import import_module
 
-    dct = collections.defaultdict(list)
+    dct = {}  # type: Dict[str, List[str]]
 
     class Subparser:
         def __init__(self, command):
             self.command = command
+            dct[command] = []
 
         def add_argument(self, *args, **kwargs):
             dct[command].extend(arg for arg in args
@@ -58,10 +58,13 @@ def update(filename, commands):
     txt = 'commands = {'
     for command, opts in sorted(dct.items()):
         txt += "\n    '" + command + "':\n        ["
-        txt += '\n'.join(textwrap.wrap("'" + "', '".join(opts) + "'],",
-                         width=65,
-                         break_on_hyphens=False,
-                         subsequent_indent='         '))
+        if opts:
+            txt += '\n'.join(textwrap.wrap("'" + "', '".join(opts) + "'],",
+                                           width=65,
+                                           break_on_hyphens=False,
+                                           subsequent_indent='         '))
+        else:
+            txt += '],'
     txt = txt[:-1] + '}\n'
     with open(filename) as fd:
         lines = fd.readlines()
