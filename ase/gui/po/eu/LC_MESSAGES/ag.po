@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: ase\n"
 "Report-Msgid-Bugs-To: ase-users@listserv.fysik.dtu.dk\n"
 "POT-Creation-Date: 2018-11-02 16:09+0100\n"
-"PO-Revision-Date: 2018-11-02 10:57+0100\n"
+"PO-Revision-Date: 2018-11-07 12:39+0100\n"
 "Last-Translator: Joseba <joseba.alberdi@ehu.eus>\n"
 "Language-Team: Basque\n"
 "Language: eu\n"
@@ -682,7 +682,7 @@ msgstr "NE_B"
 
 #: ../gui.py:495
 msgid "B_ulk Modulus"
-msgstr "Bolumen-modulu"
+msgstr "Bolumen-modulua"
 
 #: ../gui.py:496
 msgid "Reciprocal space ..."
@@ -1094,7 +1094,7 @@ msgstr "{} irudia kargatuta (0–{})"
 
 #: ../quickinfo.py:37
 msgid "Number of atoms: {}"
-msgstr "Atomos kopurua: {}"
+msgstr "Atomo kopurua: {}"
 
 #: ../quickinfo.py:47
 msgid "Unit cell [Å]:"
