@@ -90,16 +90,20 @@ def plot_reciprocal_cell(atoms, path='default',
         plt.show()
 
 
-
 class CLICommand:
-    short_description = 'Show the reciprocal space'
+    """Show the reciprocal space.
+
+    Read unit cell (and possibly also k-points) from a file and show a plot
+    of the BZ.
+    """
 
     @staticmethod
     def add_arguments(parser):
         add = parser.add_argument
-        add('name', metavar='input-file')
-        add('output', nargs='?')
-        add('-v', '--verbose', action='store_true')
+        add('name', metavar='input-file',
+            help='Input file containing unit cell.')
+        add('output', nargs='?', help='Write plot to file (.png, .svg, ...).')
+        add('-v', '--verbose', action='store_true', help='More output.')
         add('-p', '--path', nargs='?', type=str, const='default',
             help='Add a band path.  Example: "GXL".')
         add('-d', '--dimension', type=int, default=3,
