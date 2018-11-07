@@ -9,7 +9,7 @@ Git master branch
 
 :git:`master <>`.
 
-* Added :class`ase.calculators.qmmm.ForceQMMM` force-based QM/MM calculator.
+* Added :class:`ase.calculators.qmmm.ForceQMMM` force-based QM/MM calculator.
 
 * Added calculator for :mod:`OpenMX <ase.calculators.openmx>`.
 
