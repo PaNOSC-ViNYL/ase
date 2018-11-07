@@ -249,11 +249,14 @@ def tags2atoms(tags, store_tags=False, primitive_cell=False,
     else:
         sitesym = None
 
+    # The setting needs to be passed as either 1 or two, not None (default)
+    setting = 1
     spacegroup = 1
     if sitesym is not None:
         subtrans = [(0.0, 0.0, 0.0)] if subtrans_included else None
         spacegroup = spacegroup_from_data(
-            no=no, symbol=symbolHM, sitesym=sitesym, subtrans=subtrans)
+            no=no, symbol=symbolHM, sitesym=sitesym, subtrans=subtrans,
+            setting=setting)
     elif no is not None:
         spacegroup = no
     elif symbolHM is not None:
@@ -272,7 +275,6 @@ def tags2atoms(tags, store_tags=False, primitive_cell=False,
     else:
         deuterium = False
 
-    setting = 1
     setting_name = None
     if '_space_group_crystal_system' in tags:
         setting_name = tags['_space_group_crystal_system']
