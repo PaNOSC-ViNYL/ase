@@ -36,7 +36,7 @@ from ase.utils import basestring
 from ase.calculators.calculator import (FileIOCalculator, ReadError,
                                         all_changes)
 
-from .create_input import GenerateVaspInput
+from ase.calculators.vasp.create_input import GenerateVaspInput
 
 
 class Vasp2(GenerateVaspInput, FileIOCalculator):

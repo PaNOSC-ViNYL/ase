@@ -69,6 +69,7 @@ class PropertyNotPresent(CalculatorError):
     Maybe it was never calculated, or for some reason was not extracted
     with the rest of the results, without being a fatal ReadError."""
 
+
 def compare_atoms(atoms1, atoms2, tol=1e-15):
     """Check for system changes since last calculation."""
     if atoms1 is None:
@@ -136,6 +137,8 @@ def get_calculator(name):
         from gpaw import GPAW as Calculator
     elif name == 'hotbit':
         from hotbit import Calculator
+    elif name == 'vasp2':
+        from ase.calculators.vasp import Vasp2 as Calculator
     else:
         classname = special.get(name, name.title())
         module = __import__('ase.calculators.' + name, {}, None, [classname])
