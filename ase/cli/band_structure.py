@@ -13,8 +13,13 @@ from ase.dft.band_structure import BandStructure
 class CLICommand:
     """Plot band-structure.
 
-    Plot result from band-structure calculation or interpolate
+    Read eigenvalues and k-points from file and plot result from
+    band-structure calculation or interpolate
     from Monkhorst-Pack sampling to a given path (--path=PATH).
+
+    Example:
+
+        $ ase band-structure al.gpw -r -10 10
     """
 
     @staticmethod
