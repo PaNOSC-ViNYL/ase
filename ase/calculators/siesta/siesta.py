@@ -283,7 +283,7 @@ class Siesta3_2(BaseSiesta):
         ('MD.TargetStress', None),
         ('MD.RemoveIntramolecularPressure', False),
         ('MD.InitialTimeStep', 1),
-        ('MD.FinalTimestep', 1),
+        ('MD.FinalTimeStep', 1),
         ('MD.LengthTimeStep', 1.0),  # fs
         ('MD.InitialTemperature', 0.0),  # K
         ('MD.TargetTemperature', 0.0),  # K
@@ -578,7 +578,7 @@ class SiestaTrunk462(BaseSiesta):
         ('MD.TargetStress', None),
         ('MD.RemoveIntramolecularPressure', False),
         ('MD.InitialTimeStep', 1),
-        ('MD.FinalTimestep', 1),
+        ('MD.FinalTimeStep', 1),
         ('MD.LengthTimeStep', 1.0),  # fs
         ('MD.InitialTemperature', 0.0),  # K
         ('MD.TargetTemperature', 0.0),  # K
