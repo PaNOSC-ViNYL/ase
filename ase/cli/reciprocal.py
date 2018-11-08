@@ -14,6 +14,8 @@ def plot_reciprocal_cell(atoms, path='default',
                          ibz_k_points=False,
                          plot_vectors=True, dimension=3, output=None,
                          verbose=False):
+    import matplotlib.pyplot as plt
+
     cell = atoms.get_cell()
     icell = atoms.get_reciprocal_cell()
 
@@ -66,12 +68,6 @@ def plot_reciprocal_cell(atoms, path='default',
             for i in range(len(points)):
                 points[i] = np.dot(icell.T, points[i])
 
-    # get the correct backend
-    if not output:
-        import matplotlib
-        matplotlib.use('Qt4Agg')
-    import matplotlib.pyplot as plt
-
     kwargs = {'cell': cell,
               'vectors': plot_vectors,
               'paths': paths,
@@ -93,8 +89,20 @@ def plot_reciprocal_cell(atoms, path='default',
 class CLICommand:
     """Show the reciprocal space.
 
-    Read unit cell (and possibly also k-points) from a file and show a plot
-    of the BZ.
+    Read unit cell from a file and show a plot of the 1. Brillouin zone.  If
+    the file contains information about k-points, then those can be plotted
+    too.
+
+    Examples:
+
+        $ # Show GXWLG path in FCC-BZ:
+        $ ase build -x fcc Al al.traj
+        $ ase reciprocal al.traj -p GXWLG
+
+        $ # And now with k-points:
+        $ ase run gpaw al.traj -p kpts=6,6,6,mode=pw \
+        >   --after "atoms.calc.write('al.gpw')" > al.txt
+        $ ase reciprocal al.gpw -i -p GXWLG
     """
 
     @staticmethod
