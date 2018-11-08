@@ -5,21 +5,23 @@ from ase.io import read, write
 
 
 class CLICommand:
-    short_description = 'Convert between file formats'
-    description = ('Convert between file formats.  Use "-" for stdin/stdout.  '
-                   'See ase info --formats for known formats.')
+    """Convert between file formats.
+
+    Use "-" for stdin/stdout.
+    See "ase info --formats" for known formats.
+    """
 
     @staticmethod
     def add_arguments(parser):
         add = parser.add_argument
         add('-v', '--verbose', action='store_true',
-            help='print names of converted files')
+            help='Print names of converted files')
         add('input', nargs='+', metavar='input-file')
         add('-i', '--input-format', metavar='FORMAT',
-            help='specify input FORMAT')
+            help='Specify input FORMAT')
         add('output', metavar='output-file')
         add('-o', '--output-format', metavar='FORMAT',
-            help='specify output FORMAT')
+            help='Specify output FORMAT')
         add('-f', '--force', action='store_true',
             help='Overwrite an existing file')
         add('-n', '--image-number',

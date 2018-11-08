@@ -11,16 +11,23 @@ from ase.dft.band_structure import BandStructure
 
 
 class CLICommand:
-    short_description = 'Plot band-structure'
-    description = (
-        'Plot result from band-structure calculation or interpolate '
-        'from Monkhorst-Pack sampling to a given path (--path=PATH).')
+    """Plot band-structure.
+
+    Read eigenvalues and k-points from file and plot result from
+    band-structure calculation or interpolate
+    from Monkhorst-Pack sampling to a given path (--path=PATH).
+
+    Example:
+
+        $ ase band-structure al.gpw -r -10 10
+    """
 
     @staticmethod
     def add_arguments(parser):
         parser.add_argument('calculation',
                             help='Path to output file(s) from calculation.')
-        parser.add_argument('-q', '--quiet', action='store_true')
+        parser.add_argument('-q', '--quiet', action='store_true',
+                            help='Less output.')
         parser.add_argument('-k', '--path', help='Example "GXL".')
         parser.add_argument('-n', '--points', type=int, default=100,
                             help='Number of points along the path '

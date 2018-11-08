@@ -612,15 +612,25 @@ def copy(reader, writer, exclude=set(), name=''):
 
 
 class CLICommand:
-    short_description = 'Manipulate/show content of ulm-file'
+    """Manipulate/show content of ulm-file.
+
+    The ULM file format is used for ASE's trajectory files,
+    for GPAW's gpw-files and other things.
+
+    Example (show first image of a trajectory file):
+
+        ase ulm abc.traj -n 0 -v
+    """
 
     @staticmethod
     def add_arguments(parser):
         add = parser.add_argument
-        add('filename')
-        add('-n', '--index', type=int)
-        add('-d', '--delete', metavar='key')
-        add('-v', '--verbose', action='store_true')
+        add('filename', help='Name of ULM-file.')
+        add('-n', '--index', type=int,
+            help='Show only one index.  Default is to show all.')
+        add('-d', '--delete', metavar='key1,key2,...',
+            help='Remove key(s) from ULM-file.')
+        add('-v', '--verbose', action='store_true', help='More output.')
 
     @staticmethod
     def run(args):

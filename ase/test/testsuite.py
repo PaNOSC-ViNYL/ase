@@ -396,7 +396,11 @@ class must_raise:
 
 
 class CLICommand:
-    short_description = 'Test ASE'
+    """Run ASE's test-suite.
+
+    By default, tests for external calculators are skipped.  Enable with
+    "-c name".
+    """
 
     @staticmethod
     def add_arguments(parser):

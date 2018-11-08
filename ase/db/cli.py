@@ -19,25 +19,43 @@ except NameError:
 
 
 class CLICommand:
-    short_description = 'Manipulate and query ASE database'
+    """Manipulate and query ASE database.
 
-    description = """Query is a comma-separated list of
+    Query is a comma-separated list of
     selections where each selection is of the type "ID", "key" or
     "key=value".  Instead of "=", one can also use "<", "<=", ">=", ">"
     and  "!=" (these must be protected from the shell by using quotes).
-    Special keys: id, user, calculator, age, natoms, energy, magmom,
-    and charge.  Chemical symbols can also be used to select number of
+    Special keys:
+
+    * id
+    * user
+    * calculator
+    * age
+    * natoms
+    * energy
+    * magmom
+    * charge
+
+    Chemical symbols can also be used to select number of
     specific atomic species (H, He, Li, ...).  Selection examples:
-    'calculator=nwchem', 'age<1d', 'natoms=1', 'user=alice',
-    '2.2<bandgap<4.1', 'Cu>=10'"""
+
+        calculator=nwchem
+        age<1d
+        natoms=1
+        user=alice
+        2.2<bandgap<4.1
+        Cu>=10
+
+    See also: https://wiki.fysik.dtu.dk/ase/ase/db/db.html.
+    """
 
     @staticmethod
     def add_arguments(parser):
         add = parser.add_argument
-        add('database')
-        add('query', nargs='*')
-        add('-v', '--verbose', action='store_true')
-        add('-q', '--quiet', action='store_true')
+        add('database', help='SQLite3 file, JSON file or postgres URL.')
+        add('query', nargs='*', help='Query string.')
+        add('-v', '--verbose', action='store_true', help='More output.')
+        add('-q', '--quiet', action='store_true', help='Less output.')
         add('-n', '--count', action='store_true',
             help='Count number of selected rows.')
         add('-l', '--long', action='store_true',
