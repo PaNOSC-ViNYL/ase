@@ -136,7 +136,7 @@ class GaussianProcess():
         grad = self.kernel.gradient(X)
 
         # vectorizing the derivative of the log likelyhood
-        D_P_input = np.array([np.matmul(np.outer(self.a,self.a), g) for g in grad])
+        D_P_input = np.array([np.dot(np.outer(self.a,self.a), g) for g in grad])
         D_complexity = np.array([cho_solve((self.L, self.lower),
                                              g) for g in grad])
 
