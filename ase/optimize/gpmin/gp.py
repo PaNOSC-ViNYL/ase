@@ -103,7 +103,8 @@ class GaussianProcess():
             v = solve_triangular(self.L, v, lower = True, check_finite = False)
 
             variance = self.kernel.kernel(x,x)
-            covariance = np.matmul(v.T, v)
+            #covariance = np.matmul(v.T, v)
+            covariance = np.tensordot(v,v, axes = (0,0))  
             V = variance - covariance
           
             return f, V
