@@ -9,7 +9,7 @@ from ase.build.tools import niggli_reduce
 
 def normalize(cell):
     for i in range(3):
-        cell[i] /= np.linalg.norm(cell[i]) * 1.3
+        cell[i] /= np.linalg.norm(cell[i])
 
 
 try:
@@ -554,11 +554,15 @@ class SymmetryEquivalenceCheck(object):
         # Get the rotation/reflection matrix [R] by:
         # [R] = [V][T]^-1, where [V] is the reference vectors and
         # [T] is the trial vectors
-        inverted_trial = np.linalg.inv(refined_candidate_list)
+        # XXX What do we know about the length/shape of refined_candidate_list?
+        if len(refined_candidate_list) == 1:
+            inverted_trial = 1.0 / refined_candidate_list
+        else:
+            inverted_trial = np.linalg.inv(refined_candidate_list)
 
         # Equivalent to np.matmul(ref_vec.T, inverted_trial)
-        canditate_trans_mat = np.dot(ref_vec.T, inverted_trial.T).T
-        return canditate_trans_mat, atoms1_ref.get_positions()
+        candidate_trans_mat = np.dot(ref_vec.T, inverted_trial.T).T
+        return candidate_trans_mat, atoms1_ref.get_positions()
 
     def _reduce_to_primitive(self, structure):
         """Reduce the two structure to their primitive type"""
