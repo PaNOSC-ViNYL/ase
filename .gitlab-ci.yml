@@ -9,71 +9,53 @@ variables:
 python_2_7_tests:
   image: python:2.7
   script:
-    # manually install ase deps
     - pip install numpy scipy matplotlib flask psycopg2-binary
-    # extra packages for testing
-    - pip install pyflakes netCDF4
+    - pip install netCDF4
     # using "install from source" instructions
     - export PATH=$PATH:$CI_PROJECT_DIR/bin
     - echo $PATH
     - export PYTHONPATH=$CI_PROJECT_DIR
     - echo $PYTHONPATH
-    # tests
     - python --version
-    - ase info
+    - ase test --strict
+
+# Check oldest supported Python with oldest supported libraries.
+# Does not install any optional libraries except matplotlib.
+# This test does not use the --strict flag because things like
+# deprecation warnings may be rampant, yet these are only important
+# for the future, not the past.
+python_3_oldlibs_tests:
+  image: python:3.4-slim
+  script:
+    - pip install numpy==1.9.0 scipy==0.14.0 matplotlib==2.0.0
+    - pip install --no-deps .
+    - python --version
     - ase test
 
+# Check newest Python with all the standard dependencies at newest versions.
 python_3_tests:
-  image: python:3.6-slim
+  image: python:3-slim
   script:
-    # manually install extra deps
-    #- pip install netCDF4
     - pip install pyflakes psycopg2-binary
-    # 'pip install' pulls in all required packages
     - pip install .
-    # Run tests
     - python --version
-    - ase info
-    - ase test
-    # pyflakes code check (Python 3 version)
-    - cd $CI_PROJECT_DIR
-    - pyflakes ase doc
-    
-python_3_7_tests:
-  image: python:3.7-slim
-  script:
-    # manually install extra deps
-    #- pip install netCDF4
-    - pip install pyflakes psycopg2-binary
-    # 'pip install' pulls in all required packages
-    - pip install .
-    # Run tests
-    - python --version
-    - ase info
-    - ase test
-    # pyflakes code check (Python 3 version)
+    - ase test --strict
     - cd $CI_PROJECT_DIR
     - pyflakes ase doc
 
 conda_tests:
    image: continuumio/anaconda3
    script:
-     # manually install extra deps
      - apt-get install -yq libgl1-mesa-glx
      - conda install -yq pip wheel numpy scipy pyflakes matplotlib flask
-     # 'pip install' pulls in all required packages
      - pip install .
-     # Run tests
      - python --version
-     - ase info
-     - ase test
+     - ase test --strict
 
 docs_test:
   image: python:3
   script:
-    # 'pip install' pulls in all required packages (include docs)
     - pip install .[docs]
-    # build the docs
     - ase info
     - which sphinx-build
     - cd $CI_PROJECT_DIR/doc
