@@ -11,6 +11,7 @@ import warnings
 
 import numpy as np
 
+from ase import Atoms
 from ase.parallel import paropen
 from ase.spacegroup import crystal
 from ase.spacegroup.spacegroup import spacegroup_from_data, Spacegroup
@@ -195,16 +196,37 @@ def tags2atoms(tags, store_tags=False, primitive_cell=False,
             'are included in the symmetry operations listed in the CIF file, '
             'i.e. when `subtrans_included` is True.')
 
-    a = tags['_cell_length_a']
-    b = tags['_cell_length_b']
-    c = tags['_cell_length_c']
-    alpha = tags['_cell_angle_alpha']
-    beta = tags['_cell_angle_beta']
-    gamma = tags['_cell_angle_gamma']
+    cell_tags = ['_cell_length_a', '_cell_length_b', '_cell_length_c',
+                 '_cell_angle_alpha', '_cell_angle_beta', '_cell_angle_gamma']
 
-    scaled_positions = np.array([tags['_atom_site_fract_x'],
-                                 tags['_atom_site_fract_y'],
-                                 tags['_atom_site_fract_z']]).T
+    # If any value is missing, ditch periodic boundary conditions
+    has_pbc = True
+    try:
+        cell_values = [tags[ct] for ct in cell_tags]
+        a, b, c, alpha, beta, gamma = cell_values
+    except KeyError:
+        has_pbc = False
+
+    # Now get positions
+    try:
+        scaled_positions = np.array([tags['_atom_site_fract_x'],
+                                     tags['_atom_site_fract_y'],
+                                     tags['_atom_site_fract_z']]).T
+    except KeyError:
+        scaled_positions = None
+
+    try:
+        positions = np.array([tags['_atom_site_cartn_x'],
+                              tags['_atom_site_cartn_y'],
+                              tags['_atom_site_cartn_z']]).T
+    except KeyError:
+        positions = None
+
+    if (positions is None) and (scaled_positions is None):
+        raise RuntimeError('No positions found in structure')
+    elif scaled_positions is not None and not has_pbc:
+        raise RuntimeError('Structure has fractional coordinates but not '
+                           'lattice parameters')
 
     symbols = []
     if '_atom_site_type_symbol' in tags:
@@ -264,7 +286,6 @@ def tags2atoms(tags, store_tags=False, primitive_cell=False,
     else:
         spacegroup = 1
 
-
     kwargs = {}
     if store_tags:
         kwargs['info'].update(tags.copy())
@@ -310,18 +331,34 @@ def tags2atoms(tags, store_tags=False, primitive_cell=False,
     else:
         try:
             if not np.allclose(tags['_atom_site_occupancy'], 1.):
-                warnings.warn('Cif file containes mixed/fractional occupancies. Consider using `fractional_occupancies=True`')
+                warnings.warn(
+                    'Cif file containes mixed/fractional occupancies. '
+                    'Consider using `fractional_occupancies=True`')
                 kwargs['onduplicates'] = 'keep'
         except KeyError:
             pass
 
-    atoms = crystal(symbols, basis=scaled_positions,
-                    cellpar=[a, b, c, alpha, beta, gamma],
-                    spacegroup=spacegroup,
-                    occupancies=occupancies,
-                    setting=setting,
-                    primitive_cell=primitive_cell,
-                    **kwargs)
+    if has_pbc:
+        if scaled_positions is None:
+            _ = Atoms(symbols, positions=positions,
+                      cell=[a, b, c, alpha, beta, gamma])
+            scaled_positions = _.get_scaled_positions()
+        atoms = crystal(symbols, basis=scaled_positions,
+                        cellpar=[a, b, c, alpha, beta, gamma],
+                        spacegroup=spacegroup,
+                        occupancies=occupancies,
+                        setting=setting,
+                        primitive_cell=primitive_cell,
+                        **kwargs)
+    else:
+        atoms = Atoms(symbols, positions=positions,
+                      info=kwargs.get('info', None))
+        if occupancies is not None:
+            # Compile an occupancies dictionary
+            occ_dict = {}
+            for i, sym in enumerate(symbols):
+                occ_dict[i] = {sym: occupancies[i]}
+            atoms.info['occupancy'] = occ_dict
 
     if deuterium:
         masses = atoms.get_masses()
@@ -411,15 +448,18 @@ def write_cif(fileobj, images, format='default'):
                           atoms.get_chemical_formula(mode='reduce'))
             fileobj.write('_chemical_formula_sum      "%s"\n' % formula_sum)
 
-        fileobj.write('_cell_length_a       %g\n' % a)
-        fileobj.write('_cell_length_b       %g\n' % b)
-        fileobj.write('_cell_length_c       %g\n' % c)
-        fileobj.write('_cell_angle_alpha    %g\n' % alpha)
-        fileobj.write('_cell_angle_beta     %g\n' % beta)
-        fileobj.write('_cell_angle_gamma    %g\n' % gamma)
-        fileobj.write('\n')
+        # Is it a periodic system?
+        has_pbc = atoms.pbc.all()
 
-        if atoms.pbc.all():
+        if has_pbc:
+            fileobj.write('_cell_length_a       %g\n' % a)
+            fileobj.write('_cell_length_b       %g\n' % b)
+            fileobj.write('_cell_length_c       %g\n' % c)
+            fileobj.write('_cell_angle_alpha    %g\n' % alpha)
+            fileobj.write('_cell_angle_beta     %g\n' % beta)
+            fileobj.write('_cell_angle_gamma    %g\n' % gamma)
+            fileobj.write('\n')
+
             fileobj.write('_symmetry_space_group_name_H-M    %s\n' % '"P 1"')
             fileobj.write('_symmetry_int_tables_number       %d\n' % 1)
             fileobj.write('\n')
@@ -431,25 +471,30 @@ def write_cif(fileobj, images, format='default'):
 
         fileobj.write('loop_\n')
 
+        coord_type = 'fract' if has_pbc else 'Cartn'
+
         if format == 'mp':
             fileobj.write('  _atom_site_type_symbol\n')
             fileobj.write('  _atom_site_label\n')
             fileobj.write('  _atom_site_symmetry_multiplicity\n')
-            fileobj.write('  _atom_site_fract_x\n')
-            fileobj.write('  _atom_site_fract_y\n')
-            fileobj.write('  _atom_site_fract_z\n')
+            fileobj.write('  _atom_site_{0}_x\n'.format(coord_type))
+            fileobj.write('  _atom_site_{0}_y\n'.format(coord_type))
+            fileobj.write('  _atom_site_{0}_z\n'.format(coord_type))
             fileobj.write('  _atom_site_occupancy\n')
         else:
             fileobj.write('  _atom_site_label\n')
             fileobj.write('  _atom_site_occupancy\n')
-            fileobj.write('  _atom_site_fract_x\n')
-            fileobj.write('  _atom_site_fract_y\n')
-            fileobj.write('  _atom_site_fract_z\n')
+            fileobj.write('  _atom_site_{0}_x\n'.format(coord_type))
+            fileobj.write('  _atom_site_{0}_y\n'.format(coord_type))
+            fileobj.write('  _atom_site_{0}_z\n'.format(coord_type))
             fileobj.write('  _atom_site_thermal_displace_type\n')
             fileobj.write('  _atom_site_B_iso_or_equiv\n')
             fileobj.write('  _atom_site_type_symbol\n')
 
-        scaled = atoms.get_scaled_positions().tolist()
+        if has_pbc:
+            coords = atoms.get_scaled_positions().tolist()
+        else:
+            coords = atoms.get_positions().tolist()
         symbols = atoms.get_chemical_symbols()
         occupancies = [1 for i in range(len(symbols))]
 
@@ -462,14 +507,14 @@ def write_cif(fileobj, images, format='default'):
                 for sym, occ in occ_info[tag].items():
                     if sym != symbols[i]:
                         symbols.append(sym)
-                        scaled.append(scaled[i])
+                        coords.append(coords[i])
                         occupancies.append(occ)
         except KeyError:
             pass
 
         no = {}
 
-        for symbol, pos, occ in zip(symbols, scaled, occupancies):
+        for symbol, pos, occ in zip(symbols, coords, occupancies):
             if symbol in no:
                 no[symbol] += 1
             else:
