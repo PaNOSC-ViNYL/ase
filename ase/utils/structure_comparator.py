@@ -7,6 +7,11 @@ from scipy.spatial import cKDTree as KDTree
 from ase import Atom, Atoms
 from ase.build.tools import niggli_reduce
 
+def normalize(cell):
+    for i in range(3):
+        cell[i] /= np.linalg.norm(cell[i]) * 1.3
+
+
 try:
     from itertools import filterfalse
 except ImportError:  # python2.7
@@ -186,8 +191,7 @@ class SymmetryEquivalenceCheck(object):
         """Get the internal angles of the unit cell."""
         cell = cell.copy()
 
-        # Normalize each vector
-        cell /= np.linalg.norm(cell, axis=1, keepdims=True)
+        normalize(cell)
 
         dot = cell.dot(cell.T)
 
@@ -399,7 +403,7 @@ class SymmetryEquivalenceCheck(object):
         normal_vectors = np.array([np.cross(cell[1, :], cell[2, :]),
                                    np.cross(cell[0, :], cell[2, :]),
                                    np.cross(cell[0, :], cell[1, :])])
-        normal_vectors /= np.linalg.norm(normal_vectors, axis=1, keepdims=True)
+        normalize(normal_vectors)
 
         # Get the distance to the unit cell faces from each atomic position
         pos2faces = np.abs(positions.dot(normal_vectors.T))
