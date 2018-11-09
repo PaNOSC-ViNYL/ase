@@ -6,6 +6,15 @@ variables:
   POSTGRES_USER: ase
   POSTGRES_PASSWORD: "ase"
 
+python_3_oldlibs_tests:
+  image: python:3.4-slim
+  script:
+    - pip install numpy==1.9.0 scipy==0.14.0 matplotlib==2.0.0
+    - pip install --no-deps .
+    - python --version
+    - ase info
+    - ase test
+
 python_2_7_tests:
   image: python:2.7
   script:
