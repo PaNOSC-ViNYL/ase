@@ -17,10 +17,13 @@ python_2_7_tests:
     - export PYTHONPATH=$CI_PROJECT_DIR
     - echo $PYTHONPATH
     - python --version
-    - ase test
+    - ase test --strict
 
 # Check oldest supported Python with oldest supported libraries.
 # Does not install any optional libraries except matplotlib.
+# This test does not use the --strict flag because things like
+# deprecation warnings may be rampant, yet these are only important
+# for the future, not the past.
 python_3_oldlibs_tests:
   image: python:3.4-slim
   script:
@@ -36,7 +39,7 @@ python_3_tests:
     - pip install pyflakes psycopg2-binary
     - pip install .
     - python --version
-    - ase test
+    - ase test --strict
     - cd $CI_PROJECT_DIR
     - pyflakes ase doc
 
@@ -47,7 +50,7 @@ conda_tests:
      - conda install -yq pip wheel numpy scipy pyflakes matplotlib flask
      - pip install .
      - python --version
-     - ase test
+     - ase test --strict
 
 docs_test:
   image: python:3
