@@ -3,8 +3,6 @@ from __future__ import print_function, unicode_literals
 from ase.gui.i18n import _
 import ase.gui.ui as ui
 from ase.io.pov import write_pov
-from ase.gui.status import formula
-from os.path import basename
 from os import system
 import numpy as np
 
