@@ -96,14 +96,15 @@ class GaussianProcess():
         n = self.X.shape[0]
         k = self.kernel.kernel_vector(x, self.X, n)
 
-        f = self.prior.prior(x) + np.matmul(k, self.a)
+        f = self.prior.prior(x) + np.dot(k, self.a)
         
         if get_variance:
             v = k.T.copy()
             v = solve_triangular(self.L, v, lower = True, check_finite = False)
 
             variance = self.kernel.kernel(x,x)
-            covariance = np.matmul(v.T, v)
+            #covariance = np.matmul(v.T, v)
+            covariance = np.tensordot(v,v, axes = (0,0))  
             V = variance - covariance
           
             return f, V
@@ -134,10 +135,8 @@ class GaussianProcess():
         # Gradient of the loglikelihood
         grad = self.kernel.gradient(X)
 
-        a = self.a.reshape(1, -1)
-
         # vectorizing the derivative of the log likelyhood
-        D_P_input = np.array([np.matmul(a.T, np.matmul(a, g)) for g in grad])
+        D_P_input = np.array([np.dot(np.outer(self.a,self.a), g) for g in grad])
         D_complexity = np.array([cho_solve((self.L, self.lower),
                                              g) for g in grad])
 
