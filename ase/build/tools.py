@@ -205,10 +205,10 @@ def stack(atoms1, atoms2, axis=2, cell=None, fix=0.5,
     *atoms2*.
 
     An ase.geometry.IncompatibleCellError exception is raised if the
-    cells of *atoms1* and *atoms2* are incopatible, e.g. if the far
+    cells of *atoms1* and *atoms2* are incompatible, e.g. if the far
     corner of the unit cell of either *atoms1* or *atoms2* is
-    displaced more than *maxstrain*. Setting *maxstrain* to None,
-    disable this check.
+    displaced more than *maxstrain*. Setting *maxstrain* to None
+    disables this check.
 
     If *distance* is not None, the size of the final cell, along the
     direction perpendicular to the interface, will be adjusted such
@@ -216,8 +216,8 @@ def stack(atoms1, atoms2, axis=2, cell=None, fix=0.5,
     *atoms2* will be equal to *distance*. This option uses
     scipy.optimize.fmin() and hence require scipy to be installed.
 
-    If *reorder* is True, then the atoms will be reordred such that
-    all atoms with the same symbol will follow sequensially after each
+    If *reorder* is True, then the atoms will be reordered such that
+    all atoms with the same symbol will follow sequencially after each
     other, eg: 'Al2MnAl10Fe' -> 'Al12FeMn'.
 
     If *output_strained* is True, then the strained versions of
@@ -255,10 +255,14 @@ def stack(atoms1, atoms2, axis=2, cell=None, fix=0.5,
     atoms1 = atoms1.copy()
     atoms2 = atoms2.copy()
 
+    for atoms in [atoms1, atoms2]:
+        if not atoms.cell[axis].any():
+            atoms.center(vacuum=0.0, axis=axis)
+
     if (np.sign(np.linalg.det(atoms1.cell)) !=
         np.sign(np.linalg.det(atoms2.cell))):
-        raise IncompatibleCellError('*atoms1* amd *atoms2* must both either '
-                                    'have a lefthanded or a righanded cell.')
+        raise IncompatibleCellError('Cells of *atoms1* and *atoms2* must have '
+                                    'same handedness.')
 
     c1 = np.linalg.norm(atoms1.cell[axis])
     c2 = np.linalg.norm(atoms2.cell[axis])

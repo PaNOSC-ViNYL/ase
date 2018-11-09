@@ -18,17 +18,21 @@ from ase.lattice.cubic import FaceCenteredCubic
 from ase.utils import basestring
 
 
-def fcc100(symbol, size, a=None, vacuum=None, orthogonal=True):
+def fcc100(symbol, size, a=None, vacuum=None, orthogonal=True,
+           periodic=False):
     """FCC(100) surface.
 
     Supported special adsorption sites: 'ontop', 'bridge', 'hollow'."""
     if not orthogonal:
         raise NotImplementedError("Can't do non-orthogonal cell yet!")
 
-    return _surface(symbol, 'fcc', '100', size, a, None, vacuum, orthogonal)
+    return _surface(symbol, 'fcc', '100', size, a, None, vacuum,
+                    periodic=periodic,
+                    orthogonal=orthogonal)
 
 
-def fcc110(symbol, size, a=None, vacuum=None, orthogonal=True):
+def fcc110(symbol, size, a=None, vacuum=None, orthogonal=True,
+           periodic=False):
     """FCC(110) surface.
 
     Supported special adsorption sites: 'ontop', 'longbridge',
@@ -36,20 +40,27 @@ def fcc110(symbol, size, a=None, vacuum=None, orthogonal=True):
     if not orthogonal:
         raise NotImplementedError("Can't do non-orthogonal cell yet!")
 
-    return _surface(symbol, 'fcc', '110', size, a, None, vacuum, orthogonal)
+    return _surface(symbol, 'fcc', '110', size, a, None, vacuum,
+                    periodic=periodic,
+                    orthogonal=orthogonal)
 
 
-def bcc100(symbol, size, a=None, vacuum=None, orthogonal=True):
+
+def bcc100(symbol, size, a=None, vacuum=None, orthogonal=True,
+           periodic=False):
     """BCC(100) surface.
 
     Supported special adsorption sites: 'ontop', 'bridge', 'hollow'."""
     if not orthogonal:
         raise NotImplementedError("Can't do non-orthogonal cell yet!")
 
-    return _surface(symbol, 'bcc', '100', size, a, None, vacuum, orthogonal)
+    return _surface(symbol, 'bcc', '100', size, a, None, vacuum,
+                    periodic=periodic,
+                    orthogonal=orthogonal)
 
 
-def bcc110(symbol, size, a=None, vacuum=None, orthogonal=False):
+def bcc110(symbol, size, a=None, vacuum=None, orthogonal=False,
+           periodic=False):
     """BCC(110) surface.
 
     Supported special adsorption sites: 'ontop', 'longbridge',
@@ -57,40 +68,52 @@ def bcc110(symbol, size, a=None, vacuum=None, orthogonal=False):
 
     Use *orthogonal=True* to get an orthogonal unit cell - works only
     for size=(i,j,k) with j even."""
-    return _surface(symbol, 'bcc', '110', size, a, None, vacuum, orthogonal)
+    return _surface(symbol, 'bcc', '110', size, a, None, vacuum,
+                    periodic=periodic,
+                    orthogonal=orthogonal)
 
 
-def bcc111(symbol, size, a=None, vacuum=None, orthogonal=False):
+def bcc111(symbol, size, a=None, vacuum=None, orthogonal=False,
+           periodic=False):
     """BCC(111) surface.
 
     Supported special adsorption sites: 'ontop'.
 
     Use *orthogonal=True* to get an orthogonal unit cell - works only
     for size=(i,j,k) with j even."""
-    return _surface(symbol, 'bcc', '111', size, a, None, vacuum, orthogonal)
+    return _surface(symbol, 'bcc', '111', size, a, None, vacuum,
+                    periodic=periodic,
+                    orthogonal=orthogonal)
 
 
-def fcc111(symbol, size, a=None, vacuum=None, orthogonal=False):
+def fcc111(symbol, size, a=None, vacuum=None, orthogonal=False,
+           periodic=False):
     """FCC(111) surface.
 
     Supported special adsorption sites: 'ontop', 'bridge', 'fcc' and 'hcp'.
 
     Use *orthogonal=True* to get an orthogonal unit cell - works only
     for size=(i,j,k) with j even."""
-    return _surface(symbol, 'fcc', '111', size, a, None, vacuum, orthogonal)
+    return _surface(symbol, 'fcc', '111', size, a, None, vacuum,
+                    periodic=periodic,
+                    orthogonal=orthogonal)
 
 
-def hcp0001(symbol, size, a=None, c=None, vacuum=None, orthogonal=False):
+def hcp0001(symbol, size, a=None, c=None, vacuum=None, orthogonal=False,
+            periodic=False):
     """HCP(0001) surface.
 
     Supported special adsorption sites: 'ontop', 'bridge', 'fcc' and 'hcp'.
 
     Use *orthogonal=True* to get an orthogonal unit cell - works only
     for size=(i,j,k) with j even."""
-    return _surface(symbol, 'hcp', '0001', size, a, c, vacuum, orthogonal)
+    return _surface(symbol, 'hcp', '0001', size, a, c, vacuum,
+                    periodic=periodic,
+                    orthogonal=orthogonal)
 
 
-def hcp10m10(symbol, size, a=None, c=None, vacuum=None, orthogonal=True):
+def hcp10m10(symbol, size, a=None, c=None, vacuum=None, orthogonal=True,
+             periodic=False):
     """HCP(10m10) surface.
 
     Supported special adsorption sites: 'ontop'.
@@ -99,10 +122,13 @@ def hcp10m10(symbol, size, a=None, c=None, vacuum=None, orthogonal=True):
     if not orthogonal:
         raise NotImplementedError("Can't do non-orthogonal cell yet!")
 
-    return _surface(symbol, 'hcp', '10m10', size, a, c, vacuum, orthogonal)
+    return _surface(symbol, 'hcp', '10m10', size, a, c, vacuum,
+                    periodic=periodic,
+                    orthogonal=orthogonal)
 
 
-def diamond100(symbol, size, a=None, vacuum=None, orthogonal=True):
+def diamond100(symbol, size, a=None, vacuum=None, orthogonal=True,
+               periodic=False):
     """DIAMOND(100) surface.
 
     Supported special adsorption sites: 'ontop'."""
@@ -110,10 +136,12 @@ def diamond100(symbol, size, a=None, vacuum=None, orthogonal=True):
         raise NotImplementedError("Can't do non-orthogonal cell yet!")
 
     return _surface(symbol, 'diamond', '100', size, a, None, vacuum,
-                    orthogonal)
+                    periodic=periodic,
+                    orthogonal=orthogonal)
 
 
-def diamond111(symbol, size, a=None, vacuum=None, orthogonal=False):
+def diamond111(symbol, size, a=None, vacuum=None, orthogonal=False,
+               periodic=False):
     """DIAMOND(111) surface.
 
     Supported special adsorption sites: 'ontop'."""
@@ -121,7 +149,8 @@ def diamond111(symbol, size, a=None, vacuum=None, orthogonal=False):
     if orthogonal:
         raise NotImplementedError("Can't do orthogonal cell yet!")
     return _surface(symbol, 'diamond', '111', size, a, None, vacuum,
-                    orthogonal)
+                    periodic=periodic,
+                    orthogonal=orthogonal)
 
 
 def add_adsorbate(slab, adsorbate, height, position=(0, 0), offset=None,
@@ -242,7 +271,8 @@ def add_vacuum(atoms, vacuum):
     atoms.set_cell(uc)
 
 
-def _surface(symbol, structure, face, size, a, c, vacuum, orthogonal=True):
+def _surface(symbol, structure, face, size, a, c, vacuum, periodic,
+             orthogonal=True):
     """Function to build often used surfaces.
 
     Don't call this function directly - use fcc100, fcc110, bcc111, ..."""
@@ -274,7 +304,7 @@ def _surface(symbol, structure, face, size, a, c, vacuum, orthogonal=True):
 
     slab = Atoms(numbers,
                  tags=tags.ravel(),
-                 pbc=(True, True, False),
+                 pbc=(True, True, periodic),
                  cell=size)
 
     surface_cell = None
@@ -379,9 +409,10 @@ def _surface(symbol, structure, face, size, a, c, vacuum, orthogonal=True):
         cell = np.diag(cell)
 
     slab.set_positions(positions.reshape((-1, 3)))
-
     slab.set_cell([a * v * n for v, n in zip(cell, size)], scale_atoms=True)
-    slab.cell[2] = 0.0
+
+    if not periodic:
+        slab.cell[2] = 0.0
 
     if vacuum is not None:
         slab.center(vacuum, axis=2)
@@ -391,7 +422,6 @@ def _surface(symbol, structure, face, size, a, c, vacuum, orthogonal=True):
 
     slab.info['adsorbate_info']['cell'] = surface_cell
     slab.info['adsorbate_info']['sites'] = sites
-
     return slab
 
 
@@ -475,3 +505,12 @@ def mx2(formula='MoS2', kind='2H', a=3.18, thickness=3.19,
     atoms = atoms.repeat(size)
 
     return atoms
+
+
+def _all_surface_functions():
+    # Convenient for debugging.
+    d = {}
+    for func in [fcc100, fcc110, bcc100, bcc110, bcc111, fcc111, hcp0001,
+                 hcp10m10, diamond100, diamond111, fcc111, mx2]:
+        d[func.__name__] = func
+    return d
