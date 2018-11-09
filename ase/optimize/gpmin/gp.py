@@ -96,7 +96,7 @@ class GaussianProcess():
         n = self.X.shape[0]
         k = self.kernel.kernel_vector(x, self.X, n)
 
-        f = self.prior.prior(x) + np.matmul(k, self.a)
+        f = self.prior.prior(x) + np.dot(k, self.a)
         
         if get_variance:
             v = k.T.copy()
