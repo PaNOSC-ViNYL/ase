@@ -550,8 +550,10 @@ class SymmetryEquivalenceCheck(object):
         # Get the rotation/reflection matrix [R] by:
         # [R] = [V][T]^-1, where [V] is the reference vectors and
         # [T] is the trial vectors
-        inverted_trial = np.linalg.inv([refined_candidate_list])[0]
-        canditate_trans_mat = np.matmul(ref_vec.T, inverted_trial)
+        inverted_trial = np.linalg.inv(refined_candidate_list)
+
+        # Equivalent to np.matmul(ref_vec.T, inverted_trial)
+        canditate_trans_mat = np.dot(ref_vec.T, inverted_trial.T).T
         return canditate_trans_mat, atoms1_ref.get_positions()
 
     def _reduce_to_primitive(self, structure):
