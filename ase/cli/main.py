@@ -8,6 +8,13 @@ from ase import __version__
 from ase.utils import import_module
 
 
+class CLIError(Exception):
+    """Error for CLI commands.
+
+    A subcommand may raise this.  The message will be forwarded to
+    the error() method of the argument parser."""
+
+
 # Important: Following any change to command-line parameters, use
 # python -m ase.cli.completion to update autocompletion.
 commands = [
@@ -94,6 +101,8 @@ def main(prog='ase', description='ASE command line tool.',
                 f(args, parsers[args.command])
         except KeyboardInterrupt:
             pass
+        except CLIError as x:
+            parser.error(x)
         except Exception as x:
             if args.traceback:
                 raise
