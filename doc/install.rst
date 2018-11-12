@@ -9,11 +9,11 @@ Requirements
 
 * Python_ 2.7, 3.4-3.6
 * NumPy_ 1.9 or newer (base N-dimensional array package)
-* SciPy_ (library for scientific computing)
+* SciPy_ 0.14 or newer (library for scientific computing)
 
 Optional:
 
-* Matplotlib_ (plotting)
+* Matplotlib_ 2.0.0 or newer (plotting)
 * :mod:`tkinter` (for :mod:`ase.gui`)
 * Flask_ (for :mod:`ase.db` web-interface)
 
