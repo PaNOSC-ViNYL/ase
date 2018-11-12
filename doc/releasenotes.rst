@@ -9,6 +9,14 @@ Git master branch
 
 :git:`master <>`.
 
+* No changes yet
+
+
+Version 3.17.0
+==============
+
+12 November 2018: :git:`3.17.0 <../3.17.0>`
+
 General changes:
 
 * ``atoms.symbols`` is now an array-like object which works
