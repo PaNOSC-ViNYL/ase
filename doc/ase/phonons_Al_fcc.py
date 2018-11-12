@@ -1,4 +1,4 @@
-# creates: Al_phonon.png, Al_mode.gif, Al_mode.pdf
+# creates: Al_phonon.png, Al_mode.gif
 from ase.build import bulk
 from ase.calculators.emt import EMT
 from ase.dft.kpoints import bandpath
