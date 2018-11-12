@@ -52,10 +52,12 @@ def get_version():
 
 
 def main():
-    p = argparse.ArgumentParser(usage='Generate new release of ASE.',
+    p = argparse.ArgumentParser(description='Generate new release of ASE.',
                                 epilog='Run from the root directory of ASE.')
-    p.add_argument('version', nargs='?',
-                 help='new version number')
+    p.add_argument('version', nargs=1,
+                 help='version number for new release')
+    p.add_argument('nextversion', nargs=1,
+                   help='development version after release')
     p.add_argument('--clean', action='store_true',
                    help='delete release branch and tag')
     args = p.parse_args()
@@ -68,11 +70,8 @@ def main():
 
     print('Current version: {}'.format(current_version))
 
-    if not args.version:
-        p.print_help()
-        raise SystemExit
-
-    version = args.version
+    version = args.version[0]
+    next_devel_version = args.nextversion[0]
 
     branchname = 'ase-{}'.format(version)
     current_version = get_version()
@@ -95,11 +94,6 @@ def main():
 
 
     git('checkout -b {}'.format(branchname))
-
-    majormiddle, minor = version.rsplit('.', 1)
-    minor = int(minor)
-    nextminor = minor + 1
-    next_devel_version = '{}.{}b1'.format(majormiddle, nextminor)
 
     def update_version(version):
         print('Editing {}: version {}'.format(versionfile, version))
