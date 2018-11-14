@@ -47,7 +47,7 @@ class CLICommand:
     @staticmethod
     def add_more_arguments(parser):
         add = parser.add_argument
-        add('names', nargs='*', help='Read atomic structure from this file.')
+        add('name', nargs='?', help='Read atomic structure from this file.')
         add('-p', '--parameters', default='',
             metavar='key=value,...',
             help='Comma-separated key=value pairs of ' +
@@ -107,21 +107,15 @@ class Runner:
     def run(self):
         args = self.args
 
-        self.expand(args.names)
-
-        if not args.names:
-            args.names.insert(0, '-')
-
-        atoms = self.build(name)
+        atoms = self.build(args.name)
         if args.modify:
             exec(args.modify, {'atoms': atoms, 'np': np})
 
-        if name == '-':
-            name = atoms.info['key_value_pairs']['name']
+        if args.name is None:
+            args.name = 'stdin'
 
-        self.set_calculator(atoms, name)
+        self.set_calculator(atoms, args.name)
 
-        tstart = time.time()
         try:
             self.log('Running:', name)
             data = self.calculate(atoms, name)
@@ -155,7 +149,7 @@ class Runner:
         return data
 
     def build(self, name):
-        if name == '-':
+        if name is None:
             con = db.connect(sys.stdin, 'json')
             return con.get_atoms(add_additional_information=True)
         else:
