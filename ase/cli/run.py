@@ -1,9 +1,6 @@
 from __future__ import division, print_function
 
 import sys
-import os
-import pickle
-import tempfile
 import time
 import traceback
 
@@ -77,14 +74,6 @@ class CLICommand:
             'Example: --modify="atoms.positions[-1,2]+=0.1".')
         add('--after', help='Perform operation after calculation.  ' +
             'Example: --after="atoms.calc.write(...)"')
-        add('-i', '--interactive', action='store_true')
-        add('-c', '--collection')
-        add('-d', '--database',
-            help='Use a filename with a ".db" extension for a sqlite3 ' +
-            'database or a ".json" extension for a simple json database.  ' +
-            'Default is no database')
-        add('-S', '--skip', action='store_true',
-            help='Skip calculations already done.')
 
     @staticmethod
     def run(args):
@@ -94,23 +83,10 @@ class CLICommand:
             sys.exit(runner.errors)
 
 
-interactive_script = """
-import os
-import pickle
-if "PYTHONSTARTUP" in os.environ:
-    exec(open(os.environ["PYTHONSTARTUP"]).read())
-from ase.cli.run import Runner
-args = pickle.loads({!r})
-atoms = Runner().parse(args, True)
-"""
-
-
 class Runner:
     def __init__(self):
-        self.db = None
         self.args = None
         self.errors = 0
-        self.names = []
         self.calculator_name = None
 
         if world.rank == 0:
@@ -118,14 +94,7 @@ class Runner:
         else:
             self.logfile = devnull
 
-    def parse(self, args, interactive=False):
-        if not interactive and args.interactive:
-            fd = tempfile.NamedTemporaryFile('w')
-            fd.write(interactive_script.format(pickle.dumps(args, protocol=0)))
-            fd.flush()
-            os.system('python3 -i ' + fd.name)
-            return
-
+    def parse(self, args):
         self.calculator_name = args.calculator
 
         self.args = args
@@ -137,56 +106,36 @@ class Runner:
 
     def run(self):
         args = self.args
-        if self.db is None:
-            # Create database connection:
-            self.db = db.connect(args.database, use_lock_file=True)
 
         self.expand(args.names)
 
         if not args.names:
             args.names.insert(0, '-')
 
-        atoms = None
-        for name in args.names:
-            if atoms is not None:
-                del atoms.calc  # release resources from last calculation
-            atoms = self.build(name)
-            if args.modify:
-                exec(args.modify, {'atoms': atoms, 'np': np})
+        atoms = self.build(name)
+        if args.modify:
+            exec(args.modify, {'atoms': atoms, 'np': np})
 
-            if name == '-':
-                name = atoms.info['key_value_pairs']['name']
+        if name == '-':
+            name = atoms.info['key_value_pairs']['name']
 
-            skip = False
-            id = None
+        self.set_calculator(atoms, name)
 
-            if args.skip:
-                id = self.db.reserve(name=name)
-                if id is None:
-                    skip = True
-
-            if not skip:
-                self.set_calculator(atoms, name)
-
-                tstart = time.time()
-                try:
-                    self.log('Running:', name)
-                    data = self.calculate(atoms, name)
-                except KeyboardInterrupt:
-                    raise
-                except Exception:
-                    self.log(name, 'FAILED')
-                    traceback.print_exc(file=self.logfile)
-                    tstop = time.time()
-                    data = {'time': tstop - tstart}
-                    self.errors += 1
-                else:
-                    tstop = time.time()
-                    data['time'] = tstop - tstart
-                    self.db.write(atoms, name=name, data=data)
-
-                if id:
-                    del self.db[id]
+        tstart = time.time()
+        try:
+            self.log('Running:', name)
+            data = self.calculate(atoms, name)
+        except KeyboardInterrupt:
+            raise
+        except Exception:
+            self.log(name, 'FAILED')
+            traceback.print_exc(file=self.logfile)
+            tstop = time.time()
+            data = {'time': tstop - tstart}
+            self.errors += 1
+        else:
+            tstop = time.time()
+            data['time'] = tstop - tstart
 
         return atoms
 
@@ -205,34 +154,10 @@ class Runner:
 
         return data
 
-    def expand(self, names):
-        if not self.names and self.args.collection:
-            con = db.connect(self.args.collection)
-            self.names = [dct.id for dct in con.select()]
-        if not names:
-            names[:] = self.names
-            return
-        if not self.names:
-            return
-        i = 0
-        while i < len(names):
-            name = names[i]
-            if name.count('-') == 1:
-                s1, s2 = name.split('-')
-                if s1 in self.names and s2 in self.names:
-                    j1 = self.names.index(s1)
-                    j2 = self.names.index(s2)
-                    names[i:i + 1] = self.names[j1:j2 + 1]
-                    i += j2 - j1
-            i += 1
-
     def build(self, name):
         if name == '-':
             con = db.connect(sys.stdin, 'json')
             return con.get_atoms(add_additional_information=True)
-        elif self.args.collection:
-            con = db.connect(self.args.collection)
-            return con.get_atoms(name)
         else:
             atoms = read(name)
             if isinstance(atoms, list):
