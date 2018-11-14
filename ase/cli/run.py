@@ -1,14 +1,8 @@
-from __future__ import division, print_function
-
 import sys
-import time
-import traceback
 
 import numpy as np
 
 from ase.io import read
-from ase.parallel import world
-from ase.utils import devnull
 from ase.constraints import FixAtoms, UnitCellFilter
 from ase.optimize import LBFGS
 from ase.io.trajectory import Trajectory
@@ -47,7 +41,8 @@ class CLICommand:
     @staticmethod
     def add_more_arguments(parser):
         add = parser.add_argument
-        add('name', nargs='?', help='Read atomic structure from this file.')
+        add('name', nargs='?', default='-',
+            help='Read atomic structure from this file.')
         add('-p', '--parameters', default='',
             metavar='key=value,...',
             help='Comma-separated key=value pairs of ' +
@@ -79,30 +74,17 @@ class CLICommand:
     def run(args):
         runner = Runner()
         runner.parse(args)
-        if runner.errors:
-            sys.exit(runner.errors)
+        runner.run()
 
 
 class Runner:
     def __init__(self):
         self.args = None
-        self.errors = 0
         self.calculator_name = None
-
-        if world.rank == 0:
-            self.logfile = sys.stdout
-        else:
-            self.logfile = devnull
 
     def parse(self, args):
         self.calculator_name = args.calculator
-
         self.args = args
-        atoms = self.run()
-        return atoms
-
-    def log(self, *args, **kwargs):
-        print(file=self.logfile, *args, **kwargs)
 
     def run(self):
         args = self.args
@@ -111,45 +93,27 @@ class Runner:
         if args.modify:
             exec(args.modify, {'atoms': atoms, 'np': np})
 
-        if args.name is None:
+        if args.name == '-':
             args.name = 'stdin'
 
         self.set_calculator(atoms, args.name)
 
-        try:
-            self.log('Running:', name)
-            data = self.calculate(atoms, name)
-        except KeyboardInterrupt:
-            raise
-        except Exception:
-            self.log(name, 'FAILED')
-            traceback.print_exc(file=self.logfile)
-            tstop = time.time()
-            data = {'time': tstop - tstart}
-            self.errors += 1
-        else:
-            tstop = time.time()
-            data['time'] = tstop - tstart
-
-        return atoms
+        self.calculate(atoms, args.name)
 
     def calculate(self, atoms, name):
         args = self.args
 
-        data = {}
         if args.maximum_force or args.maximum_stress:
-            data = self.optimize(atoms, name)
+            self.optimize(atoms, name)
         if args.equation_of_state:
-            data.update(self.eos(atoms, name))
-        data.update(self.calculate_once(atoms, name))
+            self.eos(atoms, name)
+        self.calculate_once(atoms)
 
         if args.after:
-            exec(args.after, {'atoms': atoms, 'data': data})
-
-        return data
+            exec(args.after, {'atoms': atoms})
 
     def build(self, name):
-        if name is None:
+        if name == '-':
             con = db.connect(sys.stdin, 'json')
             return con.get_atoms(add_additional_information=True)
         else:
@@ -167,7 +131,7 @@ class Runner:
         else:
             atoms.calc = cls(label=self.get_filename(name), **parameters)
 
-    def calculate_once(self, atoms, name):
+    def calculate_once(self, atoms):
         args = self.args
 
         for p in args.properties or 'efsdMm':
@@ -182,10 +146,6 @@ class Runner:
             except PropertyNotImplementedError:
                 pass
 
-        data = {}
-
-        return data
-
     def optimize(self, atoms, name):
         args = self.args
         if args.constrain_tags:
@@ -193,22 +153,17 @@ class Runner:
             mask = [t in tags for t in atoms.get_tags()]
             atoms.constraints = FixAtoms(mask=mask)
 
-        trajectory = Trajectory(self.get_filename(name, 'traj'), 'w', atoms)
+        logfile = self.get_filename(name, 'log')
         if args.maximum_stress:
-            optimizer = LBFGS(UnitCellFilter(atoms), logfile=self.logfile)
+            optimizer = LBFGS(UnitCellFilter(atoms), logfile=logfile)
             fmax = args.maximum_stress
         else:
-            optimizer = LBFGS(atoms, logfile=self.logfile)
+            optimizer = LBFGS(atoms, logfile=logfile)
             fmax = args.maximum_force
 
+        trajectory = Trajectory(self.get_filename(name, 'traj'), 'w', atoms)
         optimizer.attach(trajectory)
         optimizer.run(fmax=fmax)
-
-        data = {}
-        if hasattr(optimizer, 'force_calls'):
-            data['force_calls'] = optimizer.force_calls
-
-        return data
 
     def eos(self, atoms, name):
         args = self.args
@@ -231,35 +186,27 @@ class Runner:
         eos = EquationOfState(volumes, energies, args.eos_type)
         v0, e0, B = eos.fit()
         atoms.set_cell(cell1 * (v0 / v1)**(1 / 3), scale_atoms=True)
-        data = {'volumes': volumes,
-                'energies': energies,
-                'fitted_energy': e0,
-                'fitted_volume': v0,
-                'bulk_modulus': B,
-                'eos_type': args.eos_type}
-        return data
+        from ase.parallel import parprint as p
+        p('volumes:', volumes)
+        p('energies:', energies)
+        p('fitted energy:', e0)
+        p('fitted volume:', v0)
+        p('bulk modulus:', B)
+        p('eos type:', args.eos_type)
 
-    def get_filename(self, name=None, ext=None):
-        if name is None:
-            if self.args.tag is None:
-                filename = 'ase'
-            else:
-                filename = self.args.tag
-        else:
-            if '.' in name:
-                name = name.rsplit('.', 1)[0]
-            if self.args.tag is None:
-                filename = name
-            else:
-                filename = name + '-' + self.args.tag
-
+    def get_filename(self, name: str, ext: str = '') -> str:
+        if '.' in name:
+            name = name.rsplit('.', 1)[0]
+        if self.args.tag is not None:
+            name += '-' + self.args.tag
         if ext:
-            filename += '.' + ext
+            name += '.' + ext
+        return name
 
-        return filename
 
-
-def str2dict(s, namespace={}, sep='='):
+def str2dict(s: str,
+             namespace: 'Dict[str, Any]' = {},
+             sep: str = '=') -> 'Dict[str, Any]':
     """Convert comma-separated key=value string to dictionary.
 
     Examples:
