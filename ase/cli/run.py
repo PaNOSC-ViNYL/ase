@@ -2,13 +2,12 @@ import sys
 
 import numpy as np
 
-from ase.io import read
+from ase.calculators.calculator import (get_calculator, names as calcnames,
+                                        PropertyNotImplementedError)
 from ase.constraints import FixAtoms, UnitCellFilter
-from ase.optimize import LBFGS
-from ase.io.trajectory import Trajectory
 from ase.eos import EquationOfState
-from ase.calculators.calculator import get_calculator, names as calcnames
-from ase.calculators.calculator import PropertyNotImplementedError
+from ase.io import read, write, Trajectory
+from ase.optimize import LBFGS
 import ase.db as db
 
 
@@ -64,6 +63,7 @@ class CLICommand:
             help='Use "-E 5,2.0" for 5 lattice constants ranging from '
             '-2.0 %% to +2.0 %%.')
         add('--eos-type', default='sjeos', help='Selects the type of eos.')
+        add('-w', '--write')
         add('--modify', metavar='...',
             help='Modify atoms with Python statement.  ' +
             'Example: --modify="atoms.positions[-1,2]+=0.1".')
@@ -111,6 +111,9 @@ class Runner:
 
         if args.after:
             exec(args.after, {'atoms': atoms})
+
+        if args.write:
+            write(args.write, atoms, append=True)
 
     def build(self, name):
         if name == '-':

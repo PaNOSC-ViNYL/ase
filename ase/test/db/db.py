@@ -4,12 +4,12 @@ from ase.test import cli
 from ase.db import connect
 
 cmd = """
-ase build H | ase run emt -d testase.json &&
-ase build H2O | ase run emt -d testase.json &&
-ase build O2 | ase run emt -d testase.json &&
-ase build H2 | ase run emt -f 0.02 -d testase.json &&
-ase build O2 | ase run emt -f 0.02 -d testase.json &&
-ase build -x fcc Cu | ase run emt -E 5,1 -d testase.json &&
+ase build H | ase run emt -w testase.json &&
+ase build H2O | ase run emt -w testase.json &&
+ase build O2 | ase run emt -w testase.json &&
+ase build H2 | ase run emt -f 0.02 -w testase.json &&
+ase build O2 | ase run emt -f 0.02 -w testase.json &&
+ase build -x fcc Cu | ase run emt -E 5,1 -w testase.json &&
 ase db -v testase.json natoms=1,Cu=1 --delete --yes &&
 ase db -v testase.json "H>0" -k hydro=1,abc=42,foo=bar &&
 ase db -v testase.json "H>0" --delete-keys foo"""
