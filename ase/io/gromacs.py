@@ -239,5 +239,5 @@ def write_gromacs(fileobj, images):
                                  mycell[0, 2] * 0.1, \
                                  mycell[1, 2] * 0.1))
     else:
-        # add empty line
+        # When we do not have a cell, the cell is specified as an empty line
         fileobj.write("\n")
