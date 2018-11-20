@@ -10,6 +10,7 @@ from ase.io import Trajectory
 
 all_optimizers = ase.optimize.__all__ + ['PreconLBFGS', 'PreconFIRE',
                                          'SciPyFminCG', 'SciPyFminBFGS']
+all_optimizers.remove('QuasiNewton')
 
 
 def get_optimizer(name):
@@ -30,6 +31,7 @@ class Wrapper:
         self.atoms = atoms
         self.ready = False
         self.pos = None
+        self.numbers = atoms.numbers
 
     def get_potential_energy(self, force_consistent=False):
         t1 = time()
