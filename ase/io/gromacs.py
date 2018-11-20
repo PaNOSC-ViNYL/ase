@@ -1,12 +1,15 @@
-from __future__ import print_function
-""" read and write gromacs geometry files
+""" 
+read and write gromacs geometry files
 """
+from __future__ import print_function
 
 from ase.atoms import Atoms
 from ase.parallel import paropen
 from ase.utils import basestring
 import numpy as np
 
+from ase.data import atomic_numbers
+from ase import units
 
 def read_gromacs(filename):
     """ From:
@@ -22,8 +25,6 @@ def read_gromacs(filename):
     simulation cell (if present)
     """
 
-    from ase.data import atomic_numbers
-    from ase import units
 
     atoms = Atoms()
     filed = open(filename, 'r')
@@ -164,8 +165,6 @@ def write_gromacs(fileobj, images):
     * simulation cell (if present)
     """
 
-    from ase import units
-
     if isinstance(fileobj, basestring):
         fileobj = paropen(fileobj, 'w')
 
@@ -218,14 +217,15 @@ def write_gromacs(fileobj, images):
         fileobj.write(line)
         count += 1
 
+    # write box geometry
     if images[-1].get_pbc().any():
         mycell = images[-1].get_cell()
-        #gromacs manual (manual.gromacs.org/online/gro.html) says:
-        #v1(x) v2(y) v3(z) v1(y) v1(z) v2(x) v2(z) v3(x) v3(y)
+        # gromacs manual (manual.gromacs.org/online/gro.html) says:
+        # v1(x) v2(y) v3(z) v1(y) v1(z) v2(x) v2(z) v3(x) v3(y)
         #
-        #cell[0,0] cell[1,0] cell[2,0] v1(x) v2(y) v3(z) fv0[0 1 2]
-        #cell[0,1] cell[1,1] cell[2,1] v1(y) v1(z) v2(x) fv1[0 1 2]
-        #cell[0,2] cell[1,2] cell[2,2] v2(z) v3(x) v3(y) fv2[0 1 2]
+        # cell[0,0] cell[1,0] cell[2,0] v1(x) v2(y) v3(z) fv0[0 1 2]
+        # cell[0,1] cell[1,1] cell[2,1] v1(y) v1(z) v2(x) fv1[0 1 2]
+        # cell[0,2] cell[1,2] cell[2,2] v2(z) v3(x) v3(y) fv2[0 1 2]
         fileobj.write('%10.5f%10.5f%10.5f' \
                           % (mycell[0, 0] * 0.1, \
                                  mycell[1, 1] * 0.1, \
@@ -238,4 +238,6 @@ def write_gromacs(fileobj, images):
                           % (mycell[2, 1] * 0.1, \
                                  mycell[0, 2] * 0.1, \
                                  mycell[1, 2] * 0.1))
-    return
+    else:
+        # When we do not have a cell, the cell is specified as an empty line
+        fileobj.write("\n")
