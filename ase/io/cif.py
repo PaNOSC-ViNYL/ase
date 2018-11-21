@@ -448,10 +448,9 @@ def write_cif(fileobj, images, format='default'):
                           atoms.get_chemical_formula(mode='reduce'))
             fileobj.write('_chemical_formula_sum      "%s"\n' % formula_sum)
 
-        # Is it a periodic system?
-        has_pbc = atoms.pbc.all()
 
-        if has_pbc:
+        # Do this only if there's three non-zero lattice vectors
+        if atoms.number_of_lattice_vectors == 3:
             fileobj.write('_cell_length_a       %g\n' % a)
             fileobj.write('_cell_length_b       %g\n' % b)
             fileobj.write('_cell_length_c       %g\n' % c)
@@ -471,7 +470,8 @@ def write_cif(fileobj, images, format='default'):
 
         fileobj.write('loop_\n')
 
-        coord_type = 'fract' if has_pbc else 'Cartn'
+        # Is it a periodic system?
+        coord_type = 'fract' if atoms.pbc.all() else 'Cartn'
 
         if format == 'mp':
             fileobj.write('  _atom_site_type_symbol\n')
@@ -491,7 +491,7 @@ def write_cif(fileobj, images, format='default'):
             fileobj.write('  _atom_site_B_iso_or_equiv\n')
             fileobj.write('  _atom_site_type_symbol\n')
 
-        if has_pbc:
+        if coord_type == 'fract':
             coords = atoms.get_scaled_positions().tolist()
         else:
             coords = atoms.get_positions().tolist()
