@@ -13,8 +13,8 @@ from glob import glob
 from os.path import join
 
 
-if sys.version_info < (2, 7, 0, 'final', 0):
-    raise SystemExit('Python 2.7 or later is required!')
+if sys.version_info < (3, 4, 0, 'final', 0):
+    raise SystemExit('Python 3.4 or later is required!')
 
 
 with open('README.rst') as fd:
@@ -86,10 +86,9 @@ setup(name='ase',
           'License :: OSI Approved :: '
           'GNU Lesser General Public License v2 or later (LGPLv2+)',
           'Operating System :: OS Independent',
-          'Programming Language :: Python :: 2',
-          'Programming Language :: Python :: 2.7',
           'Programming Language :: Python :: 3',
           'Programming Language :: Python :: 3.4',
           'Programming Language :: Python :: 3.5',
           'Programming Language :: Python :: 3.6',
+          'Programming Language :: Python :: 3.7',
           'Topic :: Scientific/Engineering :: Physics'])
