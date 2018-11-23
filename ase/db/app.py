@@ -90,12 +90,23 @@ def connect_databases(uris):
         db.python = py
 
 
+def initialize_databases():
+    for proj, db in sorted(databases.items()):
+        meta = ase.db.web.process_metadata(db)
+        db.meta = meta
+        nrows = len(db)
+        projects.append((proj, db.meta.get('title', proj), nrows))
+        print('Initialized {proj}: {nrows} rows'
+              .format(proj=proj, nrows=nrows))
+
+
 next_con_id = 1
 connections = {}
 
 if 'ASE_DB_APP_CONFIG' in os.environ:
     app.config.from_envvar('ASE_DB_APP_CONFIG')
     connect_databases(str(name) for name in app.config['ASE_DB_NAMES'])
+    initialize_databases()
     home = app.config['ASE_DB_HOMEPAGE']
     ase_db_footer = app.config['ASE_DB_FOOTER']
     tmpdir = str(app.config['ASE_DB_TMPDIR'])
@@ -142,14 +153,8 @@ def index(project):
     project = request.args.get('project') or project
 
     if not projects:
+        1 / 0
         # First time: initialize list of projects
-        for proj, db in sorted(databases.items()):
-            meta = ase.db.web.process_metadata(db)
-            db.meta = meta
-            nrows = len(db)
-            projects.append((proj, db.meta.get('title', proj), nrows))
-            print('Initialized {proj}: {nrows} rows'
-                  .format(proj=proj, nrows=nrows))
 
     if project is None and len(projects) > 1:
         return render_template('projects.html',
@@ -305,9 +310,13 @@ def cif(project, name):
     id = int(name[:-4])
     name = project + '-' + name
     path = op.join(tmpdir, name)
+    print(path)
+    import ase
+    print(ase)
     if not op.isfile(path):
         db = databases[project]
         atoms = db.get_atoms(id)
+        print(atoms)
         atoms.write(path)
     return send_from_directory(tmpdir, name)
 

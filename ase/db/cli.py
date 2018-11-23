@@ -339,6 +339,7 @@ def main(args):
     if args.open_web_browser:
         import ase.db.app as app
         app.databases['default'] = db
+        app.initialize_databases()
         app.app.run(host='0.0.0.0', debug=True)
         return
 
