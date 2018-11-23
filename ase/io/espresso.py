@@ -290,7 +290,7 @@ def read_espresso_out(fileobj, index=-1, results_required=True):
                     l =  pwo_lines[kpts_index + i].split()
                     weights.append(float(l[-1]))
                     coord = map(float, [l[-6], l[-5], l[-4].strip('),')])
-                    coord = np.array(coord) * 2 * np.pi / alat
+                    coord = np.array(list(coord)) * 2 * np.pi / alat
                     coord = kpoint_convert(cell, ckpts_kv=coord)
                     ibzkpts.append(coord)
                 ibzkpts = np.array(ibzkpts)
