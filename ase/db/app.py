@@ -285,13 +285,9 @@ def cif(project, name):
     id = int(name[:-4])
     name = project + '-' + name
     path = op.join(tmpdir, name)
-    print(path)
-    import ase
-    print(ase)
     if not op.isfile(path):
         db = databases[project]
         atoms = db.get_atoms(id)
-        print(atoms)
         atoms.write(path)
     return send_from_directory(tmpdir, name)
 
