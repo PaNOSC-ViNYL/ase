@@ -1,5 +1,10 @@
 import time
 
+from ase.units import Ang, fs
+
+v_unit = Ang / (1000.0 * fs)
+
+
 def read_aims(filename):
     """Import FHI-aims geometry type files.
 
@@ -12,12 +17,13 @@ def read_aims(filename):
     import numpy as np
 
     atoms = Atoms()
-    fd = open(filename, 'r')
+    fd = open(filename, "r")
     lines = fd.readlines()
     fd.close()
     positions = []
     cell = []
     symbols = []
+    velocities = []
     magmoms = []
     fix = []
     fix_cart = []
@@ -30,7 +36,7 @@ def read_aims(filename):
         inp = line.split()
         if inp == []:
             continue
-        if inp[0] == 'atom':
+        if inp[0] == "atom":
             cart_positions = True
             if xyz.all():
                 fix.append(i)
@@ -41,7 +47,7 @@ def read_aims(filename):
             symbols.append(inp[-1])
             i += 1
             xyz = np.array([0, 0, 0])
-        if inp[0] == 'atom_frac':
+        elif inp[0] == "atom_frac":
             scaled_positions = True
             if xyz.all():
                 fix.append(i)
@@ -53,35 +59,53 @@ def read_aims(filename):
             i += 1
             xyz = np.array([0, 0, 0])
 
-        elif inp[0] == 'lattice_vector':
+        elif inp[0] == "lattice_vector":
             floatvect = float(inp[1]), float(inp[2]), float(inp[3])
             cell.append(floatvect)
             n_periodic = n_periodic + 1
             periodic[n_periodic] = True
-        elif inp[0] == 'initial_moment':
+
+        elif inp[0] == "initial_moment":
             magmoms.append(float(inp[1]))
-        if inp[0] == 'constrain_relaxation':
-            if inp[1] == '.true.':
+
+        elif inp[0] == "constrain_relaxation":
+            if inp[1] == ".true.":
                 fix.append(i)
-            elif inp[1] == 'x':
+            elif inp[1] == "x":
                 xyz[0] = 1
-            elif inp[1] == 'y':
+            elif inp[1] == "y":
                 xyz[1] = 1
-            elif inp[1] == 'z':
+            elif inp[1] == "z":
                 xyz[2] = 1
+
+        elif inp[0] == "velocity":
+            floatvect = [v_unit * float(l) for l in inp[1:4]]
+            velocities.append(floatvect)
+
     if xyz.all():
         fix.append(i)
     elif xyz.any():
         fix_cart.append(FixCartesian(i, xyz))
 
     if cart_positions and scaled_positions:
-        raise Exception("Can't specify atom positions with mixture of "
-                        'Cartesian and fractional coordinates')
+        raise Exception(
+            "Can't specify atom positions with mixture of "
+            "Cartesian and fractional coordinates"
+        )
     elif scaled_positions and periodic.any():
-        atoms = Atoms(symbols, scaled_positions=positions, cell=cell,
-                      pbc=periodic)
+        atoms = Atoms(
+            symbols, scaled_positions=positions, cell=cell, pbc=periodic
+        )
     else:
         atoms = Atoms(symbols, positions)
+
+    if len(velocities) > 0:
+        if len(velocities) != len(positions):
+            raise Exception(
+                "Number of positions and velocities have to coincide."
+            )
+        atoms.set_velocities(velocities)
+
     if len(magmoms) > 0:
         atoms.set_initial_magnetic_moments(magmoms)
     if periodic.any():
@@ -94,7 +118,9 @@ def read_aims(filename):
     return atoms
 
 
-def write_aims(filename, atoms, scaled=False, ghosts=None):
+def write_aims(
+    filename, atoms, scaled=False, velocities=False, ghosts=None, info_str=None
+):
     """Method to write FHI-aims geometry files.
 
     Writes the atoms positions and constraints (only FixAtoms is
@@ -106,24 +132,37 @@ def write_aims(filename, atoms, scaled=False, ghosts=None):
 
     if isinstance(atoms, (list, tuple)):
         if len(atoms) > 1:
-            raise RuntimeError("Don't know how to save more than "
-                               "one image to FHI-aims input")
+            raise RuntimeError(
+                "Don't know how to save more than "
+                "one image to FHI-aims input"
+            )
         else:
             atoms = atoms[0]
 
-    fd = open(filename, 'w')
-    fd.write('#=======================================================\n')
-    fd.write('# FHI-aims file: ' + filename + '\n')
-    fd.write('# Created using the Atomic Simulation Environment (ASE)\n')
-    fd.write('# ' + time.asctime() + '\n')
-    fd.write('#=======================================================\n')
+    fd = open(filename, "w")
+    fd.write("#=======================================================\n")
+    fd.write("# FHI-aims file: " + filename + "\n")
+    fd.write("# Created using the Atomic Simulation Environment (ASE)\n")
+    fd.write("# " + time.asctime() + "\n")
+
+    # If writing additional information is requested via info_str:
+    if info_str is not None:
+        fd.write("\n# Additional information:\n")
+        if isinstance(info_str, list):
+            fd.write("\n".join(["#  {}".format(s) for s in info_str]))
+        else:
+            fd.write("# {}".format(info_str))
+        fd.write("\n")
+
+    fd.write("#=======================================================\n")
+
     i = 0
     if atoms.get_pbc().any():
         for n, vector in enumerate(atoms.get_cell()):
-            fd.write('lattice_vector ')
+            fd.write("lattice_vector ")
             for i in range(3):
-                fd.write('%16.16f ' % vector[i])
-            fd.write('\n')
+                fd.write("%16.16f " % vector[i])
+            fd.write("\n")
     fix_cart = np.zeros([len(atoms), 3])
 
     # else aims crashes anyways
@@ -141,43 +180,55 @@ def write_aims(filename, atoms, scaled=False, ghosts=None):
         ghosts = np.zeros(len(atoms))
     else:
         assert len(ghosts) == len(atoms)
+
     scaled_positions = atoms.get_scaled_positions()
+
     for i, atom in enumerate(atoms):
         if ghosts[i] == 1:
-            atomstring = 'empty '
+            atomstring = "empty "
         elif scaled:
-            atomstring = 'atom_frac '
+            atomstring = "atom_frac "
         else:
-            atomstring = 'atom '
+            atomstring = "atom "
         fd.write(atomstring)
         if scaled:
             for pos in scaled_positions[i]:
-                fd.write('%16.16f ' % pos)
+                fd.write("%16.16f " % pos)
         else:
             for pos in atom.position:
-                fd.write('%16.16f ' % pos)
+                fd.write("%16.16f " % pos)
         fd.write(atom.symbol)
-        fd.write('\n')
+        fd.write("\n")
         # (1) all coords are constrained:
         if fix_cart[i].all():
-            fd.write('constrain_relaxation .true.\n')
+            fd.write("constrain_relaxation .true.\n")
         # (2) some coords are constrained:
         elif fix_cart[i].any():
             xyz = fix_cart[i]
             for n in range(3):
                 if xyz[n]:
-                    fd.write('constrain_relaxation %s\n' % 'xyz'[n])
+                    fd.write("constrain_relaxation %s\n" % "xyz"[n])
         if atom.charge:
-            fd.write('initial_charge %16.6f\n' % atom.charge)
+            fd.write("initial_charge %16.6f\n" % atom.charge)
         if write_magmoms:
-            fd.write('initial_moment %16.6f\n' % atom.magmom)
+            fd.write("initial_moment %16.6f\n" % atom.magmom)
+
+        # Write velocities if this is wanted
+        if velocities and atoms.get_velocities() is not None:
+            fd.write(
+                "  velocity {:.16f} {:.16f} {:.16f}\n".format(
+                    *atoms.get_velocities()[i] / v_unit
+                )
+            )
+
+
 # except KeyError:
 #     continue
 
 
 def read_energy(filename):
-    for line in open(filename, 'r'):
-        if line.startswith('  | Total energy corrected'):
+    for line in open(filename, "r"):
+        if line.startswith("  | Total energy corrected"):
             E = float(line.split()[-2])
     return E
 
@@ -187,10 +238,10 @@ def read_aims_output(filename, index=-1):
     relaxations, MD information, force information etc etc etc."""
     from ase import Atoms, Atom
     from ase.calculators.singlepoint import SinglePointCalculator
-    from ase.units import Ang, fs
     from ase.constraints import FixAtoms, FixCartesian
+
     molecular_dynamics = False
-    fd = open(filename, 'r')
+    fd = open(filename, "r")
     cell = []
     images = []
     fix = []
@@ -198,7 +249,6 @@ def read_aims_output(filename, index=-1):
     f = None
     pbc = False
     found_aims_calculator = False
-    v_unit = Ang / (1000.0 * fs)
     while True:
         line = fd.readline()
         if not line:
@@ -225,11 +275,11 @@ def read_aims_output(filename, index=-1):
                     fix.append(ind)
             if "coordinate fixed" in line:
                 coord = line.split()[6]
-                if coord == 'x':
+                if coord == "x":
                     xyz[0] = 1
-                elif coord == 'y':
+                elif coord == "y":
                     xyz[1] = 1
-                elif coord == 'z':
+                elif coord == "z":
                     xyz[2] = 1
                 keep = True
                 for n, c in enumerate(fix_cart):
@@ -250,10 +300,9 @@ def read_aims_output(filename, index=-1):
         if "Updated atomic structure:" in line and not molecular_dynamics:
             fd.readline()
             atoms = Atoms()
-            velocities = []
             for i in range(n_atoms):
                 inp = fd.readline().split()
-                if 'lattice_vector' in inp[0]:
+                if "lattice_vector" in inp[0]:
                     cell = []
                     for i in range(3):
                         cell += [[float(inp[1]), float(inp[2]), float(inp[3])]]
@@ -271,9 +320,8 @@ def read_aims_output(filename, index=-1):
                 inp = fd.readline().split()
                 atoms.append(Atom(inp[4], (inp[1], inp[2], inp[3])))
                 inp = fd.readline().split()
-                velocities += [[float(inp[1]) * v_unit,
-                                float(inp[2]) * v_unit,
-                                float(inp[3]) * v_unit]]
+                floatvect = [v_unit * float(l) for l in inp[1:4]]
+                velocities.append(floatvect)
             atoms.set_velocities(velocities)
             if len(fix):
                 atoms.set_constraint([FixAtoms(indices=fix)] + fix_cart)
@@ -289,9 +337,9 @@ def read_aims_output(filename, index=-1):
                 f.append([float(i) for i in inp[-3:]])
             if not found_aims_calculator:
                 e = images[-1].get_potential_energy()
-                images[-1].set_calculator(SinglePointCalculator(atoms,
-                                                                energy=e,
-                                                                forces=f))
+                images[-1].set_calculator(
+                    SinglePointCalculator(atoms, energy=e, forces=f)
+                )
             e = None
             f = None
         if "Total energy corrected" in line:
@@ -309,8 +357,8 @@ def read_aims_output(filename, index=-1):
                 images.append(atoms)
             e = None
             # if found_aims_calculator:
-                # calc.set_results(images[-1])
-                # images[-1].set_calculator(calc)
+            # calc.set_results(images[-1])
+            # images[-1].set_calculator(calc)
     fd.close()
     if molecular_dynamics:
         images = images[1:]
