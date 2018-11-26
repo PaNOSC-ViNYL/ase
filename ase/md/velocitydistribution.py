@@ -95,7 +95,7 @@ def phonon_harmonics(force_constants,
                      masses,
                      temp,
                      rng=np.random.rand,
-                     quantum=True,
+                     quantum=False,
                      failfast=True):
     r"""Return displacements and velocities that produce a given temperature.
 
@@ -216,7 +216,7 @@ def PhononHarmonics(atoms,
                     force_constants,
                     temp,
                     rng=np.random,
-                    quantum=True,
+                    quantum=False,
                     failfast=True):
     """Excite phonon modes to specified temperature.
 
