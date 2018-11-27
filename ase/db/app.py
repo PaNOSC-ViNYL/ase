@@ -60,17 +60,25 @@ app = Flask(__name__)
 
 app.secret_key = 'asdf'
 
-databases = {}
+databases = {}  # type: Dict[str, Database]
 home = ''  # link to homepage
 ase_db_footer = ''  # footer (for a license)
 open_ase_gui = True  # click image to open ASE's GUI
 download_button = True
 
 # List of (project-name, title, nrows) tuples (will be filled in at run-time):
-projects = []  # type: List[str, str, int]
+projects = []  # type: List[Tuple[str, str, int]]
+
+# Find numbers in formulas so that we can convert H2O to H<sub>2</sub>O:
+SUBSCRIPT = re.compile(r'(\d+)')
+
+next_con_id = 1
+connections = {}
 
 
 def connect_databases(uris):
+    # types: (List[str]) -> None
+    """Fill in databases dict."""
     python_configs = []
     dbs = []
     for uri in uris:
@@ -90,12 +98,21 @@ def connect_databases(uris):
         db.python = py
 
 
-next_con_id = 1
-connections = {}
+def initialize_databases():
+    """Initialize databases and fill in projects list."""
+    for proj, db in sorted(databases.items()):
+        meta = ase.db.web.process_metadata(db)
+        db.meta = meta
+        nrows = len(db)
+        projects.append((proj, db.meta.get('title', proj), nrows))
+        print('Initialized {proj}: {nrows} rows'
+              .format(proj=proj, nrows=nrows))
+
 
 if 'ASE_DB_APP_CONFIG' in os.environ:
     app.config.from_envvar('ASE_DB_APP_CONFIG')
     connect_databases(str(name) for name in app.config['ASE_DB_NAMES'])
+    initialize_databases()
     home = app.config['ASE_DB_HOMEPAGE']
     ase_db_footer = app.config['ASE_DB_FOOTER']
     tmpdir = str(app.config['ASE_DB_TMPDIR'])
@@ -103,33 +120,6 @@ if 'ASE_DB_APP_CONFIG' in os.environ:
     open_ase_gui = False
 else:
     tmpdir = tempfile.mkdtemp(prefix='ase-db-app-')  # used to cache png-files
-
-# Find numbers in formulas so that we can convert H2O to H<sub>2</sub>O:
-SUBSCRIPT = re.compile(r'(\d+)')
-
-
-errors = 0
-
-
-def error(e):
-    """Write traceback and other stuff to 00-99.error files."""
-    global errors
-    import traceback
-    x = request.args.get('x', '0')
-    try:
-        cid = int(x)
-    except ValueError:
-        cid = 0
-    con = connections.get(cid)
-    with open(op.join(tmpdir, '{:02}.err'.format(errors % 100)), 'w') as fd:
-        print(repr((errors, con, e, request)), file=fd)
-        if hasattr(e, '__traceback__'):
-            traceback.print_tb(e.__traceback__, file=fd)
-    errors += 1
-    raise e
-
-
-# app.register_error_handler(Exception, error)
 
 
 @app.route('/', defaults={'project': None})
@@ -140,16 +130,6 @@ def index(project):
 
     # Backwards compatibility:
     project = request.args.get('project') or project
-
-    if not projects:
-        # First time: initialize list of projects
-        for proj, db in sorted(databases.items()):
-            meta = ase.db.web.process_metadata(db)
-            db.meta = meta
-            nrows = len(db)
-            projects.append((proj, db.meta.get('title', proj), nrows))
-            print('Initialized {proj}: {nrows} rows'
-                  .format(proj=proj, nrows=nrows))
 
     if project is None and len(projects) > 1:
         return render_template('projects.html',

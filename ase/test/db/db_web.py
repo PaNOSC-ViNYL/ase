@@ -23,6 +23,7 @@ c.python = {'title': 'Test title',
                 {'foo': ('FOO', 'FOO ...', '`m_e`')},
             'default_columns': ['foo', 'formula', 'bar']}
 app.databases['default'] = c
+app.initialize_databases()
 app.app.testing = True
 c = app.app.test_client()
 page = c.get('/').data.decode()
