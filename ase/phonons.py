@@ -143,7 +143,8 @@ class Displacement:
         atoms_N.set_calculator(self.calc)
 
         # Do calculation on equilibrium structure
-        filename = self.name + '.eq.pckl'
+        self.state = 'eq.pckl'
+        filename = self.name + '.' + self.state
 
         fd = opencew(filename)
         if fd is not None:
