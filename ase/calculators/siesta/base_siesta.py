@@ -595,7 +595,7 @@ class BaseSiesta(FileIOCalculator):
             if spec['ghost']:
                 name.insert(-1, 'ghost')
                 atomic_number = -atomic_number
-            name = '.'.join(name)
+            name = self.directory+"/"+'.'.join(name)
 
             if join(os.getcwd(), name) != pseudopotential:
                 if islink(name) or isfile(name):
