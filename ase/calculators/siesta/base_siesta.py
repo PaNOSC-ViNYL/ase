@@ -793,32 +793,34 @@ class BaseSiesta(FileIOCalculator):
 
         import warnings
         from ase.calculators.siesta.import_functions import readWFSX
+        
+        fname_woext = os.path.join(self.directory, self.label + '.out')
 
-        if isfile(self.label + '.WFSX'):
-            filename = self.label + '.WFSX'
+        if isfile(fname_woext + '.WFSX'):
+            filename = fname_woext + '.WFSX'
             self.results['wfsx'] = readWFSX(filename)
-        elif isfile(self.label + '.fullBZ.WFSX'):
-            filename = self.label + '.fullBZ.WFSX'
+        elif isfile(fname_woext + '.fullBZ.WFSX'):
+            filename = fname_woext + '.fullBZ.WFSX'
             readWFSX(filename)
             self.results['wfsx'] = readWFSX(filename)
         else:
-            filename = self.label + '.WFSX or ' + self.label + '.fullBZ.WFSX'
+            filename = fname_woext + '.WFSX or ' + fname_woext + '.fullBZ.WFSX'
             warnings.warn(filename + """ does not exist =>
                                      sieta.results["wfsx"]=None""",
                                      UserWarning)
             self.results['wfsx'] = None
 
     def read_pseudo_density(self):
-        """Read the density if it is there.
-        """
-        filename = self.label + '.RHO'
+        """Read the density if it is there."""
+        filename = os.path.join(self.directory, self.label + '.RHO')
         if isfile(filename):
             self.results['density'] = read_rho(filename)
 
     def read_number_of_grid_points(self):
-        """Read number of grid points from SIESTA's text-output file.
-        """
-        with open(self.label + '.out', 'r') as f:
+        """Read number of grid points from SIESTA's text-output file. """
+        
+        fname = os.path.join(self.directory, self.label + '.out')
+        with open(fname, 'r') as f:
             for line in f:
                 line = line.strip().lower()
                 if line.startswith('initmesh: mesh ='):
@@ -831,6 +833,7 @@ class BaseSiesta(FileIOCalculator):
     def read_energy(self):
         """Read energy from SIESTA's text-output file.
         """
+        fname = os.path.join(self.directory, self.label + '.out')
         with open(self.label + '.out', 'r') as f:
             text = f.read().lower()
 
@@ -852,7 +855,8 @@ class BaseSiesta(FileIOCalculator):
     def read_forces_stress(self):
         """Read the forces and stress from the FORCE_STRESS file.
         """
-        with open('FORCE_STRESS', 'r') as f:
+        fname = os.path.join(self.directory, 'FORCE_STRESS')
+        with open(fname, 'r') as f:
             lines = f.readlines()
 
         stress_lines = lines[1:4]
@@ -880,11 +884,12 @@ class BaseSiesta(FileIOCalculator):
         """Read eigenvalues from the '.EIG' file.
         This is done pr. kpoint.
         """
-        assert os.access(self.label + '.EIG', os.F_OK)
-        assert os.access(self.label + '.KP', os.F_OK)
+        fname_woext = os.path.join(self.directory, self.label + '.out')
+        assert os.access(fname_woext + '.EIG', os.F_OK)
+        assert os.access(fname_woext + '.KP', os.F_OK)
 
         # Read k point weights
-        text = open(self.label + '.KP', 'r').read()
+        text = open(fname_woext + '.KP', 'r').read()
         lines = text.split('\n')
         n_kpts = int(lines[0].strip())
         self.weights = np.zeros((n_kpts,))
@@ -893,7 +898,7 @@ class BaseSiesta(FileIOCalculator):
             self.weights[i] = float(l[4])
 
         # Read eigenvalues and fermi-level
-        with open(self.label + '.EIG', 'r') as f:
+        with open(fname_woext + '.EIG', 'r') as f:
             text = f.read()
         lines = text.split('\n')
         e_fermi = float(lines[0].split()[0])
@@ -924,7 +929,8 @@ class BaseSiesta(FileIOCalculator):
         """Read dipole moment.
         """
         dipole = np.zeros([1, 3])
-        with open(self.label + '.out', 'r') as f:
+        fname_woext = os.path.join(self.directory, self.label + '.out')
+        with open(fname_woext + '.out', 'r') as f:
             for line in f:
                 if line.rfind('Electric dipole (Debye)') > -1:
                     dipole = np.array([float(f) for f in line.split()[5:8]])
