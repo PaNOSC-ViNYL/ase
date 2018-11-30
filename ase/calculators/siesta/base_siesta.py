@@ -331,7 +331,8 @@ class BaseSiesta(FileIOCalculator):
         # Here a test to check if the potential are in the right place!!!
         except RuntimeError as e:
             try:
-                with open(self.label + '.out', 'r') as f:
+                fname = os.path.join(self.directory, self.label+'.out')
+                with open(fname, 'r') as f:
                     lines = f.readlines()
                 debug_lines = 10
                 print('##### %d last lines of the Siesta output' % debug_lines)
@@ -342,6 +343,14 @@ class BaseSiesta(FileIOCalculator):
             except:
                 raise e
 
+    def set_directory(self, directory='.'):
+        """Set directory in which the calculation will be setup.
+
+        This is the most transparent solution for SIESTA calculator for which 
+        label should be a filename without path."""
+
+        self.directory = directory
+        
     def write_input(self, atoms, properties=None, system_changes=None):
         """Write input (fdf)-file.
         See calculator.py for further details.
@@ -361,7 +370,7 @@ class BaseSiesta(FileIOCalculator):
         if system_changes is None and properties is None:
             return
 
-        filename = self.label + '.fdf'
+        filename = os.path.join(self.directory, self.label+'.fdf')
 
         # On any changes, remove all analysis files.
         if system_changes is not None:
@@ -438,7 +447,7 @@ class BaseSiesta(FileIOCalculator):
 
     def remove_analysis(self):
         """ Remove all analysis files"""
-        filename = self.label + '.RHO'
+        filename = os.path.join(self.directory, self.label + '.RHO')
         if os.path.exists(filename):
             os.remove(filename)
 
@@ -595,12 +604,14 @@ class BaseSiesta(FileIOCalculator):
             if spec['ghost']:
                 name.insert(-1, 'ghost')
                 atomic_number = -atomic_number
+
             name = '.'.join(name)
+            symlinkname = self.directory+"/"+name
 
             if join(os.getcwd(), name) != pseudopotential:
-                if islink(name) or isfile(name):
-                    os.remove(name)
-                os.symlink(pseudopotential, name)
+                if islink(symlinkname) or isfile(symlinkname):
+                    os.remove(symlinkname)
+                os.symlink(pseudopotential, symlinkname)
 
             if not spec['excess_charge'] is None:
                 atomic_number += 200
@@ -691,10 +702,10 @@ class BaseSiesta(FileIOCalculator):
             if spec['pseudopotential'] is None:
                 if self.pseudo_qualifier() == '':
                     label = symbol
-                    pseudopotential = label + '.psf'
+                    pseudopotential = os.path.join(self.directory, label + '.psf')
                 else:
                     label = '.'.join([symbol, self.pseudo_qualifier()])
-                    pseudopotential = label + '.psf'
+                    pseudopotential = os.path.join(self.directory, label + '.psf')
             else:
                 pseudopotential = spec['pseudopotential']
                 label = os.path.basename(pseudopotential)
@@ -711,7 +722,7 @@ class BaseSiesta(FileIOCalculator):
             label = '.'.join(np.array(name.split('.'))[:-1])
 
             if label not in self.results['ion']:
-                fname = label + '.ion.xml'
+                fname = os.path.join(self.directory, label + '.ion.xml')
                 self.results['ion'][label] = get_ion(fname)
 
     def read_hsx(self):
@@ -726,12 +737,12 @@ class BaseSiesta(FileIOCalculator):
         import warnings
         from ase.calculators.siesta.import_functions import readHSX
 
-        filename = self.label + '.HSX'
+        filename = os.path.join(self.directory, self.label + '.HSX')
         if isfile(filename):
             self.results['hsx'] = readHSX(filename)
         else:
             warnings.warn(filename + """ does not exist =>
-                                     sieta.results["hsx"]=None""",
+                                     siesta.results["hsx"]=None""",
                                      UserWarning)
             self.results['hsx'] = None
 
@@ -746,12 +757,12 @@ class BaseSiesta(FileIOCalculator):
         import warnings
         from ase.calculators.siesta.import_functions import readDIM
 
-        filename = self.label + '.DIM'
+        filename = os.path.join(self.directory, self.label + '.DIM')
         if isfile(filename):
             self.results['dim'] = readDIM(filename)
         else:
-            warnings.warn(filename + """does not exist =>
-                                     sieta.results["dim"]=None""",
+            warnings.warn(filename + """ does not exist =>
+                                     siesta.results["dim"]=None""",
                                      UserWarning)
             self.results['dim'] = None
 
@@ -766,12 +777,12 @@ class BaseSiesta(FileIOCalculator):
         import warnings
         from ase.calculators.siesta.import_functions import readPLD
 
-        filename = self.label + '.PLD'
+        filename = os.path.join(self.directory, self.label + '.PLD')
         if isfile(filename):
             self.results['pld'] = readPLD(filename, norb, natms)
         else:
             warnings.warn(filename + """ does not exist =>
-                                     sieta.results["pld"]=None""",
+                                     siesta.results["pld"]=None""",
                                      UserWarning)
             self.results['pld'] = None
 
@@ -783,32 +794,34 @@ class BaseSiesta(FileIOCalculator):
 
         import warnings
         from ase.calculators.siesta.import_functions import readWFSX
+        
+        fname_woext = os.path.join(self.directory, self.label)
 
-        if isfile(self.label + '.WFSX'):
-            filename = self.label + '.WFSX'
+        if isfile(fname_woext + '.WFSX'):
+            filename = fname_woext + '.WFSX'
             self.results['wfsx'] = readWFSX(filename)
-        elif isfile(self.label + '.fullBZ.WFSX'):
-            filename = self.label + '.fullBZ.WFSX'
+        elif isfile(fname_woext + '.fullBZ.WFSX'):
+            filename = fname_woext + '.fullBZ.WFSX'
             readWFSX(filename)
             self.results['wfsx'] = readWFSX(filename)
         else:
-            filename = self.label + '.WFSX or ' + self.label + '.fullBZ.WFSX'
+            filename = fname_woext + '.WFSX or ' + fname_woext + '.fullBZ.WFSX'
             warnings.warn(filename + """ does not exist =>
-                                     sieta.results["wfsx"]=None""",
+                                     siesta.results["wfsx"]=None""",
                                      UserWarning)
             self.results['wfsx'] = None
 
     def read_pseudo_density(self):
-        """Read the density if it is there.
-        """
-        filename = self.label + '.RHO'
+        """Read the density if it is there."""
+        filename = os.path.join(self.directory, self.label + '.RHO')
         if isfile(filename):
             self.results['density'] = read_rho(filename)
 
     def read_number_of_grid_points(self):
-        """Read number of grid points from SIESTA's text-output file.
-        """
-        with open(self.label + '.out', 'r') as f:
+        """Read number of grid points from SIESTA's text-output file. """
+        
+        fname = os.path.join(self.directory, self.label + '.out')
+        with open(fname, 'r') as f:
             for line in f:
                 line = line.strip().lower()
                 if line.startswith('initmesh: mesh ='):
@@ -821,7 +834,8 @@ class BaseSiesta(FileIOCalculator):
     def read_energy(self):
         """Read energy from SIESTA's text-output file.
         """
-        with open(self.label + '.out', 'r') as f:
+        fname = os.path.join(self.directory, self.label + '.out')
+        with open(fname, 'r') as f:
             text = f.read().lower()
 
         assert 'final energy' in text
@@ -842,7 +856,8 @@ class BaseSiesta(FileIOCalculator):
     def read_forces_stress(self):
         """Read the forces and stress from the FORCE_STRESS file.
         """
-        with open('FORCE_STRESS', 'r') as f:
+        fname = os.path.join(self.directory, 'FORCE_STRESS')
+        with open(fname, 'r') as f:
             lines = f.readlines()
 
         stress_lines = lines[1:4]
@@ -870,11 +885,12 @@ class BaseSiesta(FileIOCalculator):
         """Read eigenvalues from the '.EIG' file.
         This is done pr. kpoint.
         """
-        assert os.access(self.label + '.EIG', os.F_OK)
-        assert os.access(self.label + '.KP', os.F_OK)
+        fname_woext = os.path.join(self.directory, self.label)
+        assert os.access(fname_woext + '.EIG', os.F_OK)
+        assert os.access(fname_woext + '.KP', os.F_OK)
 
         # Read k point weights
-        text = open(self.label + '.KP', 'r').read()
+        text = open(fname_woext + '.KP', 'r').read()
         lines = text.split('\n')
         n_kpts = int(lines[0].strip())
         self.weights = np.zeros((n_kpts,))
@@ -883,7 +899,7 @@ class BaseSiesta(FileIOCalculator):
             self.weights[i] = float(l[4])
 
         # Read eigenvalues and fermi-level
-        with open(self.label + '.EIG', 'r') as f:
+        with open(fname_woext + '.EIG', 'r') as f:
             text = f.read()
         lines = text.split('\n')
         e_fermi = float(lines[0].split()[0])
@@ -914,7 +930,8 @@ class BaseSiesta(FileIOCalculator):
         """Read dipole moment.
         """
         dipole = np.zeros([1, 3])
-        with open(self.label + '.out', 'r') as f:
+        fname_woext = os.path.join(self.directory, self.label)
+        with open(fname_woext + '.out', 'r') as f:
             for line in f:
                 if line.rfind('Electric dipole (Debye)') > -1:
                     dipole = np.array([float(f) for f in line.split()[5:8]])
