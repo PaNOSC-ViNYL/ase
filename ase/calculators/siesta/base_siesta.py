@@ -742,7 +742,7 @@ class BaseSiesta(FileIOCalculator):
             self.results['hsx'] = readHSX(filename)
         else:
             warnings.warn(filename + """ does not exist =>
-                                     sieta.results["hsx"]=None""",
+                                     siesta.results["hsx"]=None""",
                                      UserWarning)
             self.results['hsx'] = None
 
@@ -762,7 +762,7 @@ class BaseSiesta(FileIOCalculator):
             self.results['dim'] = readDIM(filename)
         else:
             warnings.warn(filename + """ does not exist =>
-                                     sieta.results["dim"]=None""",
+                                     siesta.results["dim"]=None""",
                                      UserWarning)
             self.results['dim'] = None
 
@@ -782,7 +782,7 @@ class BaseSiesta(FileIOCalculator):
             self.results['pld'] = readPLD(filename, norb, natms)
         else:
             warnings.warn(filename + """ does not exist =>
-                                     sieta.results["pld"]=None""",
+                                     siesta.results["pld"]=None""",
                                      UserWarning)
             self.results['pld'] = None
 
@@ -807,7 +807,7 @@ class BaseSiesta(FileIOCalculator):
         else:
             filename = fname_woext + '.WFSX or ' + fname_woext + '.fullBZ.WFSX'
             warnings.warn(filename + """ does not exist =>
-                                     sieta.results["wfsx"]=None""",
+                                     siesta.results["wfsx"]=None""",
                                      UserWarning)
             self.results['wfsx'] = None
 
