@@ -834,7 +834,7 @@ class BaseSiesta(FileIOCalculator):
         """Read energy from SIESTA's text-output file.
         """
         fname = os.path.join(self.directory, self.label + '.out')
-        with open(self.label + '.out', 'r') as f:
+        with open(fname, 'r') as f:
             text = f.read().lower()
 
         assert 'final energy' in text
