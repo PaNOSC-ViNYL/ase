@@ -331,7 +331,8 @@ class BaseSiesta(FileIOCalculator):
         # Here a test to check if the potential are in the right place!!!
         except RuntimeError as e:
             try:
-                with open(self.label + '.out', 'r') as f:
+                fname = os.path.join(self.directory, self.label+'.out')
+                with open(fname, 'r') as f:
                     lines = f.readlines()
                 debug_lines = 10
                 print('##### %d last lines of the Siesta output' % debug_lines)
@@ -446,7 +447,7 @@ class BaseSiesta(FileIOCalculator):
 
     def remove_analysis(self):
         """ Remove all analysis files"""
-        filename = self.label + '.RHO'
+        filename = os.path.join(self.directory, self.label + '.RHO')
         if os.path.exists(filename):
             os.remove(filename)
 
@@ -701,10 +702,10 @@ class BaseSiesta(FileIOCalculator):
             if spec['pseudopotential'] is None:
                 if self.pseudo_qualifier() == '':
                     label = symbol
-                    pseudopotential = label + '.psf'
+                    pseudopotential = os.path.join(self.directory, label + '.psf')
                 else:
                     label = '.'.join([symbol, self.pseudo_qualifier()])
-                    pseudopotential = label + '.psf'
+                    pseudopotential = os.path.join(self.directory, label + '.psf')
             else:
                 pseudopotential = spec['pseudopotential']
                 label = os.path.basename(pseudopotential)
@@ -721,7 +722,7 @@ class BaseSiesta(FileIOCalculator):
             label = '.'.join(np.array(name.split('.'))[:-1])
 
             if label not in self.results['ion']:
-                fname = label + '.ion.xml'
+                fname = os.path.join(self.directory, label + '.ion.xml')
                 self.results['ion'][label] = get_ion(fname)
 
     def read_hsx(self):
@@ -736,7 +737,7 @@ class BaseSiesta(FileIOCalculator):
         import warnings
         from ase.calculators.siesta.import_functions import readHSX
 
-        filename = self.label + '.HSX'
+        filename = os.path.join(self.directory, self.label + '.HSX')
         if isfile(filename):
             self.results['hsx'] = readHSX(filename)
         else:
@@ -756,11 +757,11 @@ class BaseSiesta(FileIOCalculator):
         import warnings
         from ase.calculators.siesta.import_functions import readDIM
 
-        filename = self.label + '.DIM'
+        filename = os.path.join(self.directory, self.label + '.DIM')
         if isfile(filename):
             self.results['dim'] = readDIM(filename)
         else:
-            warnings.warn(filename + """does not exist =>
+            warnings.warn(filename + """ does not exist =>
                                      sieta.results["dim"]=None""",
                                      UserWarning)
             self.results['dim'] = None
@@ -776,7 +777,7 @@ class BaseSiesta(FileIOCalculator):
         import warnings
         from ase.calculators.siesta.import_functions import readPLD
 
-        filename = self.label + '.PLD'
+        filename = os.path.join(self.directory, self.label + '.PLD')
         if isfile(filename):
             self.results['pld'] = readPLD(filename, norb, natms)
         else:
@@ -794,7 +795,7 @@ class BaseSiesta(FileIOCalculator):
         import warnings
         from ase.calculators.siesta.import_functions import readWFSX
         
-        fname_woext = os.path.join(self.directory, self.label + '.out')
+        fname_woext = os.path.join(self.directory, self.label)
 
         if isfile(fname_woext + '.WFSX'):
             filename = fname_woext + '.WFSX'
@@ -884,7 +885,7 @@ class BaseSiesta(FileIOCalculator):
         """Read eigenvalues from the '.EIG' file.
         This is done pr. kpoint.
         """
-        fname_woext = os.path.join(self.directory, self.label + '.out')
+        fname_woext = os.path.join(self.directory, self.label)
         assert os.access(fname_woext + '.EIG', os.F_OK)
         assert os.access(fname_woext + '.KP', os.F_OK)
 
@@ -929,7 +930,7 @@ class BaseSiesta(FileIOCalculator):
         """Read dipole moment.
         """
         dipole = np.zeros([1, 3])
-        fname_woext = os.path.join(self.directory, self.label + '.out')
+        fname_woext = os.path.join(self.directory, self.label)
         with open(fname_woext + '.out', 'r') as f:
             for line in f:
                 if line.rfind('Electric dipole (Debye)') > -1:
