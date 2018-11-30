@@ -342,6 +342,14 @@ class BaseSiesta(FileIOCalculator):
             except:
                 raise e
 
+    def set_directory(self, directory='.'):
+        """Set directory in which the calculation will be setup.
+
+        This is the most transparent solution for SIESTA calculator for which 
+        label should be a filename without path."""
+
+        self.directory = directory
+        
     def write_input(self, atoms, properties=None, system_changes=None):
         """Write input (fdf)-file.
         See calculator.py for further details.
@@ -361,7 +369,7 @@ class BaseSiesta(FileIOCalculator):
         if system_changes is None and properties is None:
             return
 
-        filename = self.label + '.fdf'
+        filename = os.path.join(self.directory, self.label+'.fdf')
 
         # On any changes, remove all analysis files.
         if system_changes is not None:
@@ -595,12 +603,14 @@ class BaseSiesta(FileIOCalculator):
             if spec['ghost']:
                 name.insert(-1, 'ghost')
                 atomic_number = -atomic_number
-            name = self.directory+"/"+'.'.join(name)
+
+            name = '.'.join(name)
+            symlinkname = self.directory+"/"+name
 
             if join(os.getcwd(), name) != pseudopotential:
-                if islink(name) or isfile(name):
-                    os.remove(name)
-                os.symlink(pseudopotential, name)
+                if islink(symlinkname) or isfile(symlinkname):
+                    os.remove(symlinkname)
+                os.symlink(pseudopotential, symlinkname)
 
             if not spec['excess_charge'] is None:
                 atomic_number += 200
