@@ -9,8 +9,7 @@ Git master branch
 
 :git:`master <>`.
 
-* No changes yet
-
+* Multiple improvements to the ONETEP Calculator. Input files can now be written that specify LDOS, bsunfolding and many other functionalities.
 
 Version 3.17.0
 ==============
