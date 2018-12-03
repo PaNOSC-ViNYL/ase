@@ -46,6 +46,7 @@ class NWChem(FileIOCalculator, EigenvalOccupationMixin):
         ecp=None,
         so=None,
         spinorbit=False,
+        tddft=False,
         odft=False,
         raw='')  # additional outside of dft block control string
 
@@ -110,14 +111,23 @@ class NWChem(FileIOCalculator, EigenvalOccupationMixin):
         else:
             if p.spinorbit:
                 task = 'sodft'
+            elif p.tddft:
+                task = 'tddft'
             else:
                 task = 'dft'
             xc = {'LDA': 'slater pw91lda',
                   'PBE': 'xpbe96 cpbe96',
                   'revPBE': 'revpbe cpbe96',
-                  'RPBE': 'rpbe cpbe96'}.get(p.xc, p.xc)
-            f.write('\n' + task + '\n')
+                  'RPBE': 'rpbe cpbe96',
+                  'CAM-B3LYP': 'xcamb88 1.00 lyp 0.81 vwn_5 0.19 hfexch 1.00'}.get(p.xc, p.xc)
+            if p.tddft:
+               f.write('\n' + 'dft' + '\n')
+            else: 
+               f.write('\n' + task + '\n')
             f.write('  xc ' + xc + '\n')
+            if p.xc == 'CAM-B3LYP':
+               f.write('  cam 0.33 cam_alpha 0.19 cam_beta 0.46\n')
+               f.write('  direct\n')
             for key in p.convergence:
                 if p.convergence[key] is not None:
                     if key == 'lshift':
@@ -150,7 +160,7 @@ class NWChem(FileIOCalculator, EigenvalOccupationMixin):
             for key in sorted(p.keys()):
                 if key in ['charge', 'geometry', 'basis', 'basispar', 'ecp',
                            'so', 'xc', 'spinorbit', 'convergence', 'smearing',
-                           'raw', 'mult', 'task', 'odft']:
+                           'raw', 'mult', 'task', 'odft', 'tddft']:
                     continue
                 f.write(u"  {0} {1}\n".format(key, p[key]))
             f.write('end\n')
@@ -188,6 +198,9 @@ class NWChem(FileIOCalculator, EigenvalOccupationMixin):
         if self.parameters.task.find('gradient') > -1:
             self.read_forces()
         if self.parameters.task.find('optimize') > -1:
+            self.read_coordinates()
+            self.read_forces()
+        if self.parameters.task.find('qmd') > -1:
             self.read_coordinates()
             self.read_forces()
         self.niter = self.read_number_of_iterations()
@@ -281,6 +294,15 @@ class NWChem(FileIOCalculator, EigenvalOccupationMixin):
         for line in lines:
             if line.find(estring) >= 0:
                 energy = float(line.split()[-1])
+
+        # Excited state energy replaces ground state, if present
+        if (self.parameters.tddft):
+            lines = text.split('\n')
+            estring = 'Excited state energy'
+            for line in lines:
+                if line.find(estring) >= 0:
+                    energy = float(line.split()[-1])
+
         self.results['energy'] = energy * Hartree
 
         # All lines have been 'eaten' while iterating; loop from scratch.

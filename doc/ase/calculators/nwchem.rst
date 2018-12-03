@@ -98,6 +98,7 @@ keyword         type     default value            description
 ``basispar``             ``None``
 ``ecp``                  ``None``
 ``so``                   ``None``
+``tddft``                ``None``                 Enable time-dependent DFT
 ``spinorbit``            ``None``                 Use spin-orbit DFT module.
 ``odft``                 ``None``                 Use open-shell (spin-polarized)
                                                   DFT.
