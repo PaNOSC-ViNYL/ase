@@ -199,7 +199,8 @@ class LAMMPS:
 
         # set LAMMPS command from environment variable
         if 'LAMMPS_COMMAND' in os.environ:
-            lammps_cmd_line = shlex.split(os.environ['LAMMPS_COMMAND'])
+            lammps_cmd_line = shlex.split(os.environ['LAMMPS_COMMAND'],
+                                          posix=(os.name == 'posix'))
             if len(lammps_cmd_line) == 0:
                 self.clean()
                 raise RuntimeError('The LAMMPS_COMMAND environment variable '
@@ -213,9 +214,11 @@ class LAMMPS:
             raise RuntimeError(
                 'Please set LAMMPS_COMMAND environment variable')
         if 'LAMMPS_OPTIONS' in os.environ:
-            lammps_options = shlex.split(os.environ['LAMMPS_OPTIONS'])
+            lammps_options = shlex.split(os.environ['LAMMPS_OPTIONS'],
+                                         posix=(os.name == 'posix'))
         else:
-            lammps_options = shlex.split('-echo log -screen none')
+            lammps_options = shlex.split('-echo log -screen none',
+                                         posix=(os.name == 'posix'))
 
         # change into subdirectory for LAMMPS calculations
         cwd = os.getcwd()
