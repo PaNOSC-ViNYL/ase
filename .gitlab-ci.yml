@@ -10,7 +10,6 @@ python_2_7_tests:
   image: python:2.7
   script:
     - pip install numpy scipy matplotlib flask psycopg2-binary
-    - pip install netCDF4
     # using "install from source" instructions
     - export PATH=$PATH:$CI_PROJECT_DIR/bin
     - echo $PATH
@@ -36,7 +35,7 @@ python_3_oldlibs_tests:
 python_3_tests:
   image: python:3-slim
   script:
-    - pip install pyflakes psycopg2-binary
+    - pip install pyflakes psycopg2-binary netCDF4
     - pip install .
     - python --version
     - ase test --strict
