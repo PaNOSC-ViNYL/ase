@@ -711,8 +711,7 @@ Version 3.5.1
 
 24 May 2011: :git:`3.5.1 <../3.5.1>`.
 
-* Problem with parallel vibration calculations fixed:
-  `Ticket #80 <https://trac.fysik.dtu.dk/projects/ase/ticket/80>`_.
+* Problem with parallel vibration calculations fixed.
 
 
 Version 3.5.0

@@ -33,9 +33,7 @@ Known bugs
 ----------
 
 * `A list of known bugs`_.
-* `Very old bugs`_.
 
 
 .. _issue tracker:
 .. _A list of known bugs: https://gitlab.com/ase/ase/issues
-.. _Very old bugs: http://trac.fysik.dtu.dk/projects/ase/report/1
