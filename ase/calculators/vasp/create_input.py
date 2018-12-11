@@ -1232,7 +1232,7 @@ class GenerateVaspInput(object):
                 pass
             elif key == 'magmom':
                 if not len(val) == len(atoms):
-                    msg = ('Expember length of magmom tag is'
+                    msg = ('Expected length of magmom tag to be'
                            ' {}, i.e. 1 value per atom, but got {}').format(
                                len(atoms), len(val))
                     raise ValueError(msg)
