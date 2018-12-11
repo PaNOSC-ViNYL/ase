@@ -965,7 +965,7 @@ class GenerateVaspInput(object):
         self.natoms = len(atoms)
 
         self.spinpol = (atoms.get_initial_magnetic_moments().any()
-                        or self.int_params.get('ispin', 1) == 2)
+                        or self.int_params['ispin'] == 2)
         atomtypes = atoms.get_chemical_symbols()
 
         # Determine the number of atoms of each atomic species
@@ -1237,7 +1237,8 @@ class GenerateVaspInput(object):
                                len(atoms), len(val))
                     raise ValueError(msg)
 
-                # Check if user remembered to make calculation spinpolarized
+                # Check if user remembered to specify ispin
+                # note: we do not overwrite ispin if ispin=1
                 if not self.int_params['ispin']:
                     self.spinpol = True
                     incar.write(' ispin = 2\n'.upper())
