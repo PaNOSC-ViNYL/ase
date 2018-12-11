@@ -963,7 +963,9 @@ class GenerateVaspInput(object):
         self.check_xc()
         self.all_symbols = atoms.get_chemical_symbols()
         self.natoms = len(atoms)
-        self.spinpol = atoms.get_initial_magnetic_moments().any()
+
+        self.spinpol = (atoms.get_initial_magnetic_moments().any()
+                        or self.int_params['ispin'] == 2)
         atomtypes = atoms.get_chemical_symbols()
 
         # Determine the number of atoms of each atomic species
@@ -1229,22 +1231,39 @@ class GenerateVaspInput(object):
                   (self.dict_params['ldau_luj'] is not None)):
                 pass
             elif key == 'magmom':
+                if not len(val) == len(atoms):
+                    msg = ('Expected length of magmom tag to be'
+                           ' {}, i.e. 1 value per atom, but got {}').format(
+                               len(atoms), len(val))
+                    raise ValueError(msg)
+
+                # Check if user remembered to specify ispin
+                # note: we do not overwrite ispin if ispin=1
+                if not self.int_params['ispin']:
+                    self.spinpol = True
+                    incar.write(' ispin = 2\n'.upper())
+
                 incar.write(' %s = ' % key.upper())
                 magmom_written = True
                 # Work out compact a*x b*y notation and write in this form
-                list = [[1, val[0]]]
+                # Assume 1 magmom per atom, ordered as our atoms object
+
+                val = val[self.sort]  # Order in VASP format
+
+                # Compactify the magmom list to symbol order
+                lst = [[1, val[0]]]
                 for n in range(1, len(val)):
                     if val[n] == val[n - 1]:
-                        list[-1][0] += 1
+                        lst[-1][0] += 1
                     else:
-                        list.append([1, val[n]])
-                    [incar.write('%i*%.4f ' % (mom[0], mom[1]))
-                     for mom in list]
-                    incar.write('\n')
+                        lst.append([1, val[n]])
+                incar.write(' '.join(['{:d}*{:.4f}'.format(mom[0], mom[1])
+                                      for mom in lst]))
+                incar.write('\n')
             else:
-                    incar.write(' %s = ' % key.upper())
-                    [incar.write('%.4f ' % x) for x in val]
-                    incar.write('\n')
+                incar.write(' %s = ' % key.upper())
+                [incar.write('%.4f ' % x) for x in val]
+                incar.write('\n')
 
         for key, val in self.bool_params.items():
             if val is not None:
@@ -1278,7 +1297,11 @@ class GenerateVaspInput(object):
                     incar.write(' LDAUU =%s\n' % ulist)
                     incar.write(' LDAUJ =%s\n' % jlist)
 
-        if self.spinpol and not magmom_written:
+        if (self.spinpol
+            and not magmom_written
+            # We don't want to write magmoms if they are all 0.
+            # but we could still be doing a spinpol calculation
+            and atoms.get_initial_magnetic_moments().any()):
             if not self.int_params['ispin']:
                 incar.write(' ispin = 2\n'.upper())
             # Write out initial magnetic moments
