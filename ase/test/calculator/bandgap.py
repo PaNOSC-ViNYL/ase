@@ -19,7 +19,6 @@ def run(name):
     par = required.get(name, {})
     calc = Calculator(label=name + '_bandgap', xc='PBE',
                       # abinit, aims, elk - do not recognize the syntax below:
-                      # https://trac.fysik.dtu.dk/projects/ase/ticket/98
                       # kpts={'size': kpts, 'gamma': True}, **par)
                       kpts=kpts, **par)
     si = bulk('Si', crystalstructure='diamond', a=5.43)
@@ -30,7 +29,6 @@ def run(name):
     # test spin-polarization
     calc = Calculator(label=name + '_bandgap_spinpol', xc='PBE',
                       # abinit, aims, elk - do not recognize the syntax below:
-                      # https://trac.fysik.dtu.dk/projects/ase/ticket/98
                       # kpts={'size': kpts, 'gamma': True}, **par)
                       kpts=kpts, **par)
     si.set_initial_magnetic_moments([-0.1, 0.1])
@@ -46,7 +44,6 @@ def run(name):
 
 
 # gpaw does not conform to the new ase interface standard:
-# https://trac.fysik.dtu.dk/projects/gpaw/ticket/268
 names = ['abinit', 'aims', 'elk', 'openmx']  # , 'gpaw']
 for name in names:
     try:
