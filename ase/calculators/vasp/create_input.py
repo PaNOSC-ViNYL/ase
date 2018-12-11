@@ -1232,19 +1232,41 @@ class GenerateVaspInput(object):
                 incar.write(' %s = ' % key.upper())
                 magmom_written = True
                 # Work out compact a*x b*y notation and write in this form
-                list = [[1, val[0]]]
-                for n in range(1, len(val)):
-                    if val[n] == val[n - 1]:
-                        list[-1][0] += 1
-                    else:
-                        list.append([1, val[n]])
-                    [incar.write('%i*%.4f ' % (mom[0], mom[1]))
-                     for mom in list]
-                    incar.write('\n')
+                if len(val) == len(atoms):
+                    # Assume 1 magmom per atom, ordered as our atoms object
+                    val = val[self.sort]  # Order in VASP format
+
+                    # Compactify the magmom list to symbol order
+                    lst = [[1, val[0]]]
+                    for n in range(1, len(val)):
+                        if val[n] == val[n - 1]:
+                            lst[-1][0] += 1
+                        else:
+                            lst.append([1, val[n]])
+                    momstr = ' '.join(['{:d}*{:.4f}'.format(mom[0], mom[1])
+                                       for mom in lst])
+
+                elif len(val) == len(self.symbol_count):
+                    # Assume the user wrote the magmoms
+                    # in the correct VASP order.
+                    # 1 entry per atom symbol, ordered as in the POSCAR
+
+                    momstr = ' '.join(['{:d}*{:.4f}'.format(nat, mom)
+                                       for mom, (_, nat)
+                                       in zip(val, self.symbol_count)])
+                else:
+                    msg = ('Expember len of magmom is'
+                           ' either {} or {}, got {}').format(
+                               len(atoms), len(self.symbol_count),
+                               len(val))
+                    raise ValueError(msg)
+
+                incar.write(momstr)
+                incar.write('\n')
             else:
-                    incar.write(' %s = ' % key.upper())
-                    [incar.write('%.4f ' % x) for x in val]
-                    incar.write('\n')
+                incar.write(' %s = ' % key.upper())
+                [incar.write('%.4f ' % x) for x in val]
+                incar.write('\n')
 
         for key, val in self.bool_params.items():
             if val is not None:
