@@ -1289,6 +1289,7 @@ class GenerateVaspInput(object):
                     # User didn't turn on LDAU tag.
                     # Only turn on if ldau is unspecified
                     if self.bool_params['ldau'] is None:
+                        self.bool_params['ldau'] = True
                         incar.write(' LDAU = .TRUE.\n')
                     llist = ulist = jlist = ''
                     for symbol in self.symbol_count:
