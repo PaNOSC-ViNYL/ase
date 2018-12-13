@@ -45,6 +45,7 @@ python_3_tests:
 conda_tests:
    image: continuumio/anaconda3
    script:
+     - apt-get update
      - apt-get install -yq libgl1-mesa-glx
      - conda install -yq pip wheel numpy scipy pyflakes matplotlib flask
      - pip install .
