@@ -100,6 +100,7 @@ keyword         type       default value   description
 ``sigma``       ``float``                  Width of smearing
 ``nelm``        ``int``                    Maximum number of
                                            SC-iterations
+``ldau_luj``    ``dict``                   LD(S)A+U parameters
 ==============  =========  ==============  ============================
 
 For parameters in the list without default value given, VASP will set
