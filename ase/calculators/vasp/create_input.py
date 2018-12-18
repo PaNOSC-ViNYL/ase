@@ -1290,6 +1290,7 @@ class GenerateVaspInput(object):
                     # Only turn on if ldau is unspecified
                     if self.bool_params['ldau'] is None:
                         self.bool_params['ldau'] = True
+                        # At this point we have already parsed our bool params
                         incar.write(' LDAU = .TRUE.\n')
                     llist = ulist = jlist = ''
                     for symbol in self.symbol_count:
